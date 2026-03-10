@@ -163,9 +163,27 @@ body {
   color: transparent;
 }
 
-.spotlight-bg {
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.12) 0%, transparent 75%);
-  filter: blur(50px);
+.light-beam {
+  position: absolute;
+  top: -20%;
+  width: 400px;
+  height: 140%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.light-beam-left {
+  left: -10%;
+  transform: rotate(-35deg);
+  transform-origin: top center;
+}
+
+.light-beam-right {
+  right: -10%;
+  transform: rotate(35deg);
+  transform-origin: top center;
 }
 
 .hero-grid {

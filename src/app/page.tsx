@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Instagram, Twitter, Facebook, Linkedin, ChevronLeft, ChevronRight, ArrowDown } from "lucide-react";
+import { Instagram, Twitter, Facebook, Linkedin, ChevronLeft, ChevronRight, ArrowDown, Sparkles, ShieldCheck, Droplets, Globe, Palette, ArrowUpRight } from "lucide-react";
 
 export default function Home() {
   return (
@@ -41,8 +41,9 @@ export default function Home() {
             </motion.div>
 
             <div className="relative flex justify-center items-center h-full">
-              {/* Enhanced Spotlight Effect - Centered */}
-              <div className="absolute spotlight-bg w-[700px] h-[700px] rounded-full z-0 opacity-80" />
+              {/* Dual Diagonal Spotlight Beams */}
+              <div className="light-beam light-beam-left" />
+              <div className="light-beam light-beam-right" />
 
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -116,34 +117,149 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section 2: About Us */}
-      <section id="about" className="section bg-black px-12 md:px-32">
-        <div className="w-full max-w-6xl space-y-20">
-          <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tighter mb-4">About Us</h2>
-            <p className="text-gold text-[10px] uppercase tracking-[0.4em]">Scent in its purest state.</p>
+      {/* Section 2: About Us (Redesigned Grid) */}
+      <section id="about" className="section bg-black px-8 md:px-24 relative overflow-hidden flex items-center justify-center">
+
+        <div className="relative z-10 w-full max-w-6xl">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-center">
+
+            {/* Left: Heading Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              viewport={{ once: true }}
+              className="md:col-span-5 space-y-6 pt-4"
+            >
+              <div className="space-y-3">
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: 48 }}
+                  transition={{ duration: 1, delay: 0.5 }}
+                  viewport={{ once: true }}
+                  className="h-[2px] bg-gold"
+                />
+                <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight text-white">
+                  THE ART<br />
+                  <span className="text-gold">OF SCENT</span>
+                </h2>
+              </div>
+              <p className="text-white/40 text-[13px] leading-relaxed max-w-sm font-light">
+                7th October is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design.
+              </p>
+
+              <div className="hidden md:block pt-4">
+                <p className="text-white/20 text-[9px] uppercase tracking-[0.4em]">Scent in its purest state.</p>
+              </div>
+            </motion.div>
+
+            {/* Right: Info Cards Grid */}
+            <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+              {/* Card 1 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                viewport={{ once: true }}
+                className="bg-white/[0.03] border border-white/5 p-8 rounded-3xl hover:border-gold/30 transition-all group backdrop-blur-sm"
+              >
+                <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mb-4 border border-gold/20 group-hover:bg-gold/20 transition-colors">
+                  <Sparkles className="w-4 h-4 text-gold" />
+                </div>
+                <h3 className="text-white font-bold text-base mb-1.5">Rare Infusions</h3>
+                <p className="text-white/40 text-[12px] leading-relaxed">
+                  Harnessing the Obsidian series for an unmatched olfactory depth.
+                </p>
+              </motion.div>
+
+              {/* Card 2 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                viewport={{ once: true }}
+                className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl hover:border-gold/30 transition-all group backdrop-blur-sm"
+              >
+                <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mb-4 border border-gold/20 group-hover:bg-gold/20 transition-colors">
+                  <Palette className="w-4 h-4 text-gold" />
+                </div>
+                <h3 className="text-white font-bold text-base mb-1.5">Artisanal Craft</h3>
+                <p className="text-white/40 text-[12px] leading-relaxed">
+                  Each bottle is hand-poured with precision in our distillery.
+                </p>
+              </motion.div>
+
+              {/* Card 3 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                viewport={{ once: true }}
+                className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl hover:border-gold/30 transition-all group backdrop-blur-sm"
+              >
+                <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mb-4 border border-gold/20 group-hover:bg-gold/20 transition-colors">
+                  <Droplets className="w-4 h-4 text-gold" />
+                </div>
+                <h3 className="text-white font-bold text-base mb-1.5">Pure Integrity</h3>
+                <p className="text-white/40 text-[12px] leading-relaxed">
+                  No synthetic fillers—just the evocative power of nature.
+                </p>
+              </motion.div>
+
+              {/* Card 4 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                viewport={{ once: true }}
+                className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl hover:border-gold/30 transition-all group backdrop-blur-sm"
+              >
+                <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mb-4 border border-gold/20 group-hover:bg-gold/20 transition-colors">
+                  <ShieldCheck className="w-4 h-4 text-gold" />
+                </div>
+                <h3 className="text-white font-bold text-base mb-1.5">Modern Design</h3>
+                <p className="text-white/40 text-[12px] leading-relaxed">
+                  Where advanced technology meets architectural design.
+                </p>
+              </motion.div>
+
+              {/* Card 5 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                viewport={{ once: true }}
+                className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl hover:border-gold/30 transition-all group backdrop-blur-sm sm:col-span-2"
+              >
+                <div className="flex items-center gap-6">
+                  <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center border border-gold/20 group-hover:bg-gold/20 transition-colors shrink-0">
+                    <Globe className="w-4 h-4 text-gold" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-base mb-1">Global Heritage</h3>
+                    <p className="text-white/40 text-[12px] leading-relaxed">
+                      Sourcing the world&apos;s most elusive botanicals for an exceptional experience.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 text-sm text-white/40 leading-relaxed font-light">
-            <p>
-              7th October is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions like the Obsidian series. Founded in 2024, the brand blends advanced distillation and elegant design to create an exceptional olfactory experience.
-            </p>
-            <p>
-              We are recognized for our premium products and captivating aesthetics, earning acclaim for the unique fusion of superior aromatic quality and appealing design. As a leader in the luxury niche industry, the brand continues to combine top-tier scent technology with beautiful design.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 gallery-grid h-64">
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden relative group">
-              <Image src="/Pic_1.png" alt="Process" fill className="object-cover opacity-50 group-hover:opacity-100 transition-all" />
-            </div>
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden relative group">
-              <Image src="/Pic_1.png" alt="Workshop" fill className="object-cover opacity-50 group-hover:opacity-100 transition-all" />
-            </div>
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden relative group">
-              <Image src="/Pic_1.png" alt="Showroom" fill className="object-cover opacity-50 group-hover:opacity-100 transition-all" />
-            </div>
-          </div>
+          {/* Bottom CTA Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.8 }}
+            viewport={{ once: true }}
+            className="mt-16 flex justify-center"
+          >
+            <button className="btn-premium-gold px-10 py-3 rounded-full flex items-center gap-3 text-[12px] font-black uppercase tracking-widest group">
+              Experience the Scent
+              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </button>
+          </motion.div>
         </div>
       </section>
 
@@ -184,28 +300,34 @@ export default function Home() {
           </div>
 
           {/* Collection Footer */}
-          <div className="absolute bottom-0 w-full flex justify-between items-end">
-            <div className="space-y-1">
-              <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">7TH OCTOBER<br />COLLECTION</h3>
+          <div className="absolute bottom-0 w-full grid grid-cols-3 items-end">
+            <div className="flex justify-start">
+              <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+                7TH OCTOBER<br />COLLECTION
+              </h3>
             </div>
 
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-40 h-[1px] bg-white/10 relative">
-                <div className="absolute top-0 left-0 w-8 h-full bg-gold" />
+            <div className="flex flex-col items-center gap-4 py-2">
+              <div className="w-32 h-[1px] bg-white/10 relative overflow-hidden">
+                <motion.div
+                  animate={{ x: ["-100%", "300%"] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute top-0 left-0 w-8 h-full bg-gold shadow-[0_0_10px_rgba(207,181,59,0.5)]"
+                />
               </div>
-              <div className="flex gap-4 text-[10px] uppercase tracking-[0.2em] font-bold">
-                <span className="text-gold">01</span>
-                <span className="text-white/20">02</span>
-                <span className="text-white/20">03</span>
-                <span className="text-white/20">04</span>
-                <span className="text-white/20">05</span>
+              <div className="flex gap-4 text-[11px] uppercase tracking-[0.3em] font-black">
+                <span className="text-gold cursor-pointer">01</span>
+                <span className="text-white/20 cursor-pointer hover:text-white/40 transition-colors">02</span>
+                <span className="text-white/20 cursor-pointer hover:text-white/40 transition-colors">03</span>
+                <span className="text-white/20 cursor-pointer hover:text-white/40 transition-colors">04</span>
+                <span className="text-white/20 cursor-pointer hover:text-white/40 transition-colors">05</span>
               </div>
             </div>
 
-            <div className="flex gap-6 text-[8px] uppercase tracking-widest text-white/30 font-bold">
-              <span>T&P</span>
-              <span>PR</span>
-              <span>TQ</span>
+            <div className="flex justify-end gap-6 text-[10px] uppercase tracking-[0.4em] text-white/30 font-black pb-2">
+              <span className="hover:text-gold transition-colors cursor-pointer">T&P</span>
+              <span className="hover:text-gold transition-colors cursor-pointer">PR</span>
+              <span className="hover:text-gold transition-colors cursor-pointer">TQ</span>
             </div>
           </div>
         </div>
