@@ -1,26 +1,254 @@
 @import "tailwindcss";
 
+@theme {
+  --color-gold: #cfb53b;
+  --color-gold-light: #e6d27e;
+  --color-gold-dark: #b8860b;
+  --color-black-pure: #000000;
+  --color-black-soft: #0a0a0a;
+
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #000000;
+  --foreground: #ffffff;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+}
+
+.section {
+  height: 100vh;
+  width: 100%;
+  scroll-snap-align: start;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.gold-text {
+  color: var(--color-gold);
+  background: linear-gradient(to right, #cfb53b, #f5e0a0, #cfb53b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-border {
+  border: 1px solid var(--color-gold);
+}
+
+.premium-kerning {
+  letter-spacing: 0.2em;
+}
+
+.minimal-frame {
+  position: relative;
+  border: 1px solid rgba(207, 181, 59, 0.2);
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+}
+
+.premium-container {
+  background: #111111;
+  border-radius: 3rem;
+  padding: 4rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.gold-button-filled {
+  background: linear-gradient(135deg, #cfb53b, #e6d27e);
+  color: #000;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(207, 181, 59, 0.3);
+}
+
+.gold-button-filled:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(207, 181, 59, 0.5);
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+  text-transform: capitalize;
+  letter-spacing: 0.05em;
+}
+
+.nav-link:hover {
+  color: #cfb53b;
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cfb53b;
+}
+
+.gold-button {
+  background: transparent;
+  color: var(--color-gold);
+  border: 1px solid var(--color-gold);
+  font-weight: 500;
+  padding: 1rem 2.5rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.gold-button:hover {
+  background: var(--color-gold);
+  color: #000;
+  box-shadow: 0 0 20px rgba(207, 181, 59, 0.3);
+}
+
+.devialet-bg {
+  background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%);
+  position: relative;
+}
+
+.devialet-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+.huge-title {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.15);
+  color: transparent;
+}
+
+.spotlight-bg {
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.12) 0%, transparent 75%);
+  filter: blur(50px);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+}
+
+.huge-title-solid {
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: white;
+  line-height: 0.8;
+}
+
+.platform-rack {
+  width: 320px;
+  height: 60px;
+  background: linear-gradient(to right, #050505 0%, #151515 20%, #202020 50%, #151515 80%, #050505 100%);
+  border-radius: 4px / 12px;
+  position: relative;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.95);
+}
+
+.platform-rack::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  background: radial-gradient(ellipse at center, #252525 0%, #0a0a0a 90%);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 1;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.platform-rack::after {
+  content: "";
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180%;
+  height: 60px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.8) 0%, transparent 75%);
+  filter: blur(25px);
+  z-index: -1;
+}
+
+.social-icons-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: absolute;
+  right: 4rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.gallery-grid img {
+  filter: grayscale(100%);
+  transition: filter 0.5s ease;
+}
+
+.gallery-grid img:hover {
+  filter: grayscale(0%);
+}
+
+.btn-premium-gold {
+  background: linear-gradient(135deg, #EAD69E 0%, #CFB53B 50%, #B8860B 100%);
+  background-size: 200% auto;
+  color: black;
+  box-shadow: 0 10px 25px -5px rgba(207, 181, 59, 0.4);
+  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  border: none !important;
+}
+
+.btn-premium-gold:hover {
+  background-position: right center;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px -5px rgba(207, 181, 59, 0.6);
+  filter: brightness(1.1);
 }
