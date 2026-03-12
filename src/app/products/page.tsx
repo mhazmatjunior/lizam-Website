@@ -163,8 +163,8 @@ export default function ProductListPage() {
                             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                             Return Home
                         </Link>
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none whitespace-nowrap">
-                            THE <span className="text-gold">COLLECTIONS</span>
+                        <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none whitespace-nowrap gold-text">
+                            THE COLLECTIONS
                         </h1>
                     </div>
 
@@ -193,7 +193,7 @@ export default function ProductListPage() {
                                 key={cat}
                                 onClick={() => setFilter(cat)}
                                 className={`px-8 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all border ${filter === cat
-                                    ? "bg-gold text-black border-gold font-black shadow-[0_10px_30px_rgba(207,181,59,0.2)]"
+                                    ? "bg-gold text-black border-gold font-black shadow-[0_10px_30px_rgba(212,175,55,0.3)]"
                                     : "bg-transparent border-white/10 text-white/70 hover:text-white hover:border-white/30"
                                     }`}
                             >
@@ -254,7 +254,7 @@ export default function ProductListPage() {
                                                 alt={product.name}
                                                 width={240}
                                                 height={300}
-                                                className="object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)] group-hover:drop-shadow-[0_30px_60px_rgba(207,181,59,0.1)] transition-all duration-700"
+                                                className="object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)] group-hover:drop-shadow-[0_30px_60px_rgba(212,175,55,0.15)] transition-all duration-700"
                                             />
                                         </div>
 

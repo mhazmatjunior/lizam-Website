@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gold: #cfb53b;
-  --color-gold-light: #e6d27e;
-  --color-gold-dark: #b8860b;
+  --color-gold: #D4AF37;
+  --color-gold-light: #F9E29C;
+  --color-gold-dark: #996515;
   --color-black-pure: #000000;
   --color-black-soft: #0a0a0a;
 
@@ -44,11 +44,12 @@ body {
 }
 
 .gold-text {
-  color: var(--color-gold);
-  background: linear-gradient(to right, #cfb53b, #f5e0a0, #cfb53b);
+  color: #D4AF37;
+  background: linear-gradient(to right, #996515, #D4AF37, #F9E29C, #D4AF37, #996515);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 1px rgba(212, 175, 55, 0.3));
 }
 
 .gold-border {
@@ -61,7 +62,7 @@ body {
 
 .minimal-frame {
   position: relative;
-  border: 1px solid rgba(207, 181, 59, 0.2);
+  border: 1px solid rgba(176, 141, 87, 0.2);
   padding: 2rem;
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(10px);
@@ -77,16 +78,18 @@ body {
 }
 
 .gold-button-filled {
-  background: linear-gradient(135deg, #cfb53b, #e6d27e);
-  color: #000;
-  font-weight: 600;
+  background: linear-gradient(135deg, #996515, #D4AF37, #F9E29C);
+  color: black;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
   padding: 0.75rem 2rem;
   border-radius: 9999px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 15px rgba(207, 181, 59, 0.3);
+  box-shadow: 0 10px 40px rgba(212, 175, 55, 0.3);
 }
 
 .gold-button-filled:hover {
@@ -135,7 +138,7 @@ body {
 .gold-button:hover {
   background: var(--color-gold);
   color: #000;
-  box-shadow: 0 0 20px rgba(207, 181, 59, 0.3);
+  box-shadow: 0 0 20px rgba(176, 141, 87, 0.3);
 }
 
 .devialet-bg {
@@ -256,17 +259,17 @@ body {
 }
 
 .btn-premium-gold {
-  background: linear-gradient(135deg, #EAD69E 0%, #CFB53B 50%, #B8860B 100%);
+  background: linear-gradient(135deg, #996515, #D4AF37, #996515);
   background-size: 200% auto;
   color: black;
-  box-shadow: 0 10px 25px -5px rgba(207, 181, 59, 0.4);
-  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  box-shadow: 0 15px 45px rgba(212, 175, 55, 0.25);
+  transition: 0.5s;
   border: none !important;
 }
 
 .btn-premium-gold:hover {
   background-position: right center;
   transform: translateY(-2px);
-  box-shadow: 0 15px 35px -5px rgba(207, 181, 59, 0.6);
+  box-shadow: 0 15px 35px -5px rgba(176, 141, 87, 0.6);
   filter: brightness(1.1);
 }
