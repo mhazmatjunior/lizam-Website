@@ -142,7 +142,7 @@ body {
 }
 
 .devialet-bg {
-  background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%);
+  background: #000000;
   position: relative;
 }
 
