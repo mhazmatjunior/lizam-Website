@@ -3,9 +3,11 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { Instagram, Twitter, Facebook, Linkedin, ChevronLeft, ChevronRight, ArrowDown, Sparkles, ShieldCheck, Droplets, Globe, Palette, ArrowUpRight } from "lucide-react";
+import { Instagram, Twitter, Facebook, Linkedin, ChevronLeft, ChevronRight, ArrowDown, Sparkles, ShieldCheck, Droplets, Globe, Palette, ArrowUpRight, ShoppingBag } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 
 export default function Home() {
+  const { setIsCartOpen, itemsCount } = useCart();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -22,11 +24,12 @@ export default function Home() {
   // Bottle Motion Logic
   const bottleX = useTransform(smoothProgress, [0, 0.45, 0.55, 0.85, 0.95], ["22vw", "-23vw", "-23vw", "0vw", "0vw"]);
   const bottleY = useTransform(smoothProgress, [0, 0.45, 0.55, 0.85, 0.95], ["0vh", "0vh", "0vh", "-4vh", "-4vh"]);
-  const bottleScale = useTransform(smoothProgress, [0, 0.45, 0.55, 0.85, 0.95], [1, 0.85, 0.85, 0.9, 0.9]);
+  const bottleScale = useTransform(smoothProgress, [0, 0.45, 0.55, 0.85, 0.95], [1, 0.85, 0.85, 0.7, 0.7]);
   const bottleRotateBase = useTransform(smoothProgress, [0, 0.45, 0.55, 0.85, 0.95], [0, -5, -5, 0, 0]);
-  const bottleOpacity = useTransform(smoothProgress, [0, 0.04, 0.08, 0.75, 0.85, 0.95], [0, 0, 1, 1, 1, 0]);
+  const bottleOpacity = useTransform(smoothProgress, [0, 0.08, 0.75, 0.85, 0.95], [1, 1, 1, 1, 0]);
 
-  const heroBottleOpacity = useTransform(smoothProgress, [0, 0.06], [1, 0]);
+  // Clean up legacy opacities as we are unifying
+  const heroBottleOpacity = 0; 
   const collectionBottleOpacity = useTransform(smoothProgress, [0, 0.8, 0.9], [0, 0, 1]);
 
   return (
@@ -42,14 +45,22 @@ export default function Home() {
         className="fixed top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none hidden md:block"
       >
         <motion.div
-          animate={{
+          initial={{ opacity: 0, scale: 0.7, x: 50, rotate: 10 }}
+          animate={{ 
+            opacity: 1, 
+            scale: 1, 
+            x: 0, 
+            rotate: 0,
             y: [0, -12, 0],
             rotateZ: [-3, 3, -3],
           }}
           transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut"
+            opacity: { duration: 1.5 },
+            scale: { duration: 2, ease: [0.22, 1, 0.36, 1] },
+            x: { duration: 2, ease: [0.22, 1, 0.36, 1] },
+            rotate: { duration: 2, ease: [0.22, 1, 0.36, 1] },
+            y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+            rotateZ: { duration: 6, repeat: Infinity, ease: "easeInOut" }
           }}
         >
           <Image
@@ -57,7 +68,7 @@ export default function Home() {
             alt="Travelling Perfume Bottle"
             width={500}
             height={700}
-            className="w-[320px] h-auto object-contain drop-shadow-[0_20px_50px_rgba(212,175,55,0.4)]"
+            className="w-[320px] h-auto object-contain drop-shadow-[20px_40px_80px_rgba(0,0,0,0.8)]"
             priority
           />
         </motion.div>
@@ -68,15 +79,31 @@ export default function Home() {
         <div className="absolute inset-0 hero-grid px-8 md:px-16 py-10">
           {/* Row 1: Navbar */}
           <header className="flex justify-between items-start z-50">
-            <div className="text-xl font-bold tracking-tighter">7TH OCTOBER</div>
+            <div className="text-xl font-bold tracking-tighter">RAANAI</div>
             <nav className="hidden md:flex gap-12 text-[10px] uppercase tracking-[0.3em] font-medium text-white/50 pt-2">
               <a href="#home" className="hover:text-gold transition-colors text-white">Home</a>
               <a href="#about" className="hover:text-gold transition-colors">About</a>
               <a href="#collection" className="hover:text-gold transition-colors">Collection</a>
             </nav>
-            <button className="btn-premium-gold text-[10px] uppercase tracking-[0.3em] font-extrabold px-8 py-2.5 rounded-full">
-              Buy Now
-            </button>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsCartOpen(true)}
+                className="relative p-3 bg-white/[0.03] border border-white/10 rounded-full hover:border-gold/50 transition-all group"
+              >
+                <ShoppingBag className="w-4 h-4 text-white/70 group-hover:text-gold transition-colors" />
+                {itemsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold text-black text-[8px] font-black rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(212,175,55,0.5)]">
+                        {itemsCount}
+                    </span>
+                )}
+              </button>
+              <button 
+                onClick={() => setIsCartOpen(true)}
+                className="btn-premium-gold text-[10px] uppercase tracking-[0.3em] font-extrabold px-8 py-2.5 rounded-full"
+              >
+                Buy Now
+              </button>
+            </div>
           </header>
 
           {/* Row 2: Body (Two Columns) */}
@@ -101,42 +128,14 @@ export default function Home() {
               <div className="light-beam light-beam-left" />
               <div className="light-beam light-beam-right" />
 
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1.5, delay: 0.2 }}
-                className="relative z-10 flex flex-col items-center"
+              <div
+                className="relative z-10 flex flex-col items-center opacity-0 pointer-events-none"
               >
-                <motion.div
-                  animate={{
-                    y: [0, -12, 0],
-                    rotateZ: [-3, 3, -3],
-                    filter: [
-                      "brightness(1) contrast(1)",
-                      "brightness(1.1) contrast(1.05)",
-                      "brightness(1) contrast(1)"
-                    ]
-                  }}
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="relative z-10"
-                  style={{ opacity: heroBottleOpacity }}
-                >
-                  <Image
-                    src="/Pic_1_Transparent.png"
-                    alt="7th October Bottle"
-                    width={340}
-                    height={440}
-                    className="object-contain drop-shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
-                    priority
-                  />
-                </motion.div>
+                {/* Reference point for layout, hidden but maintains spacing */}
+                <div className="w-[340px] h-[440px]" />
                 {/* Product Stand (Rack) - Now in flow for perfect contact */}
                 <div className="platform-rack mt-[-12px] z-0" />
-              </motion.div>
+              </div>
             </div>
           </div>
 
@@ -145,7 +144,7 @@ export default function Home() {
             {/* Left: Brand Statement */}
             <div className="max-w-[320px]">
               <p className="text-[14px] text-white/40 leading-relaxed font-normal tracking-wide">
-                Get your scent fit. Where luxury meets artisanal euphoria with 7th October.
+                Get your scent fit. Where luxury meets artisanal euphoria with Raanai.
               </p>
             </div>
 
@@ -207,11 +206,10 @@ export default function Home() {
                   viewport={{ once: true }}
                   className="h-[1px] bg-gold"
                 />
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tighter leading-none text-white uppercase font-serif whitespace-nowrap">
-                  THE ART <span className="gold-text">OF SCENT</span>
-                </h2>
-                <p className="text-white/40 text-[11px] leading-relaxed max-w-lg font-light pt-1">
-                  7th October is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design.
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">The House of RAANAI</h3>
+                <div className="w-10 h-[1px] bg-gold" />
+                <p className="text-[10px] text-white/30 uppercase tracking-[0.1em] leading-relaxed font-bold">
+                  Raanai is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design.
                 </p>
               </div>
 

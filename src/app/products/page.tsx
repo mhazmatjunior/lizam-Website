@@ -11,110 +11,16 @@ import {
     ArrowUpRight,
     Sparkles,
     Droplets,
-    Wind
+    Wind,
+    ChevronDown,
+    ShoppingBag
 } from 'lucide-react';
+import { useCart } from '@/context/CartContext';
 
 // --- Types ---
-interface Product {
-    id: number;
-    name: string;
-    price: number;
-    category: 'Obsidian' | 'Floral' | 'Woody' | 'Musk';
-    description: string;
-    notes: {
-        top: string;
-        heart: string;
-        base: string;
-    };
-    image: string;
-}
+import { type Product } from '@/data/products';
+import { useProducts } from '@/context/ProductContext';
 
-// --- Dummy Data ---
-const PRODUCTS: Product[] = [
-    {
-        id: 1,
-        name: "NOCTURNAL OUD",
-        price: 320,
-        category: 'Obsidian',
-        description: "A deep, smoky journey into the heart of the night.",
-        notes: { top: "Saffron", heart: "Oud Wood", base: "Black Leather" },
-        image: "/Pic_1_Transparent.png"
-    },
-    {
-        id: 2,
-        name: "VELVET ROSE",
-        price: 280,
-        category: 'Floral',
-        description: "The elegance of a midnight bloom, captured in glass.",
-        notes: { top: "Bergamot", heart: "Damask Rose", base: "Ambergris" },
-        image: "/Pic_1_Transparent.png"
-    },
-    {
-        id: 3,
-        name: "OBSIDIAN VII",
-        price: 450,
-        category: 'Obsidian',
-        description: "Our rarest infusion. Pure, architectural, unmatched.",
-        notes: { top: "Incense", heart: "Iris Root", base: "Sandalwood" },
-        image: "/Pic_1_Transparent.png"
-    },
-    {
-        id: 4,
-        name: "SILVER BIRCH",
-        price: 240,
-        category: 'Woody',
-        description: "Clean, crisp, and revitalizing like a morning forest.",
-        notes: { top: "Juniper", heart: "Silver Birch", base: "Oakmoss" },
-        image: "/Pic_1_Transparent.png"
-    },
-    {
-        id: 5,
-        name: "PURE MUSK",
-        price: 190,
-        category: 'Musk',
-        description: "A second skin of warmth and subtle attraction.",
-        notes: { top: "White Pepper", heart: "Cotton Bloom", base: "White Musk" },
-        image: "/Pic_1_Transparent.png"
-    },
-    {
-        id: 6,
-        name: "EMERALD VETIVER",
-        price: 260,
-        category: 'Woody',
-        description: "Earthy depth meeting the vibrance of fresh greens.",
-        notes: { top: "Citron", heart: "Vetiver", base: "Cedarwood" },
-        image: "/Pic_1_Transparent.png"
-    },
-    {
-        id: 7,
-        name: "GLACIER WATER",
-        price: 210,
-        category: 'Musk',
-        description: "The arctic chill meeting a warm horizon.",
-        notes: { top: "Sea Salt", heart: "Aldehydes", base: "Ambrette" },
-        image: "/Pic_1_Transparent.png"
-    },
-    {
-        id: 8,
-        name: "GOLDEN AMBER",
-        price: 340,
-        category: 'Obsidian',
-        description: "Liquid gold. Warm, resinous, and deeply opulent.",
-        notes: { top: "Labdanum", heart: "Benzoin", base: "Vanilla Bean" },
-        image: "/Pic_1_Transparent.png"
-    },
-    {
-        id: 9,
-        name: "NEROLI MIST",
-        price: 230,
-        category: 'Floral',
-        description: "The sun-drenched spirit of the Mediterranean.",
-        notes: { top: "Neroli", heart: "Orange Blossom", base: "Petitgrain" },
-        image: "/Pic_1_Transparent.png"
-    }
-];
-
-const CATEGORIES = ["All", "Obsidian", "Floral", "Woody", "Musk"];
 const SORT_OPTIONS = [
     { label: "Newest", value: "new" },
     { label: "Price: Low to High", value: "price_asc" },
@@ -122,12 +28,20 @@ const SORT_OPTIONS = [
 ];
 
 export default function ProductListPage() {
+    const { products } = useProducts();
+    const { addToCart, setIsCartOpen, itemsCount } = useCart();
     const [filter, setFilter] = useState("All");
     const [sortBy, setSortBy] = useState("new");
+    const [isSortOpen, setIsSortOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
+    const dynamicCategories = useMemo(() => {
+        const cats = ["All", ...new Set(products.map(p => p.category))];
+        return cats;
+    }, [products]);
+
     const filteredProducts = useMemo(() => {
-        let result = [...PRODUCTS];
+        let result = [...products];
 
         // Filter by Category
         if (filter !== "All") {
@@ -147,7 +61,7 @@ export default function ProductListPage() {
         }
 
         return result;
-    }, [filter, sortBy, searchQuery]);
+    }, [filter, sortBy, searchQuery, products]);
 
     return (
         <main className="min-h-screen bg-black text-white font-sans selection:bg-gold/30">
@@ -168,16 +82,31 @@ export default function ProductListPage() {
                         </h1>
                     </div>
 
-                    {/* Search & Meta */}
-                    <div className="relative w-full md:w-80 group">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 group-focus-within:text-gold transition-colors" />
-                        <input
-                            type="text"
-                            placeholder="SEARCH SCENTS..."
-                            className="w-full bg-white/[0.03] border border-white/10 rounded-full py-4 pl-14 pr-8 text-[10px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all placeholder:text-white/30"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+                    <div className="flex items-center gap-6">
+                        {/* Search & Meta */}
+                        <div className="relative w-full md:w-80 group">
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 group-focus-within:text-gold transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="SEARCH SCENTS..."
+                                className="w-full bg-white/[0.03] border border-white/10 rounded-full py-4 pl-14 pr-8 text-[10px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all placeholder:text-white/30"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+
+                        {/* Cart Trigger */}
+                        <button 
+                            onClick={() => setIsCartOpen(true)}
+                            className="relative p-4 bg-white/[0.03] border border-white/10 rounded-full hover:border-gold/50 transition-all group"
+                        >
+                            <ShoppingBag className="w-5 h-5 text-white/70 group-hover:text-gold transition-colors" />
+                            {itemsCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gold text-black text-[9px] font-black rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.5)]">
+                                    {itemsCount}
+                                </span>
+                            )}
+                        </button>
                     </div>
                 </div>
             </header>
@@ -188,7 +117,7 @@ export default function ProductListPage() {
 
                     {/* Categories */}
                     <div className="flex flex-wrap justify-center gap-3">
-                        {CATEGORIES.map((cat) => (
+                        {dynamicCategories.map((cat: string) => (
                             <button
                                 key={cat}
                                 onClick={() => setFilter(cat)}
@@ -203,17 +132,49 @@ export default function ProductListPage() {
                     </div>
 
                     {/* Sort */}
-                    <div className="flex items-center gap-4 group">
-                        <SlidersHorizontal className="w-4 h-4 text-gold/40 group-hover:text-gold transition-colors" />
-                        <select
-                            className="bg-transparent text-[10px] font-black uppercase tracking-[0.2em] focus:outline-none cursor-pointer text-white/80 hover:text-white transition-colors"
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
+                    <div className="relative">
+                        <button 
+                            onClick={() => setIsSortOpen(!isSortOpen)}
+                            className="flex items-center gap-4 group px-4 py-2 hover:bg-white/[0.03] rounded-xl transition-all"
                         >
-                            {SORT_OPTIONS.map(opt => (
-                                <option key={opt.value} value={opt.value} className="bg-black text-[12px]">{opt.label}</option>
-                            ))}
-                        </select>
+                            <SlidersHorizontal className="w-4 h-4 text-gold/40 group-hover:text-gold transition-colors" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80 group-hover:text-white transition-colors">
+                                {SORT_OPTIONS.find(opt => opt.value === sortBy)?.label}
+                            </span>
+                            <ChevronDown className={`w-3 h-3 text-white/30 transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        <AnimatePresence>
+                            {isSortOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setIsSortOpen(false)} />
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute right-0 mt-2 w-56 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden"
+                                    >
+                                        <div className="py-2">
+                                            {SORT_OPTIONS.map((opt) => (
+                                                <button
+                                                    key={opt.value}
+                                                    onClick={() => {
+                                                        setSortBy(opt.value);
+                                                        setIsSortOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-between group
+                                                        ${sortBy === opt.value ? 'bg-gold/10 text-gold' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                                >
+                                                    {opt.label}
+                                                    {sortBy === opt.value && <div className="w-1 h-1 rounded-full bg-gold shadow-[0_0_8px_#D4AF37]" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                </>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
             </section>
@@ -248,7 +209,7 @@ export default function ProductListPage() {
                                         </div>
 
                                         {/* Image Container */}
-                                        <div className="flex-grow flex items-center justify-center p-12 transition-all duration-700 group-hover:scale-105 group-hover:-translate-y-4">
+                                        <Link href={`/products/${product.id}`} className="flex-grow flex items-center justify-center p-12 transition-all duration-700 group-hover:scale-105 group-hover:-translate-y-4">
                                             <Image
                                                 src={product.image}
                                                 alt={product.name}
@@ -256,24 +217,30 @@ export default function ProductListPage() {
                                                 height={300}
                                                 className="object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)] group-hover:drop-shadow-[0_30px_60px_rgba(212,175,55,0.15)] transition-all duration-700"
                                             />
-                                        </div>
+                                        </Link>
 
                                         {/* Bottom Info (Always Visible) */}
                                         <div className="px-6 pb-6 pt-2 z-10 relative">
                                             <div className="flex justify-between items-end">
-                                                <div>
-                                                    <h3 className="text-lg font-bold tracking-tight text-white group-hover:text-gold transition-colors duration-300">{product.name}</h3>
-                                                    <p className="text-white/40 text-[8px] uppercase tracking-[0.4em] font-bold mt-1">L&apos;EAU DE PARFUM</p>
-                                                </div>
+                                                {/* Name & Title */}
+                                    <div className="space-y-1">
+                                        <Link href={`/products/${product.id}`} className="block group/title">
+                                            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-white/90 group-hover/title:text-gold transition-colors">{product.name}</h3>
+                                            <p className="text-[9px] text-white/30 uppercase tracking-[0.1em] font-bold">{product.category}</p>
+                                        </Link>
+                                    </div>
                                                 <div className="text-right">
-                                                    <span className="text-base font-black text-white/80 group-hover:text-gold transition-colors duration-300">${product.price}</span>
+                                                    <span className="text-base font-black text-white/80 group-hover:text-gold transition-colors duration-300">Rs {product.price.toLocaleString()}</span>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Overlaid Info (Revealed on Hover) */}
-                                        <div className="absolute inset-0 bg-black/90 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-center p-10 text-center backdrop-blur-xl translate-y-4 group-hover:translate-y-0 z-30">
-                                            <div className="space-y-6">
+                                        <div className="absolute inset-0 bg-black/95 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-center text-center backdrop-blur-3xl translate-y-4 group-hover:translate-y-0 z-30 overflow-hidden">
+                                            {/* Link Wrapper for the whole overlay area */}
+                                            <Link href={`/products/${product.id}`} className="absolute inset-0 z-0 cursor-pointer" />
+                                            
+                                            <div className="relative z-10 p-10 space-y-6 pointer-events-none">
                                                 <div className="flex justify-center gap-4 text-gold/60">
                                                     <div className="flex flex-col items-center gap-1.5">
                                                         <Sparkles className="w-3.5 h-3.5" />
@@ -290,12 +257,21 @@ export default function ProductListPage() {
                                                         <span className="text-[6px] uppercase font-black tracking-widest">{product.notes.base}</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-white/40 text-[10px] leading-relaxed italic font-light max-w-[180px] mx-auto">
-                                                    &quot;{product.description}&quot;
-                                                </p>
-                                                <button className="bg-gold text-black hover:bg-white hover:text-black transition-colors px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
-                                                    DISCOVER
-                                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                                <div className="group/desc">
+                                                    <p className="text-white/40 text-[10px] leading-relaxed italic font-light max-w-[180px] mx-auto transition-colors">
+                                                        &quot;{product.description}&quot;
+                                                    </p>
+                                                    <span className="text-[7px] text-gold/60 uppercase tracking-[0.4em] font-bold mt-2 block">Discover the Story</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="relative z-20 pb-10">
+                                                <button 
+                                                    onClick={() => addToCart(product)}
+                                                    className="bg-gold text-black hover:bg-white hover:text-black transition-all duration-300 px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 mx-auto active:scale-95 shadow-[0_15px_30px_rgba(212,175,55,0.2)]"
+                                                >
+                                                    ADD TO BAG
+                                                    <ShoppingBag className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </div>
@@ -323,7 +299,7 @@ export default function ProductListPage() {
             {/* Simple Footer */}
             <footer className="px-8 md:px-24 py-16 border-t border-white/5 opacity-40">
                 <div className="max-w-7xl mx-auto flex justify-between items-center text-[8px] uppercase tracking-[0.4em] font-black">
-                    <span>7th October &copy; 2024</span>
+                    <span>RAANAI &copy; 2024</span>
                     <div className="flex gap-8">
                         <span className="cursor-pointer hover:text-gold">PRIVACY</span>
                         <span className="cursor-pointer hover:text-gold">TERMS</span>

@@ -13,9 +13,13 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "7th October | The Essence of Eternal Sophistication",
-  description: "Experience the luxury of 7th October, a premium fragrance designed for those who command presence and elegance.",
+  title: "RAANAI | The Essence of Eternal Sophistication",
+  description: "Experience the luxury of Raanai, showcasing 7th October—a premium fragrance designed for those who command presence and elegance.",
 };
+
+import { CartProvider } from "@/context/CartContext";
+import { ProductProvider } from "@/context/ProductContext";
+import CartDrawer from "./components/CartDrawer";
 
 export default function RootLayout({
   children,
@@ -27,7 +31,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} antialiased selection:bg-gold selection:text-black`}
       >
-        {children}
+        <ProductProvider>
+          <CartProvider>
+            {children}
+            <CartDrawer />
+          </CartProvider>
+        </ProductProvider>
       </body>
     </html>
   );
