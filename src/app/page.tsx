@@ -101,9 +101,30 @@ export default function Home() {
           />
         </div>
 
-        {/* Subtle Brand Ambient Glow */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gold/5 rounded-full blur-[120px] pointer-events-none z-10" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-gold/5 rounded-full blur-[120px] pointer-events-none z-10" />
+        {/* Strong Centered Radial Ambient Glow */}
+        <div className="absolute inset-0 z-0 pointer-events-none" style={{
+          background: 'radial-gradient(ellipse 70% 70% at 50% 55%, rgba(212,175,55,0.07) 0%, rgba(212,175,55,0.03) 40%, transparent 70%)'
+        }} />
+
+        {/* Top Vignette */}
+        <div className="absolute top-0 left-0 right-0 h-32 z-0 pointer-events-none" style={{
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)'
+        }} />
+
+        {/* Bottom Gradient Fade - teases next section */}
+        <div className="absolute bottom-0 left-0 right-0 h-40 z-10 pointer-events-none" style={{
+          background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)'
+        }} />
+
+        {/* Floating Ambient Gold Orbs */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          <div className="float-orb absolute w-[300px] h-[300px] rounded-full bg-gold/[0.04] blur-[80px]" style={{ top: '15%', left: '10%', '--orb-duration': '9s', '--orb-delay': '0s' } as React.CSSProperties} />
+          <div className="float-orb absolute w-[200px] h-[200px] rounded-full bg-gold/[0.05] blur-[60px]" style={{ top: '60%', right: '12%', '--orb-duration': '12s', '--orb-delay': '2s' } as React.CSSProperties} />
+          <div className="float-orb absolute w-[150px] h-[150px] rounded-full bg-gold/[0.04] blur-[50px]" style={{ bottom: '20%', left: '30%', '--orb-duration': '7s', '--orb-delay': '1s' } as React.CSSProperties} />
+          <div className="float-orb absolute w-[100px] h-[100px] rounded-full bg-white/[0.02] blur-[40px]" style={{ top: '35%', right: '30%', '--orb-duration': '10s', '--orb-delay': '3s' } as React.CSSProperties} />
+          <div className="float-orb absolute w-[80px] h-[80px] rounded-full bg-gold/[0.06] blur-[30px]" style={{ top: '50%', left: '55%', '--orb-duration': '6s', '--orb-delay': '0.5s' } as React.CSSProperties} />
+        </div>
+
         {/* Navbar - Refined 3-Column Grid */}
         <header className="grid grid-cols-2 md:grid-cols-3 items-center z-50 w-full pb-6 md:pb-10">
           <div className="flex items-center">
@@ -146,29 +167,68 @@ export default function Home() {
         </header>
 
         {/* Mission Content */}
-        <div className="flex-grow flex flex-col items-center justify-center text-center space-y-10 max-w-4xl mx-auto px-6">
+        <div className="flex-grow flex flex-col items-center justify-center text-center space-y-10 max-w-4xl mx-auto px-6 relative z-20">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
             className="flex flex-col items-center space-y-10"
           >
-            <div className="space-y-4">
-              <h2 className="text-gold text-xl md:text-3xl font-black uppercase tracking-[0.8em] opacity-80">Raanai</h2>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight uppercase">
-                A Proud Muslim Brand
+            {/* Raanai Label */}
+            <motion.h2
+              initial={{ opacity: 0, letterSpacing: '1em' }}
+              animate={{ opacity: 0.8, letterSpacing: '0.8em' }}
+              transition={{ duration: 2, ease: 'easeOut' }}
+              className="text-gold text-xl md:text-3xl font-black uppercase"
+            >
+              Raanai
+            </motion.h2>
+
+            {/* Staggered Word Reveal for Main Title */}
+            <div className="overflow-hidden">
+              <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight uppercase flex flex-wrap justify-center gap-x-4">
+                {["A", "Proud", "Muslim", "Brand"].map((word, i) => (
+                  <motion.span
+                    key={word}
+                    initial={{ opacity: 0, y: 60, skewY: 4 }}
+                    animate={{ opacity: 1, y: 0, skewY: 0 }}
+                    transition={{ duration: 0.9, delay: 0.3 + i * 0.15, ease: [0.22, 1, 0.36, 1] }}
+                    className="inline-block"
+                  >
+                    {word}
+                  </motion.span>
+                ))}
               </h1>
             </div>
 
-            <p className="text-sm md:text-lg text-white/60 leading-relaxed font-medium max-w-3xl">
-              An Initiative Which Is Taken By A Student To Build Something That Will Support People Financially, Those Who Are Oppressed, Needy and Helpless
-            </p>
+            {/* Gold Shimmer Divider */}
+            <motion.div
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: 1 }}
+              transition={{ duration: 1.5, delay: 0.9, ease: 'easeOut' }}
+              style={{ transformOrigin: 'center' }}
+              className="w-48 gold-shimmer-line"
+            />
 
-            <div className="pt-6">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 1.1, ease: 'easeOut' }}
+              className="text-sm md:text-lg text-white/50 leading-relaxed font-medium max-w-3xl"
+            >
+              An Initiative Which Is Taken By A Student To Build Something That Will Support People Financially, Those Who Are Oppressed, Needy and Helpless
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 1.4, ease: 'easeOut' }}
+              className="pt-2"
+            >
               <span className="text-gold text-[11px] font-black uppercase tracking-[0.4em] border-t border-gold/20 pt-8 px-10">
                 Our Aim Is To Help Them Without Asking Anyone For Donations
               </span>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
 
@@ -176,23 +236,78 @@ export default function Home() {
 
       {/* Section 2: Original 7th October Hero */}
       <section id="october" className="section devialet-bg overflow-hidden relative h-screen snap-start">
+
+        {/* Editorial Dot Grid Pattern */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.025]" style={{
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
+          backgroundSize: '40px 40px'
+        }} />
+
+        {/* Radial Gold Glow — bottom center (behind bottle) */}
+        <div className="absolute bottom-[-5%] left-1/2 -translate-x-1/2 w-[500px] h-[400px] pointer-events-none z-0" style={{
+          background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.08) 0%, transparent 70%)',
+          filter: 'blur(20px)'
+        }} />
+
         <div className="absolute inset-0 hero-grid py-10 flex flex-col justify-between">
           <div className="flex-grow flex flex-col justify-center px-8 md:px-16">
             <div className="grid grid-cols-1 md:grid-cols-2 items-center w-full relative">
-              <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-                className="z-10"
-              >
+              <div className="z-10">
+                {/* Character-by-character title reveal */}
                 <h1 className="text-[7vw] huge-title-solid select-none tracking-[-0.04em]">
-                  7TH<br />OCTOBER
+                  {/* Line 1: 7TH */}
+                  <div className="overflow-hidden block">
+                    {"7TH".split("").map((char, i) => (
+                      <motion.span
+                        key={`a-${i}`}
+                        initial={{ opacity: 0, y: 80 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.7, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                        className="inline-block"
+                      >
+                        {char}
+                      </motion.span>
+                    ))}
+                  </div>
+                  {/* Line 2: OCTOBER */}
+                  <div className="overflow-hidden block">
+                    {"OCTOBER".split("").map((char, i) => (
+                      <motion.span
+                        key={`b-${i}`}
+                        initial={{ opacity: 0, y: 80 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.7, delay: 0.3 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                        className="inline-block"
+                      >
+                        {char}
+                      </motion.span>
+                    ))}
+                  </div>
                 </h1>
+
+                {/* Animated Gold Accent Line */}
                 <div className="mt-6 flex items-center gap-6">
-                  <div className="w-12 h-[1px] bg-gold" />
-                  <p className="text-gold text-xs uppercase tracking-[0.5em] font-light">Elevate the Essence</p>
+                  <motion.div
+                    initial={{ scaleX: 0, opacity: 0 }}
+                    whileInView={{ scaleX: 1, opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.2, delay: 0.8, ease: 'easeOut' }}
+                    style={{ transformOrigin: 'left' }}
+                    className="w-12 h-[1px] bg-gold"
+                  />
+                  <motion.p
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 1.0 }}
+                    className="text-gold text-xs uppercase tracking-[0.5em] font-light"
+                  >
+                    Elevate the Essence
+                  </motion.p>
                 </div>
-              </motion.div>
+              </div>
 
               <div className="relative flex justify-center items-center h-full">
                 {/* Dual Diagonal Spotlight Beams - shifted right to align with bottle */}

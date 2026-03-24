@@ -25,6 +25,60 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Film Grain Overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+  opacity: 0.032;
+  mix-blend-mode: overlay;
+  animation: grain-shift 0.5s steps(2) infinite;
+}
+
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2%, -3%); }
+  50% { transform: translate(3%, 2%); }
+  75% { transform: translate(-1%, 4%); }
+  100% { transform: translate(2%, -1%); }
+}
+
+/* Gold Shimmer Line */
+.gold-shimmer-line {
+  position: relative;
+  overflow: hidden;
+  height: 1px;
+  background: rgba(212, 175, 55, 0.2);
+}
+.gold-shimmer-line::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.8), transparent);
+  animation: shimmer-sweep 3s ease-in-out infinite;
+}
+@keyframes shimmer-sweep {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+/* Floating Orb */
+@keyframes float-orb {
+  0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.3; }
+  33% { transform: translateY(-20px) translateX(8px); opacity: 0.5; }
+  66% { transform: translateY(10px) translateX(-6px); opacity: 0.2; }
+}
+.float-orb {
+  animation: float-orb var(--orb-duration, 8s) ease-in-out infinite;
+  animation-delay: var(--orb-delay, 0s);
+}
+
 @layer base {
   html {
     scroll-snap-type: y mandatory;
