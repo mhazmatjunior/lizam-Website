@@ -22,8 +22,7 @@ export default function Home() {
   }, []);
 
   const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
+    container: containerRef,
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
@@ -75,7 +74,10 @@ export default function Home() {
   const collectionBottleOpacity = useTransform(smoothProgress, [0, 0.8, 0.9], [0, 0, 1]);
 
   return (
-    <main ref={containerRef} className="bg-black text-white selection:bg-gold selection:text-black relative overflow-x-hidden">
+    <main 
+      ref={containerRef} 
+      className="bg-black text-white selection:bg-gold selection:text-black relative h-[100dvh] overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth"
+    >
       {/* Cinematic Travelling Bottle (Overlay) */}
       <motion.div
         style={{
@@ -117,7 +119,7 @@ export default function Home() {
       </motion.div>
 
         {/* Section 1: Brand Mission Hero */}
-        <section id="home" className="section relative h-screen snap-start flex flex-col px-6 md:px-16 pt-2 pb-4 md:pb-10 overflow-hidden bg-black">
+        <section id="home" className="section relative h-[100dvh] snap-start flex flex-col px-6 md:px-16 pt-2 pb-4 md:pb-10 overflow-hidden bg-black">
 
         {/* Cinematic Logo Background Layer - visible on all screens */}
         <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.2] pointer-events-none scale-[2] md:scale-110">
@@ -196,7 +198,7 @@ export default function Home() {
         </header>
 
         {/* Mission Content */}
-        <div className="flex-grow flex flex-col items-center justify-center text-center space-y-8 md:space-y-12 max-w-4xl mx-auto px-4 md:px-6 relative z-20">
+        <div className="flex-grow flex flex-col items-center justify-center text-center space-y-8 md:space-y-12 max-w-4xl mx-auto px-4 md:px-6 relative z-20 pb-20 md:pb-0">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -255,7 +257,7 @@ export default function Home() {
       </section>
 
       {/* Section 2: Original 7th October Hero */}
-      <section id="october" className="section devialet-bg overflow-hidden relative h-screen snap-start">
+      <section id="october" className="section devialet-bg overflow-hidden relative h-[100dvh] snap-start">
 
         {/* Editorial Dot Grid Pattern */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.025]" style={{
@@ -269,7 +271,7 @@ export default function Home() {
           filter: 'blur(20px)'
         }} />
 
-        <div className="absolute inset-0 py-8 md:py-20 px-6 md:px-0 flex flex-col justify-between z-10">
+        <div className="absolute inset-0 pt-10 pb-32 md:py-20 px-6 md:px-0 flex flex-col justify-between z-10">
           <div className="flex-grow flex flex-col justify-center px-0 md:px-16">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-0 items-center w-full relative">
               <div className="z-10 flex flex-col items-center md:items-start text-center md:text-left">
@@ -352,7 +354,7 @@ export default function Home() {
         </div>
 
         {/* Absolute Footer pinned to bottom of section - bypasses hero-grid constraints */}
-        <div className="absolute bottom-4 md:bottom-8 left-0 right-0 flex flex-col md:flex-row items-center justify-between px-6 md:px-16 gap-6 md:gap-0 z-50">
+        <div className="absolute bottom-12 md:bottom-8 left-0 right-0 flex flex-col md:flex-row items-center justify-between px-6 md:px-16 gap-6 md:gap-0 z-50">
           {/* Left: Mission Text only */}
           <div className="flex flex-col gap-1 select-none text-center md:text-left">
             <p className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.2em] text-white/30 whitespace-nowrap">Its a self-taken initiative for others</p>
@@ -381,29 +383,29 @@ export default function Home() {
       </section>
 
       {/* Section 3: About Us (Redesigned Grid - Flipped) */}
-      <section id="about" className="section bg-black px-6 md:px-24 relative overflow-hidden flex items-center justify-center snap-start py-8 md:py-0">
+      <section id="about" className="section bg-black px-6 md:px-24 relative overflow-hidden flex items-center justify-center snap-start md:py-0">
 
         <div className="relative z-10 w-full max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-24 items-center">
 
-            {/* Left: Bottle Landing Area */}
-            <div className="lg:col-span-6 flex justify-center items-center relative h-[180px] md:h-[380px]">
+            {/* Left: Bottle Landing Area - Hidden on Mobile */}
+            <div className="hidden lg:flex lg:col-span-6 justify-center items-center relative h-[380px]">
               {/* Landing Spotlight */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 1.5 }}
-                className="absolute w-[250px] md:w-[300px] h-[250px] md:h-[300px] bg-gold/5 rounded-full blur-[60px] md:blur-[80px] z-0"
+                className="absolute w-[300px] h-[300px] bg-gold/5 rounded-full blur-[80px] z-0"
               />
             </div>
 
             {/* Right: Heading Content & Bullets */}
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: "easeOut" }}
               viewport={{ once: true }}
-              className="lg:col-span-6 space-y-6 md:space-y-8 pt-0 text-center lg:text-left flex flex-col items-center lg:items-start"
+              className="lg:col-span-6 space-y-8 md:space-y-12 text-center lg:text-left flex flex-col items-center lg:items-start w-full"
             >
               <div className="space-y-2 flex flex-col items-center lg:items-start text-center lg:text-left">
                 <motion.div
@@ -469,48 +471,85 @@ export default function Home() {
       {/* Section 4: Collection Highlights */}
       <section id="collection" className="section bg-black px-6 md:px-12 pb-20 md:pb-32 snap-start">
         <div className="relative w-full h-full flex flex-col justify-center items-center">
-          {/* Product Carousel Mock */}
-          <div className="flex items-center gap-6 md:gap-12 w-full justify-center py-10">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="hidden md:flex flex-col items-center gap-4 opacity-30 grayscale hover:grayscale-0 transition-all"
-            >
-              <span className="text-[10px] uppercase tracking-widest flex items-center gap-2"><ChevronLeft className="w-3 h-3" /> Left</span>
-              <div className="w-48 h-64 bg-[#111111] rounded-[3rem] border border-white/5 flex items-center justify-center p-8">
-                <Image src="/Pic_1.png" alt="Previous" width={100} height={150} className="object-contain" />
-              </div>
-            </motion.div>
+          {/* Product Carousel Mock - Fixed-Width Tight Composition */}
+          <div className="flex items-center justify-center py-10 w-full">
+            <div className="hidden md:flex items-center justify-center gap-4">
 
+              {/* Left Placeholder: Coming Soon */}
+              <motion.div
+                whileHover={{ scale: 1.05, opacity: 1 }}
+                className="flex flex-col items-center gap-4 opacity-70 grayscale transition-all duration-700"
+              >
+                <span className="text-[10px] uppercase tracking-[0.6em] font-black text-white/60">Coming Soon</span>
+                <div className="w-44 h-72 bg-gradient-to-b from-white/[0.08] to-transparent rounded-[2.5rem] border border-white/20 flex flex-col items-center justify-center p-6 gap-1 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <div className="w-10 h-10 border border-white/30 rounded-xl mb-1 flex items-center justify-center">
+                    <div className="w-5 h-[1px] bg-white/20" />
+                  </div>
+                  <div className="w-2 h-3 bg-white/20" />
+                  <div className="w-24 h-40 border border-white/30 rounded-[2rem] relative flex items-center justify-center">
+                    <div className="w-8 h-8 border border-white/20 rounded-md opacity-40" />
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Main Product */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                style={{ opacity: collectionBottleOpacity }}
+                className="relative z-30 flex flex-col items-center"
+              >
+                <div className="w-80 h-[520px] flex items-center justify-center">
+                  <Image src="/Pic_1.png" alt="7th October Perfume" width={320} height={420} className="object-contain drop-shadow-[0_30px_60px_rgba(212,175,55,0.35)]" />
+                </div>
+              </motion.div>
+
+              {/* Right Placeholder: Coming Soon */}
+              <motion.div
+                whileHover={{ scale: 1.05, opacity: 1 }}
+                className="flex flex-col items-center gap-4 opacity-70 grayscale transition-all duration-700"
+              >
+                <span className="text-[10px] uppercase tracking-[0.6em] font-black text-white/60">Coming Soon</span>
+                <div className="w-44 h-72 bg-gradient-to-b from-white/[0.08] to-transparent rounded-[2.5rem] border border-white/20 flex flex-col items-center justify-center p-6 gap-1 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <div className="w-10 h-10 border border-white/30 rounded-xl mb-1 flex items-center justify-center">
+                    <div className="w-5 h-[1px] bg-white/20" />
+                  </div>
+                  <div className="w-2 h-3 bg-white/20" />
+                  <div className="w-24 h-40 border border-white/30 rounded-[2rem] relative flex items-center justify-center">
+                    <div className="w-8 h-8 border border-white/20 rounded-md opacity-40" />
+                  </div>
+                </div>
+              </motion.div>
+
+            </div>
+
+            {/* Mobile: Main product only */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               style={{ opacity: collectionBottleOpacity }}
-              className="relative z-30 flex justify-center w-full max-w-[280px] md:max-w-none"
+              className="md:hidden relative z-30 flex flex-col items-center w-full max-w-[280px]"
             >
-              <div className="w-full md:w-80 h-[350px] md:h-[500px] flex items-center justify-center p-6 md:p-12">
-                <Image src="/Pic_1.png" alt="Main Product" width={300} height={400} className="object-contain drop-shadow-[0_20px_40px_rgba(212,175,55,0.2)] md:drop-shadow-[0_30px_60px_rgba(212,175,55,0.3)]" />
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="hidden md:flex flex-col items-center gap-4 opacity-30 grayscale hover:grayscale-0 transition-all"
-            >
-              <span className="text-[10px] uppercase tracking-widest flex items-center gap-2">Right <ChevronRight className="w-3 h-3" /></span>
-              <div className="w-48 h-64 bg-[#111111] rounded-[3rem] border border-white/5 flex items-center justify-center p-8">
-                <Image src="/Pic_1.png" alt="Next" width={100} height={150} className="object-contain" />
+              <h3 className="text-2xl font-black uppercase tracking-tighter gold-text mb-4 text-center">
+                7TH OCTOBER<br />COLLECTION
+              </h3>
+              <div className="w-full h-[350px] flex items-center justify-center p-4">
+                <Image src="/Pic_1.png" alt="7th October Perfume" width={280} height={380} className="object-contain drop-shadow-[0_20px_40px_rgba(212,175,55,0.2)]" />
               </div>
             </motion.div>
           </div>
-
-          {/* Collection Footer - Responsive Stack */}
-          <div className="absolute bottom-0 w-full flex flex-col md:grid md:grid-cols-3 items-center md:items-end gap-8 md:gap-0 pb-4 md:pb-0">
-            <div className="flex justify-center md:justify-start text-center md:text-left">
+          {/* Collection Footer - Simplified for Mobile */}
+          <div className="absolute bottom-4 md:bottom-0 w-full flex flex-col items-center md:grid md:grid-cols-3 md:items-end gap-8 md:gap-0 md:pb-0">
+            {/* Title: Hidden on mobile, already shown above image */}
+            <div className="hidden md:flex justify-center md:justify-start text-center md:text-left">
               <h3 className="text-2xl md:text-5xl font-black uppercase tracking-tighter leading-none gold-text">
                 7TH OCTOBER<br />COLLECTION
               </h3>
             </div>
 
+            {/* Navigation Indicators: Now central and prominent on mobile */}
             <div className="flex flex-col items-center gap-4 py-2">
               <div className="w-24 md:w-32 h-[1px] bg-white/10 relative overflow-hidden">
                 <motion.div
@@ -528,7 +567,8 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex justify-center md:justify-end gap-6 text-[9px] md:text-[10px] uppercase tracking-[0.4em] text-white/30 font-black pb-2">
+            {/* Labels: Hidden on mobile per user request */}
+            <div className="hidden md:flex justify-center md:justify-end gap-6 text-[9px] md:text-[10px] uppercase tracking-[0.4em] text-white/30 font-black pb-2">
               <span className="hover:text-gold transition-colors cursor-pointer">T&P</span>
               <span className="hover:text-gold transition-colors cursor-pointer">PR</span>
               <span className="hover:text-gold transition-colors cursor-pointer">TQ</span>
