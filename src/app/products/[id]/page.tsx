@@ -60,7 +60,7 @@ export default function ProductDetailPage() {
           <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Back to Collection
         </Link>
-        <div className="text-xl font-bold tracking-tighter">RAANAI</div>
+        <div className="text-xl font-bold tracking-tighter">RAANAE</div>
         <button 
           onClick={() => setIsCartOpen(true)}
           className="relative p-2"
@@ -206,7 +206,7 @@ export default function ProductDetailPage() {
             </div>
             <button 
               onClick={handleAddToCart}
-              className="flex-grow btn-premium-gold h-16 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] group shadow-[0_20px_40px_rgba(212,175,55,0.2)]"
+              className="flex-grow btn-premium-gold h-16 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] group shadow-[0_20px_40px_rgba(200, 164, 77,0.2)]"
             >
               Add to Bag
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -281,7 +281,7 @@ export default function ProductDetailPage() {
                           addToCart(p);
                           setIsCartOpen(true);
                         }}
-                        className="bg-gold text-black p-4 rounded-full shadow-[0_10px_20px_rgba(212,175,55,0.3)] hover:scale-110 active:scale-95 transition-all"
+                        className="bg-gold text-black p-4 rounded-full shadow-[0_10px_20px_rgba(200, 164, 77,0.3)] hover:scale-110 active:scale-95 transition-all"
                      >
                        <ShoppingBag className="w-5 h-5" />
                      </button>

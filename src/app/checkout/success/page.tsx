@@ -26,7 +26,7 @@ export default function OrderSuccessPage() {
           className="relative inline-block"
         >
           <div className="w-24 h-24 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-12 h-12 text-gold shadow-[0_0_20px_#D4AF37]" />
+            <CheckCircle2 className="w-12 h-12 text-gold shadow-[0_0_20px_#C8A44D]" />
           </div>
           {/* Decorative Rings */}
           <motion.div 
@@ -87,7 +87,7 @@ export default function OrderSuccessPage() {
           className="pt-8"
         >
           <Link href="/products">
-            <button className="w-full btn-premium-gold py-5 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] group shadow-[0_20px_40px_rgba(212,175,55,0.1)]">
+            <button className="w-full btn-premium-gold py-5 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] group shadow-[0_20px_40px_rgba(200, 164, 77,0.1)]">
               Continue Exploration
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>

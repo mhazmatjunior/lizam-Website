@@ -102,7 +102,7 @@ export default function ProductListPage() {
                         >
                             <ShoppingBag className="w-5 h-5 text-white/70 group-hover:text-gold transition-colors" />
                             {itemsCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gold text-black text-[9px] font-black rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.5)]">
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gold text-black text-[9px] font-black rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(200, 164, 77,0.5)]">
                                     {itemsCount}
                                 </span>
                             )}
@@ -122,7 +122,7 @@ export default function ProductListPage() {
                                 key={cat}
                                 onClick={() => setFilter(cat)}
                                 className={`px-8 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all border ${filter === cat
-                                    ? "bg-gold text-black border-gold font-black shadow-[0_10px_30px_rgba(212,175,55,0.3)]"
+                                    ? "bg-gold text-black border-gold font-black shadow-[0_10px_30px_rgba(200, 164, 77,0.3)]"
                                     : "bg-transparent border-white/10 text-white/70 hover:text-white hover:border-white/30"
                                     }`}
                             >
@@ -167,7 +167,7 @@ export default function ProductListPage() {
                                                         ${sortBy === opt.value ? 'bg-gold/10 text-gold' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                                 >
                                                     {opt.label}
-                                                    {sortBy === opt.value && <div className="w-1 h-1 rounded-full bg-gold shadow-[0_0_8px_#D4AF37]" />}
+                                                    {sortBy === opt.value && <div className="w-1 h-1 rounded-full bg-gold shadow-[0_0_8px_#C8A44D]" />}
                                                 </button>
                                             ))}
                                         </div>
@@ -215,7 +215,7 @@ export default function ProductListPage() {
                                                 alt={product.name}
                                                 width={240}
                                                 height={300}
-                                                className="object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)] group-hover:drop-shadow-[0_30px_60px_rgba(212,175,55,0.15)] transition-all duration-700"
+                                                className="object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)] group-hover:drop-shadow-[0_30px_60px_rgba(200, 164, 77,0.15)] transition-all duration-700"
                                             />
                                         </Link>
 
@@ -268,7 +268,7 @@ export default function ProductListPage() {
                                             <div className="relative z-20 pb-10">
                                                 <button 
                                                     onClick={() => addToCart(product)}
-                                                    className="bg-gold text-black hover:bg-white hover:text-black transition-all duration-300 px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 mx-auto active:scale-95 shadow-[0_15px_30px_rgba(212,175,55,0.2)]"
+                                                    className="bg-gold text-black hover:bg-white hover:text-black transition-all duration-300 px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 mx-auto active:scale-95 shadow-[0_15px_30px_rgba(200, 164, 77,0.2)]"
                                                 >
                                                     ADD TO BAG
                                                     <ShoppingBag className="w-4 h-4" />
@@ -299,7 +299,7 @@ export default function ProductListPage() {
             {/* Simple Footer */}
             <footer className="px-8 md:px-24 py-16 border-t border-white/5 opacity-40">
                 <div className="max-w-7xl mx-auto flex justify-between items-center text-[8px] uppercase tracking-[0.4em] font-black">
-                    <span>RAANAI &copy; 2024</span>
+                    <span>RAANAE &copy; 2024</span>
                     <div className="flex gap-8">
                         <span className="cursor-pointer hover:text-gold">PRIVACY</span>
                         <span className="cursor-pointer hover:text-gold">TERMS</span>

@@ -139,7 +139,7 @@ export default function CartDrawer() {
                 </Link>
                 
                 <p className="text-[9px] text-center text-white/20 uppercase tracking-widest font-bold">
-                  Secure checkout powered by Raanai
+                  Secure checkout powered by Raanae
                 </p>
               </div>
             )}

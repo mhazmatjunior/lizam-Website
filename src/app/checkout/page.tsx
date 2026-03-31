@@ -56,7 +56,7 @@ export default function CheckoutPage() {
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back to Shop
           </Link>
-          <div className="text-xl font-bold tracking-tighter">RAANAI</div>
+          <div className="text-xl font-bold tracking-tighter">RAANAE</div>
           <div className="w-24 md:w-32 flex justify-end">
              <span className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold hidden md:block">Secure Checkout</span>
           </div>
@@ -242,7 +242,7 @@ export default function CheckoutPage() {
 
               <button 
                 onClick={handlePlaceOrder}
-                className="w-full btn-premium-gold py-5 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] mt-10 group shadow-[0_20px_40px_rgba(212,175,55,0.15)]"
+                className="w-full btn-premium-gold py-5 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] mt-10 group shadow-[0_20px_40px_rgba(200, 164, 77,0.15)]"
               >
                 Place Order
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

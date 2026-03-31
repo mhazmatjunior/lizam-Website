@@ -1,14 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gold: #D4AF37;
-  --color-gold-light: #F9E29C;
-  --color-gold-dark: #996515;
+  --color-gold: #C8A44D;
+  --color-gold-light: #E8CD94;
+  --color-gold-dark: #846828;
   --color-black-pure: #000000;
   --color-black-soft: #0a0a0a;
 
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
+  --font-alata: var(--font-alata), sans-serif;
+}
+
+.alata-regular {
+  font-family: var(--font-alata), sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 :root {
@@ -51,7 +58,7 @@ body::after {
   position: relative;
   overflow: hidden;
   height: 1px;
-  background: rgba(212, 175, 55, 0.2);
+  background: rgba(200, 164, 77, 0.2);
 }
 .gold-shimmer-line::after {
   content: "";
@@ -60,7 +67,7 @@ body::after {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.8), transparent);
+  background: linear-gradient(90deg, transparent, rgba(200, 164, 77, 0.8), transparent);
   animation: shimmer-sweep 3s ease-in-out infinite;
 }
 @keyframes shimmer-sweep {
@@ -86,6 +93,11 @@ body::after {
     padding: 0;
     overflow: hidden; /* Lock browser viewport to force main-container snapping */
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-alata);
+    letter-spacing: 0.05em;
+  }
 }
 
 .section {
@@ -102,12 +114,12 @@ body::after {
 }
 
 .gold-text {
-  color: #D4AF37;
-  background: linear-gradient(to right, #996515, #D4AF37, #F9E29C, #D4AF37, #996515);
+  color: #C8A44D;
+  background: linear-gradient(to right, #846828, #C8A44D, #E8CD94, #C8A44D, #846828);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 1px rgba(212, 175, 55, 0.3));
+  filter: drop-shadow(0 0 1px rgba(200, 164, 77, 0.3));
 }
 
 .gold-border {
@@ -120,7 +132,7 @@ body::after {
 
 .minimal-frame {
   position: relative;
-  border: 1px solid rgba(176, 141, 87, 0.2);
+  border: 1px solid rgba(200, 164, 77, 0.2);
   padding: 2rem;
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(10px);
@@ -136,7 +148,7 @@ body::after {
 }
 
 .gold-button-filled {
-  background: linear-gradient(135deg, #996515, #D4AF37, #F9E29C);
+  background: linear-gradient(135deg, #846828, #C8A44D, #E8CD94);
   color: black;
   font-weight: 900;
   text-transform: uppercase;
@@ -147,12 +159,12 @@ body::after {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: 0 10px 40px rgba(212, 175, 55, 0.3);
+  box-shadow: 0 10px 40px rgba(200, 164, 77, 0.3);
 }
 
 .gold-button-filled:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(207, 181, 59, 0.5);
+  box-shadow: 0 8px 25px rgba(200, 164, 77, 0.5);
 }
 
 .nav-link {
@@ -164,7 +176,7 @@ body::after {
 }
 
 .nav-link:hover {
-  color: #cfb53b;
+  color: #C8A44D;
 }
 
 .scroll-indicator {
@@ -179,7 +191,7 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #cfb53b;
+  color: #C8A44D;
 }
 
 .gold-button {
@@ -196,7 +208,7 @@ body::after {
 .gold-button:hover {
   background: var(--color-gold);
   color: #000;
-  box-shadow: 0 0 20px rgba(176, 141, 87, 0.3);
+  box-shadow: 0 0 20px rgba(200, 164, 77, 0.3);
 }
 
 .devialet-bg {
@@ -217,6 +229,7 @@ body::after {
 }
 
 .huge-title {
+  font-family: var(--font-alata);
   font-weight: 900;
   letter-spacing: -0.02em;
   text-transform: uppercase;
@@ -254,6 +267,7 @@ body::after {
 }
 
 .huge-title-solid {
+  font-family: var(--font-alata);
   font-weight: 900;
   letter-spacing: -0.04em;
   text-transform: uppercase;
@@ -317,10 +331,10 @@ body::after {
 }
 
 .btn-premium-gold {
-  background: linear-gradient(135deg, #996515, #D4AF37, #996515);
+  background: linear-gradient(135deg, #846828, #C8A44D, #846828);
   background-size: 200% auto;
   color: black;
-  box-shadow: 0 15px 45px rgba(212, 175, 55, 0.25);
+  box-shadow: 0 15px 45px rgba(200, 164, 77, 0.25);
   transition: 0.5s;
   border: none !important;
 }
@@ -328,7 +342,7 @@ body::after {
 .btn-premium-gold:hover {
   background-position: right center;
   transform: translateY(-2px);
-  box-shadow: 0 15px 35px -5px rgba(176, 141, 87, 0.6);
+  box-shadow: 0 15px 35px -5px rgba(200, 164, 77, 0.6);
   filter: brightness(1.1);
 }
 
@@ -342,10 +356,10 @@ body::after {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgba(200, 164, 77, 0.15);
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgba(200, 164, 77, 0.3);
 }

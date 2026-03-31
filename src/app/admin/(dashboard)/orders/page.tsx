@@ -177,7 +177,7 @@ export default function OrdersPage() {
             Automated notifications will be sent to customers to maintain the luxury experience.
           </p>
         </div>
-        <button className="whitespace-nowrap btn-premium-gold h-14 px-10 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_20px_40px_rgba(212,175,55,0.2)]">
+        <button className="whitespace-nowrap btn-premium-gold h-14 px-10 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_20px_40px_rgba(200, 164, 77,0.2)]">
            View Fulfillment Secrets <ExternalLink className="w-4 h-4" />
         </button>
       </div>

@@ -21,7 +21,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   // Load from localStorage on mount
   useEffect(() => {
     const loadProducts = () => {
-      const saved = localStorage.getItem("raanai_products");
+      const saved = localStorage.getItem("raanae_products");
       if (saved) {
         try {
           setProducts(JSON.parse(saved));
@@ -36,7 +36,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
     // Sync across tabs
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "raanai_products") {
+      if (e.key === "raanae_products") {
         loadProducts();
       }
     };
@@ -49,7 +49,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isInitialized) {
       try {
-        localStorage.setItem("raanai_products", JSON.stringify(products));
+        localStorage.setItem("raanae_products", JSON.stringify(products));
       } catch (e) {
         console.error("Storage quota exceeded", e);
         // Alert the user only if it's a quota error

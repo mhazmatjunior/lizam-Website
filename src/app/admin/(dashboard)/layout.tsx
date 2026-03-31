@@ -52,7 +52,7 @@ export default function AdminLayout({
         {/* Logo Section */}
         <div className="h-24 flex items-center px-8 border-b border-white/5">
           <span className="text-2xl font-black tracking-tighter">
-            RAANAI
+            RAANAE
           </span>
         </div>
 
@@ -126,7 +126,7 @@ export default function AdminLayout({
                 <p className="text-[10px] font-black uppercase tracking-widest text-white">Admin</p>
                 <p className="text-[9px] font-medium text-white/30 tracking-tight">System Overseer</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-gold/20 border border-gold/30 flex items-center justify-center font-black text-gold text-xs shadow-[0_0_20px_rgba(212,175,55,0.1)]">
+              <div className="w-10 h-10 rounded-xl bg-gold/20 border border-gold/30 flex items-center justify-center font-black text-gold text-xs shadow-[0_0_20px_rgba(200, 164, 77,0.1)]">
                 A
               </div>
             </div>

@@ -56,7 +56,7 @@ export default function LoginPage() {
             animate={{ scale: 1 }}
             className="text-4xl font-black tracking-tighter"
           >
-            RAANAI
+            RAANAE
           </motion.div>
           <div className="space-y-1">
             <h1 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Command Center</h1>
@@ -73,7 +73,7 @@ export default function LoginPage() {
                 <input 
                   required
                   type="email"
-                  placeholder="admin@raanai.com"
+                  placeholder="admin@raanae.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-black/40 border border-white/5 rounded-2xl pl-14 pr-6 py-4 text-[11px] font-medium outline-none focus:border-gold/30 transition-all placeholder:text-white/10"
@@ -124,7 +124,7 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-12 text-center text-white/10">
-          <p className="text-[8px] font-medium uppercase tracking-[0.3em]">© 2026 Raanai Artisanal Perfumery • Secure Vault</p>
+          <p className="text-[8px] font-medium uppercase tracking-[0.3em]">© 2026 Raanae Artisanal Perfumery • Secure Vault</p>
         </div>
       </motion.div>
     </main>

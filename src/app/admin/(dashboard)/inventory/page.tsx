@@ -142,7 +142,7 @@ export default function InventoryPage() {
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Inventory Hub</h1>
         <button 
           onClick={() => setIsAddModalOpen(true)}
-          className="btn-premium-gold h-14 px-8 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_20px_40px_rgba(212,175,55,0.2)]"
+          className="btn-premium-gold h-14 px-8 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_20px_40px_rgba(200, 164, 77,0.2)]"
         >
           <Plus className="w-4 h-4" />
           Add New Scent

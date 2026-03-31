@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Playfair_Display, Alata } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -12,9 +12,15 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
+const alata = Alata({
+  variable: "--font-alata",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export const metadata: Metadata = {
-  title: "RAANAI | The Essence of Eternal Sophistication",
-  description: "Experience the luxury of Raanai, showcasing 7th October—a premium fragrance designed for those who command presence and elegance.",
+  title: "RAANAE | The Essence of Eternal Sophistication",
+  description: "Experience the luxury of Raanae, showcasing 7th October—a premium fragrance designed for those who command presence and elegance.",
 };
 
 import { CartProvider } from "@/context/CartContext";
@@ -29,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${playfair.variable} antialiased selection:bg-gold selection:text-black`}
+        className={`${inter.variable} ${playfair.variable} ${alata.variable} antialiased selection:bg-gold selection:text-black`}
       >
         <ProductProvider>
           <CartProvider>

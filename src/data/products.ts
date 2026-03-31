@@ -51,7 +51,7 @@ export const PRODUCTS: Product[] = [
     price: 24500,
     category: "Obsidian",
     description: "Our rarest infusion. Pure, architectural, unmatched.",
-    longDescription: "The pinnacle of Raanai's olfactory engineering. Obsidian VII is a scent without compromise. It utilizes a cold-distillation process to preserve the raw, mineral edge of Iris Root. Combined with high-altitude Incense and aged Sandalwood, it creates an aura of unreachable sophistication.",
+    longDescription: "The pinnacle of Raanae's olfactory engineering. Obsidian VII is a scent without compromise. It utilizes a cold-distillation process to preserve the raw, mineral edge of Iris Root. Combined with high-altitude Incense and aged Sandalwood, it creates an aura of unreachable sophistication.",
     notes: {
       top: "Mineral Accord, Incense",
       heart: "Iris Root, Violet Leaf",
