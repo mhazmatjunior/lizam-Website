@@ -118,10 +118,7 @@ export default function CartDrawer() {
                     <span>Subtotal</span>
                     <span>Rs {subtotal.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold">
-                    <span>Shipping</span>
-                    <span className="text-gold">Calculated at checkout</span>
-                  </div>
+
                   <div className="flex justify-between text-lg font-black uppercase tracking-tighter pt-2">
                     <span>Estimate Total</span>
                     <span className="text-gold">Rs {subtotal.toLocaleString()}</span>
@@ -138,9 +135,7 @@ export default function CartDrawer() {
                   </button>
                 </Link>
                 
-                <p className="text-[9px] text-center text-white/20 uppercase tracking-widest font-bold">
-                  Secure checkout powered by Raanae
-                </p>
+
               </div>
             )}
           </motion.div>

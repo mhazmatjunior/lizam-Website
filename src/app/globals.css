@@ -92,6 +92,7 @@ body::after {
     margin: 0;
     padding: 0;
     overflow: hidden; /* Lock browser viewport to force main-container snapping */
+    max-height: 100dvh;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -102,15 +103,19 @@ body::after {
 
 .section {
   height: 100dvh;
+  max-height: 100dvh;
   width: 100%;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+  @media (min-width: 768px) {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .gold-text {

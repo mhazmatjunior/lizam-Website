@@ -2,21 +2,39 @@
 
 import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Instagram, Twitter, Facebook, Linkedin, ChevronLeft, ChevronRight, ArrowDown, Sparkles, ShieldCheck, Droplets, Globe, Palette, ArrowUpRight, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 export default function Home() {
   const { addToCart, setIsCartOpen, itemsCount } = useCart();
   const containerRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const SLIDESHOW_IMAGES = [
+    "/Slideshow- (1).png",
+    "/Slideshow- (2).png",
+    "/Slideshow- (3).png",
+    "/Slideshow- (4).png",
+    "/Slideshow- (5).png"
+  ];
+
 
   // Signature Product definition for the landing page
   const SIGNATURE_PRODUCT = {
     id: 710,
     name: "7TH OCTOBER",
     price: 24500,
+    category: "Signature Collection",
+    image: "/product_1.png"
+  };
+
+  // Pre-Order Rate Product
+  const PRE_ORDER_PRODUCT = {
+    id: 71099,
+    name: "7TH OCTOBER (Pre-Order Booking)",
+    price: 150,
     category: "Signature Collection",
     image: "/product_1.png"
   };
@@ -28,6 +46,12 @@ export default function Home() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % SLIDESHOW_IMAGES.length);
+    }, 1200); // Change image every 1.2 seconds (under 2 seconds as requested)
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <main 
@@ -37,10 +61,10 @@ export default function Home() {
 
 
         {/* Section 1: Brand Mission Hero */}
-        <section id="home" className="section relative h-[100dvh] md:snap-start flex flex-col px-6 md:px-16 pt-2 pb-4 md:pb-10 overflow-hidden bg-black">
+        <section id="home" className="section relative h-[100dvh] max-h-[100dvh] md:snap-start flex flex-col px-4 md:px-16 pt-2 overflow-hidden bg-black">
 
         {/* Cinematic Logo Background Layer - Responsive */}
-        <div className="absolute inset-0 z-0 opacity-50 pointer-events-none">
+        <div className="absolute inset-0 h-[100dvh] z-0 opacity-50 pointer-events-none">
           {/* Mobile Background */}
           <div className="md:hidden contents">
             <Image
@@ -89,13 +113,13 @@ export default function Home() {
 
         {/* Navbar - Refined 3-Column Grid */}
         <header className="grid grid-cols-2 md:grid-cols-3 items-center z-50 w-full pb-4 md:pb-10">
-          <div className="flex items-center">
+          <div className="flex items-center -ml-2 md:ml-0">
             <Image
               src="/logo-transparent.png"
               alt="RAANAE Logo"
               width={180}
               height={60}
-              className="h-10 md:h-16 w-auto object-contain mix-blend-screen"
+              className="h-14 md:h-16 w-auto object-contain mix-blend-screen"
               priority
             />
           </div>
@@ -121,15 +145,15 @@ export default function Home() {
             </button>
             <a 
               href="#about"
-              className="btn-premium-gold text-[8px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-extrabold px-4 md:px-8 py-2 md:py-2.5 rounded-full whitespace-nowrap inline-block"
+              className="btn-premium-gold text-[10px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-extrabold px-5 md:px-8 py-2 md:py-2.5 rounded-full whitespace-nowrap inline-block"
             >
-              Buy Now
+              Pre Order Now
             </a>
           </div>
         </header>
 
         {/* Mission Content */}
-        <div className="flex-grow flex flex-col items-center justify-center text-center space-y-8 md:space-y-12 max-w-4xl mx-auto px-4 md:px-6 relative z-20 pb-20 md:pb-0">
+        <div className="flex-grow flex flex-col items-center justify-center text-center space-y-8 md:space-y-12 max-w-4xl mx-auto px-4 md:px-6 relative z-20 md:pb-0">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -163,14 +187,7 @@ export default function Home() {
               </h1>
             </div>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 1.1, ease: 'easeOut' }}
-              className="text-sm md:text-lg text-white leading-relaxed font-medium max-w-3xl"
-            >
-              An Initiative Which Is Taken By A Student To Build Something That Will Support People Financially, Those Who Are Oppressed, Needy and Helpless
-            </motion.p>
+
 
             <motion.div
               initial={{ opacity: 0 }}
@@ -187,12 +204,67 @@ export default function Home() {
 
       </section>
 
-      {/* Section 2: Original 7th October Hero */}
+      {/* Section 2: Initiative */}
+      <section className="section bg-black overflow-hidden relative h-[50dvh] md:h-[100dvh] md:snap-start flex items-center justify-center">
+        
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          {/* Mobile Background */}
+          <div className="md:hidden contents">
+            <Image
+              src="/section-2-mob-new.png"
+              alt="Initiative Mobile Background"
+              fill
+              className="object-cover opacity-90"
+              priority
+            />
+          </div>
+          {/* Desktop Background */}
+          <div className="hidden md:contents">
+            <Image
+              src="/section-2-new.png"
+              alt="Initiative Desktop Background"
+              fill
+              className="object-cover opacity-90"
+              priority
+            />
+          </div>
+          {/* Top Vignette */}
+          <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-black to-transparent z-10" />
+          
+          {/* Bottom Gradient for Text Readability replacing the box */}
+          <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black via-black/80 to-transparent z-10" />
+        </div>
+
+        {/* Content - Responsive Alignment */}
+        <div className="relative z-20 flex flex-col items-center justify-center md:justify-end h-full pt-44 md:pt-0 md:pb-16 px-6">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+            className="flex flex-col items-center text-center max-w-2xl mx-auto md:px-10 md:py-8 md:bg-black/40 md:backdrop-blur-md md:border md:border-white/10 md:rounded-2xl md:shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+          >
+            {/* Minimalist Top Accent */}
+            <div className="w-16 h-[1px] bg-gold mb-6 shadow-[0_0_10px_rgba(200,164,77,0.5)]" />
+            
+            <h3 className="text-gold text-sm md:text-base font-black uppercase tracking-[0.3em] md:tracking-[0.4em] mb-4 md:mb-6 drop-shadow-md">
+              Our Initiative
+            </h3>
+            
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 leading-[1.8] md:leading-[1.9] font-medium tracking-wide drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+              It's a self-taken initiative for others, inspired by the cause of Palestine.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Section 3: Original 7th October Hero */}
       <section id="october" className="section bg-black overflow-hidden relative h-[100dvh] md:snap-start">
 
-        <div className="absolute inset-0 pt-10 pb-32 md:py-20 px-6 md:px-0 flex flex-col justify-between z-10">
+        <div className="absolute inset-0 pt-10 pb-10 md:py-20 px-6 md:px-0 flex flex-col justify-between z-10">
           <div className="flex-grow flex flex-col justify-center px-0 md:px-16">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-0 items-center w-full relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-0 items-center w-full relative">
               <div className="z-10 flex flex-col items-center text-center">
                 {/* 7TH OCTOBER TITLE - Simplified for Mobile Visibility */}
                 <motion.div
@@ -214,7 +286,7 @@ export default function Home() {
                       viewport={{ once: true }}
                       transition={{ duration: 1.2, delay: 0.8, ease: 'easeOut' }}
                       style={{ transformOrigin: 'left' }}
-                      className="w-8 md:w-12 h-[1px] bg-gold"
+                      className="hidden md:block w-8 md:w-12 h-[1px] bg-gold"
                     />
                     <motion.p
                       initial={{ opacity: 0, x: -10 }}
@@ -227,15 +299,11 @@ export default function Home() {
                     </motion.p>
                   </div>
 
-                  {/* Mission Text - Moved here from footer */}
-                  <div className="mt-10 md:mt-14 flex flex-col gap-2 select-none text-center max-w-sm">
-                    <p className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.2em] text-white">Its a self-taken initiative for others</p>
-                    <p className="text-[9px] md:text-[11px] font-bold uppercase tracking-[0.4em] text-white">Inspired by the cause of palestine</p>
-                  </div>
+
                 </motion.div>
               </div>
 
-              <div className="relative flex justify-center items-center h-48 md:h-full">
+              <div className="relative flex justify-center items-center h-[400px] md:h-full">
 
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -244,21 +312,26 @@ export default function Home() {
                   transition={{ duration: 1, ease: "easeOut" }}
                   className="relative z-10 flex flex-col items-center w-full"
                 >
-                  <div className="relative z-10 overflow-hidden mix-blend-screen">
-                    <motion.video
-                      ref={videoRef}
-                      viewport={{ margin: "-100px" }}
-                      onViewportEnter={() => {
-                        if (videoRef.current) {
-                          videoRef.current.currentTime = 0;
-                          videoRef.current.play().catch(() => {});
-                        }
-                      }}
-                      src="/Raanai%20Perfume%20Video%202.mp4"
-                      muted
-                      playsInline
-                      className="w-[320px] md:w-[480px] h-[350px] md:h-[520px] object-cover rounded-[2rem]"
-                    />
+                  <div className="relative z-10 overflow-hidden mix-blend-screen w-full h-[350px] md:h-[520px] flex justify-center items-center">
+                    <AnimatePresence>
+                      <motion.div
+                        key={currentSlide}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="absolute inset-0 w-full flex justify-center items-center"
+                      >
+                        <Image
+                          src={SLIDESHOW_IMAGES[currentSlide]}
+                          alt={`7th October Slideshow ${currentSlide + 1}`}
+                          width={480}
+                          height={520}
+                          className="w-[320px] md:w-[480px] h-[350px] md:h-[520px] object-contain rounded-[2rem]"
+                          priority
+                        />
+                      </motion.div>
+                    </AnimatePresence>
                   </div>
                 </motion.div>
               </div>
@@ -268,31 +341,18 @@ export default function Home() {
         </div>
 
         {/* Absolute Footer pinned to bottom of section - bypasses hero-grid constraints */}
-        <div className="absolute bottom-12 md:bottom-8 left-0 right-0 flex flex-col items-center justify-center px-6 md:px-16 z-50">
+        <div className="absolute bottom-14 md:bottom-8 left-0 right-0 flex flex-col items-center justify-center px-6 md:px-16 z-50">
           
-          {/* Mobile Socials - Center Aligned - Gold & Balanced Spacing */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.5, duration: 1 }}
-            className="flex md:hidden items-center gap-8 mb-4 mt-10"
+            transition={{ delay: 1, duration: 1 }}
+            className="flex md:hidden flex-col items-center gap-3 mb-6 mt-0"
           >
-            {[
-              { Icon: Instagram, href: "https://instagram.com/raanaeofficial" },
-              { Icon: Twitter, href: "https://twitter.com/raanaeofficial" },
-              { Icon: Facebook, href: "https://facebook.com/raanaeofficial" },
-              { Icon: Linkedin, href: "https://linkedin.com/company/raanaeofficial" }
-            ].map(({ Icon, href }, i) => (
-              <a 
-                key={i} 
-                href={href} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-white hover:text-gold transition-colors"
-              >
-                <Icon className="w-5 h-5" />
-              </a>
-            ))}
+            <span className="text-white text-[15px] uppercase tracking-[0.4em] font-black drop-shadow-sm">
+              Our First Launch
+            </span>
+            <div className="w-10 h-[1px] bg-gold/30" />
           </motion.div>
 
           {/* Center: Scroll Arrow (Desktop Only) */}
@@ -372,7 +432,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-24 items-center">
 
             {/* Left: Product Visualization (Moved here) */}
-            <div className="lg:col-span-6 flex justify-center items-center relative h-[450px] md:h-[420px]">
+            <div className="lg:col-span-6 flex justify-center items-center relative h-[450px] md:h-[420px] w-[85%] mx-auto md:w-full">
               {/* Decorative Spotlight Glow */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -391,10 +451,10 @@ export default function Home() {
                 className="relative z-10 w-full h-full flex items-center justify-center"
               >
                 <Image 
-                  src="/product_3.png" 
+                  src="/product_3_new.png" 
                   alt="Raanae Product 3 Visualization" 
                   fill
-                  className="object-cover object-right md:object-contain md:object-center drop-shadow-[0_40px_80px_rgba(200,164,77,0.35)]"
+                  className="object-contain object-center drop-shadow-[0_40px_80px_rgba(200,164,77,0.35)]"
                 />
               </motion.div>
             </div>
@@ -460,10 +520,13 @@ export default function Home() {
             className="flex mt-10 md:mt-16 justify-center"
           >
             <button 
-              onClick={() => addToCart(SIGNATURE_PRODUCT)}
+              onClick={() => {
+                addToCart(PRE_ORDER_PRODUCT);
+                setIsCartOpen(true);
+              }}
               className="btn-premium-gold px-8 md:px-10 py-3 rounded-full flex items-center gap-3 text-[10px] md:text-[11px] font-black uppercase tracking-widest group"
             >
-              Buy Now
+              Pre Order Now
               <ShoppingBag className="w-4 h-4 group-hover:scale-110 transition-transform" />
             </button>
           </motion.div>
@@ -472,7 +535,7 @@ export default function Home() {
       
       {/* Section 5: Collection Highlights - Disconnected per user request */}
       {/* 
-      <section id="collection" className="section bg-black px-6 md:px-12 pb-20 md:pb-32 snap-start">
+      <section id="collection" className="section bg-black px-6 md:px-12 pb-20 md:pb-32 md:snap-start">
         <div className="relative w-full h-full flex flex-col justify-center items-center">
           <div className="flex items-center justify-center py-10 w-full">
             <div className="hidden md:flex items-center justify-center gap-4">
