@@ -275,18 +275,24 @@ export default function Home() {
                   transition={{ duration: 1, ease: "easeOut" }}
                   className="relative flex items-center justify-center w-full"
                 >
-                  <h1 className="text-7xl sm:text-8xl md:text-[10vw] huge-title-solid select-none tracking-tighter text-white text-center leading-none">
-                    7<sup className="text-[0.4em] relative -top-[0.5em] tracking-normal">TH</sup>
-                  </h1>
-                  
-                  {/* OCT on the Right of the centered 7 - Nudged slightly lower, closer, BIGGER, and BOUNCING */}
-                  <motion.span 
-                    animate={{ y: ["-50%", "-65%", "-50%"] }} 
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute left-[calc(50%+3.2rem)] sm:left-[calc(50%+4.2rem)] md:left-[calc(50%+7vw)] top-[55%] font-black text-gold tracking-[0.3em] uppercase text-sm sm:text-base md:text-xl"
-                  >
-                    OCT
-                  </motion.span>
+                  <div className="flex items-center gap-3 sm:gap-4 md:gap-6 translate-x-4 md:translate-x-8">
+                    <h1 className="text-7xl sm:text-8xl md:text-[10vw] huge-title-solid select-none tracking-tighter text-white leading-none">
+                      7
+                    </h1>
+                    
+                    <div className="flex flex-col justify-start items-start -space-y-1 md:-space-y-2 mt-1 md:mt-2">
+                      <span className="text-xl sm:text-2xl md:text-[3vw] font-black tracking-tight text-white/90 ml-1 md:ml-2">
+                        TH
+                      </span>
+                      <motion.span 
+                        animate={{ y: [0, -4, 0] }} 
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        className="font-black text-gold tracking-widest uppercase text-base sm:text-xl md:text-[2.5vw]"
+                      >
+                        OCT
+                      </motion.span>
+                    </div>
+                  </div>
                 </motion.div>
 
                   {/* Tagline & Gold Accent Line */}
@@ -428,7 +434,7 @@ export default function Home() {
       </section>
 
       {isMobile && (
-        <section id="about-details" className="section flex bg-black px-6 relative overflow-y-auto flex-col items-center justify-start pt-0 md:pt-16 md:snap-start pb-16">
+        <section id="about-details" className="section flex bg-black px-6 relative overflow-y-auto flex-col items-center justify-start py-16 md:pt-16 md:snap-start">
           <div className="relative z-10 w-full max-w-xl space-y-8">
             {/* Header */}
             <motion.div
@@ -471,6 +477,17 @@ export default function Home() {
               ))}
             </div>
 
+            {/* Social Icons - Mobile Only */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="flex gap-10 items-center justify-center pt-8 pb-4"
+            >
+              <Instagram className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+              <Twitter className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+              <Facebook className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+              <Linkedin className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+            </motion.div>
           </div>
         </section>
       )}
@@ -596,13 +613,13 @@ export default function Home() {
             </motion.div>
           </div>
 
-          {/* Bottom CTA Button - Desktop Only */}
+          {/* Bottom CTA Button - Visible on All Screens */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.8 }}
             viewport={{ once: true }}
-            className="hidden md:flex mt-10 md:mt-16 justify-center"
+            className="flex mt-10 md:mt-16 justify-center"
           >
             <button 
               onClick={() => {
@@ -614,17 +631,6 @@ export default function Home() {
               Pre Order Now
               <ShoppingBag className="w-4 h-4 group-hover:scale-110 transition-transform" />
             </button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="flex md:hidden mt-12 gap-10 items-center justify-center"
-          >
-            <Instagram className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
-            <Twitter className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
-            <Facebook className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
-            <Linkedin className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
           </motion.div>
         </div>
       </section>
