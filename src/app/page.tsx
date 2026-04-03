@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Instagram, Twitter, Facebook, Linkedin, ChevronLeft, ChevronRight, ArrowDown, Sparkles, ShieldCheck, Droplets, Globe, Palette, ArrowUpRight, ShoppingBag } from "lucide-react";
+import { Instagram, Twitter, Facebook, Linkedin, ChevronLeft, ChevronRight, ArrowDown, Sparkles, ShieldCheck, Droplets, Globe, Palette, ArrowUpRight, ShoppingBag, Volume2, VolumeX } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 export default function Home() {
@@ -11,6 +11,7 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMuted, setIsMuted] = useState(true);
 
   const SLIDESHOW_IMAGES = [
     "/Slideshow- (1).png",
@@ -49,7 +50,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % SLIDESHOW_IMAGES.length);
-    }, 1200); // Change image every 1.2 seconds (under 2 seconds as requested)
+    }, 3000); // 3 second stay-length for a more relaxed premium feel
     return () => clearInterval(timer);
   }, []);
 
@@ -61,7 +62,7 @@ export default function Home() {
 
 
         {/* Section 1: Brand Mission Hero */}
-        <section id="home" className="section !sticky md:!relative top-0 z-0 h-[100dvh] max-h-[100dvh] md:snap-start flex flex-col px-4 md:px-16 pt-2 overflow-hidden bg-black">
+        <section id="home" className="section relative h-[100dvh] max-h-[100dvh] md:snap-start flex flex-col px-4 md:px-16 pt-2 overflow-hidden bg-black">
 
         {/* Cinematic Logo Background Layer - Responsive */}
         <div className="absolute inset-0 h-[100dvh] z-0 opacity-50 pointer-events-none">
@@ -195,8 +196,8 @@ export default function Home() {
               transition={{ duration: 1, delay: 1.4, ease: 'easeOut' }}
               className="flex flex-col items-center gap-4"
             >
-              <h3 className="text-gold text-[12px] md:text-[14px] font-black uppercase tracking-[0.4em]">
-                OUR AIM IS TO HELP THEM WITHOUT ASKING ANYONE FOR DONATIONS
+              <h3 className="text-gold text-[12px] md:text-[14px] font-algerian uppercase tracking-[0.2em] md:tracking-[0.3em]">
+                Our Aim Is To Help The Needy And Helpless People Without Asking Anyone For Donations
               </h3>
             </motion.div>
           </motion.div>
@@ -205,7 +206,7 @@ export default function Home() {
       </section>
 
       {/* Section 2: Initiative */}
-      <section className="section !sticky md:!relative top-0 z-10 bg-black overflow-hidden h-[50dvh] md:h-[100dvh] md:snap-start flex items-center justify-center">
+      <section className="section bg-black overflow-hidden relative h-[50dvh] md:h-[100dvh] md:snap-start flex items-center justify-center">
         
         {/* Background Image */}
         <div className="absolute inset-0 z-0 pointer-events-none">
@@ -260,23 +261,33 @@ export default function Home() {
       </section>
 
       {/* Section 3: Original 7th October Hero */}
-      <section id="october" className="section !sticky md:!relative top-0 z-20 bg-black overflow-hidden h-[100dvh] md:snap-start">
+      <section id="october" className="w-full bg-black overflow-hidden relative h-auto md:h-[100dvh] md:snap-start py-0 md:py-0">
 
-        <div className="absolute inset-0 pt-10 pb-10 md:py-20 px-6 md:px-0 flex flex-col justify-between z-10">
-          <div className="flex-grow flex flex-col justify-center px-0 md:px-16">
+        <div className="relative md:absolute md:inset-0 pt-6 md:pt-10 pb-8 md:pb-10 flex flex-col md:justify-between z-10 px-6 md:px-0">
+          <div className="flex flex-col md:justify-center px-0 md:px-16 md:flex-grow">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-0 items-center w-full relative">
               <div className="z-10 flex flex-col items-center text-center">
-                {/* 7TH OCTOBER TITLE - Simplified for Mobile Visibility */}
+                {/* Redesigned 7TH OCT - 7 is anchored center, OCT is accent right */}
                 <motion.div
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                  className="z-10 flex flex-col items-center"
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="relative flex items-center justify-center w-full"
                 >
-                  <h1 className="text-4xl sm:text-5xl md:text-[7vw] huge-title-solid select-none tracking-[-0.04em] leading-[1.1] md:leading-[0.8] text-white">
-                    7<sup className="text-[0.5em] relative -top-[0.4em] tracking-normal">TH</sup> OCT
+                  <h1 className="text-7xl sm:text-8xl md:text-[10vw] huge-title-solid select-none tracking-tighter text-white text-center leading-none">
+                    7<sup className="text-[0.4em] relative -top-[0.5em] tracking-normal">TH</sup>
                   </h1>
+                  
+                  {/* OCT on the Right of the centered 7 - Nudged slightly lower, closer, BIGGER, and BOUNCING */}
+                  <motion.span 
+                    animate={{ y: ["-50%", "-65%", "-50%"] }} 
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute left-[calc(50%+3.2rem)] sm:left-[calc(50%+4.2rem)] md:left-[calc(50%+7vw)] top-[55%] font-black text-gold tracking-[0.3em] uppercase text-sm sm:text-base md:text-xl"
+                  >
+                    OCT
+                  </motion.span>
+                </motion.div>
 
                   {/* Tagline & Gold Accent Line */}
                   <div className="mt-4 md:mt-6 flex items-center gap-4 md:gap-6">
@@ -295,65 +306,106 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 1.0 }}
                       className="text-gold text-[10px] md:text-xs uppercase tracking-[0.3em] md:tracking-[0.5em] font-light"
                     >
-                      Fragrance of Freedom
                     </motion.p>
                   </div>
 
+                  {/* Desktop Pre-Order Button */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 1.2 }}
+                    viewport={{ once: true }}
+                    className="hidden md:flex mt-10"
+                  >
+                    <button 
+                      onClick={() => {
+                        addToCart(PRE_ORDER_PRODUCT);
+                        setIsCartOpen(true);
+                      }}
+                      className="btn-premium-gold px-12 py-3.5 rounded-full flex items-center gap-3 text-[11px] font-black uppercase tracking-widest shadow-[0_0_30px_rgba(200,164,77,0.3)] transition-transform hover:scale-105 active:scale-95"
+                    >
+                      Pre Order Now
+                      <ShoppingBag className="w-4 h-4" />
+                    </button>
+                  </motion.div>
+                </div>
 
-                </motion.div>
-              </div>
+                <div className="relative flex justify-center items-center h-[380px] md:h-[420px] lg:h-[500px] -mt-4 md:mt-0 w-full overflow-hidden">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    onViewportEnter={(entry) => {
+                      const video = entry?.target?.querySelector('video');
+                      if (video) {
+                        video.currentTime = 0;
+                        video.play();
+                      }
+                    }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    viewport={{ once: false, amount: 0.5 }}
+                    className="relative w-full h-full flex items-center justify-center"
+                  >
+                    <video
+                      key={isMobile ? `mobile-video-${isMuted}` : `desktop-video-${isMuted}`}
+                      autoPlay
+                      muted={isMuted}
+                      playsInline
+                      className="w-full h-full object-cover md:object-contain"
+                    >
+                      <source src={isMobile ? "/Raanae Masterpiece Mob.mp4" : "/Raanae Masterpiece.mp4"} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
 
-              <div className="relative flex justify-center items-center h-[400px] md:h-full">
-
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className="relative z-10 flex flex-col items-center w-full"
-                >
-                  <div className="relative z-10 overflow-hidden mix-blend-screen w-full h-[350px] md:h-[520px] flex justify-center items-center">
-                    <AnimatePresence>
-                      <motion.div
-                        key={currentSlide}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="absolute inset-0 w-full flex justify-center items-center"
-                      >
-                        <Image
-                          src={SLIDESHOW_IMAGES[currentSlide]}
-                          alt={`7th October Slideshow ${currentSlide + 1}`}
-                          width={480}
-                          height={520}
-                          className="w-[320px] md:w-[480px] h-[350px] md:h-[520px] object-contain rounded-[2rem]"
-                          priority
-                        />
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              </div>
+                    {/* Minimalist Sound Toggle */}
+                    <motion.button
+                      onPointerDown={(e) => {
+                         e.stopPropagation();
+                         setIsMuted(!isMuted);
+                      }}
+                      className="absolute bottom-6 right-6 p-3 bg-black/40 backdrop-blur-md border border-white/10 rounded-full z-50 hover:bg-gold/20 transition-all group"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1 }}
+                    >
+                      {isMuted ? (
+                        <VolumeX className="w-4 h-4 text-white group-hover:text-gold" />
+                      ) : (
+                        <Volume2 className="w-4 h-4 text-gold" />
+                      )}
+                    </motion.button>
+                  </motion.div>
+                </div>
             </div>
+
+            {/* Mobile: Our First Launch & Pre-Order Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="md:hidden flex flex-col items-center text-center mt-1 z-20"
+            >
+              <span className="text-white text-[15px] uppercase tracking-[0.4em] font-black drop-shadow-sm mb-4">
+                Our First Launch
+              </span>
+              <button 
+                onClick={() => {
+                  addToCart(PRE_ORDER_PRODUCT);
+                  setIsCartOpen(true);
+                }}
+                className="btn-premium-gold px-6 py-2.5 rounded-full flex items-center gap-2 text-[9px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(200,164,77,0.3)]"
+              >
+                Pre Order Now
+                <ShoppingBag className="w-3.5 h-3.5" />
+              </button>
+            </motion.div>
+
           </div>
 
         </div>
 
         {/* Absolute Footer pinned to bottom of section - bypasses hero-grid constraints */}
         <div className="absolute bottom-14 md:bottom-8 left-0 right-0 flex flex-col items-center justify-center px-6 md:px-16 z-50">
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 1 }}
-            className="flex md:hidden flex-col items-center gap-3 mb-6 mt-0"
-          >
-            <span className="text-white text-[15px] uppercase tracking-[0.4em] font-black drop-shadow-sm">
-              Our First Launch
-            </span>
-          </motion.div>
-
           {/* Center: Scroll Arrow (Desktop Only) */}
           <motion.div
             animate={{ y: [0, 8, 0] }}
@@ -376,18 +428,17 @@ export default function Home() {
       </section>
 
       {isMobile && (
-        <section id="about-details" className="section !sticky md:!relative top-0 z-30 flex bg-black px-6 overflow-y-auto flex-col items-center justify-center md:snap-start py-16">
-          <div className="relative z-10 w-full max-w-xl space-y-10">
+        <section id="about-details" className="section flex bg-black px-6 relative overflow-y-auto flex-col items-center justify-start pt-0 md:pt-16 md:snap-start pb-16">
+          <div className="relative z-10 w-full max-w-xl space-y-8">
             {/* Header */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="space-y-4 flex flex-col items-center text-center relative"
+              className="space-y-4 flex flex-col items-center text-center relative mt-0"
             >
-              <div className="h-[1px] w-12 bg-gold absolute -top-20" />
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">The House of RAANAE</h3>
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gold pt-2">The House of RAANAE</h3>
               <p className="text-[11px] text-white/90 uppercase tracking-[0.1em] leading-relaxed font-bold">
                 Raanae is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design.
               </p>
@@ -424,38 +475,73 @@ export default function Home() {
         </section>
       )}
 
-      {/* Section 3: About Us (Redesigned Grid - Flipped) */}
-      <section id="about" className="section !sticky md:!relative top-0 z-40 bg-black px-6 md:px-24 overflow-hidden flex items-center justify-center md:snap-start md:py-0">
+      {/* Section 4: About Us (Redesigned Grid - Flipped) */}
+      <section id="about" className="flex section bg-black px-6 md:px-24 relative overflow-hidden items-center justify-center md:snap-start md:py-0">
 
         <div className="relative z-10 w-full max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-24 items-center">
 
             {/* Left: Product Visualization (Moved here) */}
             <div className="lg:col-span-6 flex justify-center items-center relative h-[450px] md:h-[420px] w-[85%] mx-auto md:w-full">
-              {/* Decorative Spotlight Glow */}
+              {/* Decorative Spotlight Glow - Hidden on mobile for more blackish bg */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 2 }}
-                className="absolute w-[300px] h-[300px] bg-gold/5 rounded-full blur-[100px] z-0"
+                className="hidden md:block absolute w-[300px] h-[300px] bg-gold/5 rounded-full blur-[100px] z-0"
               />
               
-              <motion.div
-                initial={{ opacity: 0, filter: "blur(10px)", y: 15 }}
-                whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                transition={{ 
-                  duration: 1.5,
-                  ease: "easeOut"
-                }}
-                className="relative z-10 w-full h-full flex items-center justify-center"
-              >
-                <Image 
-                  src="/product_3_new.png" 
-                  alt="Raanae Product 3 Visualization" 
-                  fill
-                  className="object-contain object-center drop-shadow-[0_40px_80px_rgba(200,164,77,0.35)]"
-                />
-              </motion.div>
+              <div className="flex flex-col lg:flex-row items-center w-full gap-4 lg:gap-12">
+                {/* 3-Box Preview Grid (Vertical on Desktop, Horizontal on Mobile) */}
+                <div className="order-2 lg:order-1 flex lg:flex-col gap-4 items-center justify-center lg:w-32">
+                  {[ -1, 0, 1 ].map((offset) => {
+                    const index = (currentSlide + offset + SLIDESHOW_IMAGES.length) % SLIDESHOW_IMAGES.length;
+                    const isActive = offset === 0;
+                    return (
+                      <motion.div
+                        key={`${index}-${offset}`}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ 
+                          opacity: isActive ? 1 : 0.35, 
+                          scale: isActive ? 1.1 : 0.9,
+                          borderColor: isActive ? "rgba(200, 164, 77, 1)" : "rgba(255, 255, 255, 0.1)"
+                        }}
+                        transition={{ duration: 0.8 }}
+                        className={`w-16 h-20 md:w-20 md:h-24 relative border-2 rounded-xl overflow-hidden cursor-pointer ${!isActive ? 'grayscale' : 'shadow-[0_0_30px_rgba(200,164,77,0.3)]'}`}
+                        onClick={() => setCurrentSlide(index)}
+                      >
+                        <Image 
+                          src={SLIDESHOW_IMAGES[index]}
+                          alt={`Thumbnail ${index}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+                {/* Main Slideshow Image */}
+                <div className="order-1 lg:order-2 relative w-full h-[380px] md:h-[450px] lg:h-[500px] flex items-center justify-center flex-grow">
+                  <AnimatePresence mode="popLayout">
+                    <motion.div
+                      key={currentSlide}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 1, ease: "easeInOut" }}
+                      className="absolute inset-0 w-full h-full flex items-center justify-center"
+                    >
+                      <Image 
+                        src={SLIDESHOW_IMAGES[currentSlide]} 
+                        alt={`Raanae Slideshow ${currentSlide + 1}`} 
+                        fill
+                        className="object-contain object-center drop-shadow-[0_40px_100px_rgba(200,164,77,0.4)]"
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </div>
             </div>
 
             {/* Right: Heading Content & Bullets - Desktop Only (Shared Grid) */}
@@ -510,13 +596,13 @@ export default function Home() {
             </motion.div>
           </div>
 
-          {/* Bottom CTA Button - Visible on All Screens for final action */}
+          {/* Bottom CTA Button - Desktop Only */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.8 }}
             viewport={{ once: true }}
-            className="flex mt-10 md:mt-16 justify-center"
+            className="hidden md:flex mt-10 md:mt-16 justify-center"
           >
             <button 
               onClick={() => {
@@ -528,6 +614,17 @@ export default function Home() {
               Pre Order Now
               <ShoppingBag className="w-4 h-4 group-hover:scale-110 transition-transform" />
             </button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="flex md:hidden mt-12 gap-10 items-center justify-center"
+          >
+            <Instagram className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+            <Twitter className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+            <Facebook className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+            <Linkedin className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
           </motion.div>
         </div>
       </section>
