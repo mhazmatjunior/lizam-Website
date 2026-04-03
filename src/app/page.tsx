@@ -164,9 +164,9 @@ export default function Home() {
             {/* Raanae Label */}
             <motion.h2
               initial={{ opacity: 0, letterSpacing: '1em' }}
-              animate={{ opacity: 0.8, letterSpacing: '0.8em' }}
+              animate={{ opacity: 1, letterSpacing: '0.8em' }}
               transition={{ duration: 2, ease: 'easeOut' }}
-              className="text-gold text-lg md:text-3xl font-black uppercase"
+              className="text-gold text-lg md:text-3xl font-black uppercase drop-shadow-[0_0_15px_rgba(200,164,77,0.4)]"
             >
               Raanae
             </motion.h2>
@@ -196,7 +196,7 @@ export default function Home() {
               transition={{ duration: 1, delay: 1.4, ease: 'easeOut' }}
               className="flex flex-col items-center gap-4"
             >
-              <h3 className="text-gold text-[12px] md:text-[14px] font-algerian uppercase tracking-[0.2em] md:tracking-[0.3em]">
+              <h3 className="text-gold text-[10px] md:text-[12px] font-black uppercase tracking-[0.15em] md:tracking-[0.2em] max-w-sm md:max-w-2xl leading-loose">
                 Our Aim Is To Help The Needy And Helpless People Without Asking Anyone For Donations
               </h3>
             </motion.div>
@@ -263,7 +263,7 @@ export default function Home() {
       {/* Section 3: Original 7th October Hero */}
       <section id="october" className="w-full bg-black overflow-hidden relative h-auto md:h-[100dvh] md:snap-start py-0 md:py-0">
 
-        <div className="relative md:absolute md:inset-0 pt-6 md:pt-10 pb-8 md:pb-10 flex flex-col md:justify-between z-10 px-6 md:px-0">
+        <div className="relative md:absolute md:inset-0 pt-6 md:pt-10 pb-20 md:pb-10 flex flex-col md:justify-between z-10 px-6 md:px-0">
           <div className="flex flex-col md:justify-center px-0 md:px-16 md:flex-grow">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-0 items-center w-full relative">
               <div className="z-10 flex flex-col items-center text-center">
@@ -433,65 +433,6 @@ export default function Home() {
         </div>
       </section>
 
-      {isMobile && (
-        <section id="about-details" className="section flex bg-black px-6 relative overflow-y-auto flex-col items-center justify-start py-16 md:pt-16 md:snap-start">
-          <div className="relative z-10 w-full max-w-xl space-y-8">
-            {/* Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="space-y-4 flex flex-col items-center text-center relative mt-0"
-            >
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gold pt-2">The House of RAANAE</h3>
-              <p className="text-[11px] text-white/90 uppercase tracking-[0.1em] leading-relaxed font-bold">
-                Raanae is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design.
-              </p>
-            </motion.div>
-
-            {/* Minimalist Bullets Grid */}
-            <div className="grid grid-cols-1 gap-y-8 w-full max-w-[280px] mx-auto">
-              {[
-                { icon: Sparkles, title: "Rare Infusions", desc: "Obsidian series depth using molecular infusion." },
-                { icon: Palette, title: "Artisanal Craft", desc: "Hand-poured precision from our distillery." },
-                { icon: Droplets, title: "Pure Integrity", desc: "Zero synthetic fillers—just pure nature." },
-                { icon: ShieldCheck, title: "Modern Design", desc: "Aesthetics meet advanced distillation tech." },
-                { icon: Globe, title: "Global Heritage", desc: "Sourcing world's most elusive botanicals." }
-              ].map((item, id) => (
-                <motion.div
-                  key={id}
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: id * 0.1 }}
-                  className="flex items-start gap-4"
-                >
-                  <div className="w-8 h-8 rounded-full border border-gold/20 flex items-center justify-center shrink-0">
-                    <item.icon className="w-3.5 h-3.5 text-gold" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-white font-bold text-[11px] uppercase tracking-widest">{item.title}</h3>
-                    <p className="text-white/40 text-[10px] leading-tight">{item.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Social Icons - Mobile Only */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              className="flex gap-10 items-center justify-center pt-8 pb-4"
-            >
-              <Instagram className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
-              <Twitter className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
-              <Facebook className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
-              <Linkedin className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
-            </motion.div>
-          </div>
-        </section>
-      )}
-
       {/* Section 4: About Us (Redesigned Grid - Flipped) */}
       <section id="about" className="flex section bg-black px-6 md:px-24 relative overflow-hidden items-center justify-center md:snap-start md:py-0">
 
@@ -634,6 +575,65 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+      {isMobile && (
+        <section id="about-details" className="section flex bg-black px-6 relative overflow-y-auto flex-col items-center justify-start py-16 md:pt-16 md:snap-start">
+          <div className="relative z-10 w-full max-w-xl space-y-8">
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="space-y-4 flex flex-col items-center text-center relative mt-0"
+            >
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gold pt-2">The House of RAANAE</h3>
+              <p className="text-[11px] text-white/90 uppercase tracking-[0.1em] leading-relaxed font-bold">
+                Raanae is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design.
+              </p>
+            </motion.div>
+
+            {/* Minimalist Bullets Grid */}
+            <div className="grid grid-cols-1 gap-y-8 w-full max-w-[280px] mx-auto">
+              {[
+                { icon: Sparkles, title: "Rare Infusions", desc: "Obsidian series depth using molecular infusion." },
+                { icon: Palette, title: "Artisanal Craft", desc: "Hand-poured precision from our distillery." },
+                { icon: Droplets, title: "Pure Integrity", desc: "Zero synthetic fillers—just pure nature." },
+                { icon: ShieldCheck, title: "Modern Design", desc: "Aesthetics meet advanced distillation tech." },
+                { icon: Globe, title: "Global Heritage", desc: "Sourcing world's most elusive botanicals." }
+              ].map((item, id) => (
+                <motion.div
+                  key={id}
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: id * 0.1 }}
+                  className="flex items-start gap-4"
+                >
+                  <div className="w-8 h-8 rounded-full border border-gold/20 flex items-center justify-center shrink-0">
+                    <item.icon className="w-3.5 h-3.5 text-gold" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-white font-bold text-[11px] uppercase tracking-widest">{item.title}</h3>
+                    <p className="text-white/40 text-[10px] leading-tight">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Social Icons - Mobile Only */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="flex gap-10 items-center justify-center pt-8 pb-4"
+            >
+              <Instagram className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+              <Twitter className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+              <Facebook className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+              <Linkedin className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
+            </motion.div>
+          </div>
+        </section>
+      )}
       
       {/* Section 5: Collection Highlights - Disconnected per user request */}
       {/* 
