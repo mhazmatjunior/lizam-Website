@@ -368,3 +368,7 @@ body::after {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(200, 164, 77, 0.3);
 }
+
+.font-algerian {
+  font-family: 'Algerian', 'Times New Roman', serif;
+}

@@ -111,15 +111,15 @@ export default function Home() {
           <div className="float-orb absolute w-[50px] md:w-[80px] h-[50px] md:h-[80px] rounded-full bg-gold/[0.06] blur-[15px] md:blur-[30px]" style={{ top: '50%', left: '55%', '--orb-duration': '6s', '--orb-delay': '0.5s' } as React.CSSProperties} />
         </div>
 
-        {/* Navbar - Refined 3-Column Grid */}
-        <header className="grid grid-cols-2 md:grid-cols-3 items-center z-50 w-full pb-4 md:pb-10">
-          <div className="flex items-center -ml-2 md:ml-0">
+        {/* Navbar - Refined Layout for Massive Mobile Logo */}
+        <header className="flex justify-between md:grid md:grid-cols-3 items-center z-50 w-full pb-4 md:pb-10">
+          <div className="flex items-center -ml-10 md:ml-0 shrink-0">
             <Image
               src="/logo-transparent.png"
               alt="RAANAE Logo"
               width={180}
               height={60}
-              className="h-14 md:h-16 w-auto object-contain mix-blend-screen"
+              className="h-[100px] md:h-[85px] w-auto object-contain object-left mix-blend-screen origin-left"
               priority
             />
           </div>
@@ -131,7 +131,7 @@ export default function Home() {
             {/* <a href="#collection" className="hover:text-gold transition-colors">Collection</a> */}
           </nav>
 
-          <div className="flex justify-end items-center gap-2 md:gap-4">
+          <div className="flex justify-end items-center gap-2 md:gap-4 -mt-5 md:mt-0">
             <button 
               onClick={() => setIsCartOpen(true)}
               className="relative p-2 md:p-3 bg-white/[0.03] border border-white/10 rounded-full hover:border-gold/50 transition-all group"
@@ -237,13 +237,13 @@ export default function Home() {
         </div>
 
         {/* Content - Responsive Alignment */}
-        <div className="relative z-20 flex flex-col items-center justify-center md:justify-end h-full pt-44 md:pt-0 md:pb-16 px-6">
+        <div className="relative z-20 flex flex-col items-center justify-center md:justify-end h-full pt-60 md:pt-0 md:pb-16 px-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2, ease: "easeOut" }}
-            className="flex flex-col items-center text-center max-w-2xl mx-auto md:px-10 md:py-8 md:bg-black/40 md:backdrop-blur-md md:border md:border-white/10 md:rounded-2xl md:shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+            className="flex flex-col items-center text-center max-w-2xl mx-auto px-6 py-4 border border-white/5 bg-black/15 backdrop-blur-sm rounded-2xl md:px-10 md:py-8 md:bg-black/40 md:backdrop-blur-md md:border-white/10 md:shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
           >
             {/* Minimalist Top Accent */}
             <div className="w-16 h-[1px] bg-gold mb-6 shadow-[0_0_10px_rgba(200,164,77,0.5)]" />
@@ -252,7 +252,7 @@ export default function Home() {
               Our Initiative
             </h3>
             
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 leading-[1.8] md:leading-[1.9] font-medium tracking-wide drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+            <p className="font-algerian text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 leading-[1.8] md:leading-[1.9] tracking-wide drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
               It's a self-taken initiative for others, inspired by the cause of Palestine.
             </p>
           </motion.div>
@@ -352,7 +352,6 @@ export default function Home() {
             <span className="text-white text-[15px] uppercase tracking-[0.4em] font-black drop-shadow-sm">
               Our First Launch
             </span>
-            <div className="w-10 h-[1px] bg-gold/30" />
           </motion.div>
 
           {/* Center: Scroll Arrow (Desktop Only) */}
@@ -385,9 +384,9 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="space-y-4 flex flex-col items-center text-center"
+              className="space-y-4 flex flex-col items-center text-center relative"
             >
-              <div className="h-[1px] w-12 bg-gold" />
+              <div className="h-[1px] w-12 bg-gold absolute -top-20" />
               <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">The House of RAANAE</h3>
               <p className="text-[11px] text-white/90 uppercase tracking-[0.1em] leading-relaxed font-bold">
                 Raanae is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design.
