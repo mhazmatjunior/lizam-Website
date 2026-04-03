@@ -61,7 +61,7 @@ export default function Home() {
 
 
         {/* Section 1: Brand Mission Hero */}
-        <section id="home" className="section relative h-[100dvh] max-h-[100dvh] md:snap-start flex flex-col px-4 md:px-16 pt-2 overflow-hidden bg-black">
+        <section id="home" className="section !sticky md:!relative top-0 z-0 h-[100dvh] max-h-[100dvh] md:snap-start flex flex-col px-4 md:px-16 pt-2 overflow-hidden bg-black">
 
         {/* Cinematic Logo Background Layer - Responsive */}
         <div className="absolute inset-0 h-[100dvh] z-0 opacity-50 pointer-events-none">
@@ -205,7 +205,7 @@ export default function Home() {
       </section>
 
       {/* Section 2: Initiative */}
-      <section className="section bg-black overflow-hidden relative h-[50dvh] md:h-[100dvh] md:snap-start flex items-center justify-center">
+      <section className="section !sticky md:!relative top-0 z-10 bg-black overflow-hidden h-[50dvh] md:h-[100dvh] md:snap-start flex items-center justify-center">
         
         {/* Background Image */}
         <div className="absolute inset-0 z-0 pointer-events-none">
@@ -260,7 +260,7 @@ export default function Home() {
       </section>
 
       {/* Section 3: Original 7th October Hero */}
-      <section id="october" className="section bg-black overflow-hidden relative h-[100dvh] md:snap-start">
+      <section id="october" className="section !sticky md:!relative top-0 z-20 bg-black overflow-hidden h-[100dvh] md:snap-start">
 
         <div className="absolute inset-0 pt-10 pb-10 md:py-20 px-6 md:px-0 flex flex-col justify-between z-10">
           <div className="flex-grow flex flex-col justify-center px-0 md:px-16">
@@ -376,7 +376,7 @@ export default function Home() {
       </section>
 
       {isMobile && (
-        <section id="about-details" className="section flex bg-black px-6 relative overflow-y-auto flex-col items-center justify-center md:snap-start py-16">
+        <section id="about-details" className="section !sticky md:!relative top-0 z-30 flex bg-black px-6 overflow-y-auto flex-col items-center justify-center md:snap-start py-16">
           <div className="relative z-10 w-full max-w-xl space-y-10">
             {/* Header */}
             <motion.div
@@ -425,7 +425,7 @@ export default function Home() {
       )}
 
       {/* Section 3: About Us (Redesigned Grid - Flipped) */}
-      <section id="about" className="section bg-black px-6 md:px-24 relative overflow-hidden flex items-center justify-center md:snap-start md:py-0">
+      <section id="about" className="section !sticky md:!relative top-0 z-40 bg-black px-6 md:px-24 overflow-hidden flex items-center justify-center md:snap-start md:py-0">
 
         <div className="relative z-10 w-full max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-24 items-center">
