@@ -34,9 +34,9 @@
     "product": "7TH OCTOBER (Pre-Order Booking)",
     "amount": 150,
     "currency": "PKR",
-    "status": "paid",
+    "status": "shipped",
     "createdAt": "2026-04-06T10:53:51.085Z",
-    "updatedAt": "2026-04-06T10:55:39.599Z",
+    "updatedAt": "2026-04-07T12:44:37.854Z",
     "tracker": null
   },
   {
@@ -65,6 +65,20 @@
     "status": "paid",
     "createdAt": "2026-04-06T20:48:43.316Z",
     "updatedAt": "2026-04-06T20:50:07.403Z",
+    "tracker": null
+  },
+  {
+    "orderId": "ORD-1775565939610",
+    "name": "Admin 2",
+    "email": "admin@gmail.com",
+    "phone": "03359756566",
+    "address": "Admin House",
+    "product": "7TH OCTOBER (Pre-Order Booking)",
+    "amount": 150,
+    "currency": "PKR",
+    "status": "paid",
+    "createdAt": "2026-04-07T12:45:39.611Z",
+    "updatedAt": "2026-04-07T12:46:51.655Z",
     "tracker": null
   }
 ]

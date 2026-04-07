@@ -19,8 +19,12 @@ const alata = Alata({
 });
 
 export const metadata: Metadata = {
-  title: "RAANAE | The Essence of Eternal Sophistication",
+  title: "Raanae | The Fragrance of Freedom",
   description: "Experience the luxury of Raanae, showcasing 7th October—a premium fragrance designed for those who command presence and elegance.",
+  icons: {
+    icon: "/hero-bg-2.png",
+    apple: "/hero-bg-2.png",
+  }
 };
 
 import { CartProvider } from "@/context/CartContext";

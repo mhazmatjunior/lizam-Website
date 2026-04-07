@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Instagram, Twitter, Facebook, Linkedin, ChevronLeft, ChevronRight, ArrowDown, Sparkles, ShieldCheck, Droplets, Globe, Palette, ArrowUpRight, ShoppingBag, Volume2, VolumeX } from "lucide-react";
+import { Instagram, Facebook, ChevronLeft, ChevronRight, ArrowDown, Sparkles, ShieldCheck, Droplets, Globe, Palette, ArrowUpRight, ShoppingBag, Volume2, VolumeX } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import CheckoutModal from "./components/CheckoutModal";
 
@@ -27,7 +27,7 @@ export default function Home() {
   // Signature Product definition for the landing page
   const SIGNATURE_PRODUCT = {
     id: 710,
-    name: "7TH OCTOBER",
+    name: "7TH OCT",
     price: 24500,
     category: "Signature Collection",
     image: "/product_1.png"
@@ -36,7 +36,7 @@ export default function Home() {
   // Pre-Order Rate Product
   const PRE_ORDER_PRODUCT = {
     id: 71099,
-    name: "7TH OCTOBER (Pre-Order Booking)",
+    name: "7TH OCT (Pre-Order Booking)",
     price: 150,
     category: "Signature Collection",
     image: "/product_1.png"
@@ -52,9 +52,9 @@ export default function Home() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % SLIDESHOW_IMAGES.length);
-    }, 3000); // 3 second stay-length for a more relaxed premium feel
+    }, 6000); // Premium 6-second cadence
     return () => clearInterval(timer);
-  }, []);
+  }, [currentSlide]); // Dependency ensures timer Resets on manual interaction
 
   return (
     <>
@@ -68,23 +68,31 @@ export default function Home() {
         <section id="home" className="section relative h-[100dvh] max-h-[100dvh] md:snap-start flex flex-col px-4 md:px-16 pt-2 overflow-hidden bg-black">
 
         {/* Cinematic Logo Background Layer - Responsive */}
-        <div className="absolute inset-0 h-[100dvh] z-0 opacity-50 pointer-events-none">
+        <div className="absolute inset-0 h-[100dvh] w-full z-0 opacity-50 mix-blend-screen pointer-events-none overflow-hidden">
           {/* Mobile Background */}
-          <Image
-            src="/hero-bg-5.png"
-            alt="Brand Pattern Mobile Background"
-            fill
-            className="md:hidden object-cover"
-            priority
-          />
+          <div className="md:hidden absolute inset-0 w-full h-full">
+            <Image
+              src="/hero-bg-5.png"
+              alt="Brand Pattern Mobile Background"
+              fill
+              unoptimized
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+          </div>
           {/* Desktop Background */}
-          <Image
-            src="/hero-bg-4.png"
-            alt="Brand Pattern Desktop Background"
-            fill
-            className="hidden md:block object-cover"
-            priority
-          />
+          <div className="hidden md:block absolute inset-0 w-full h-full">
+            <Image
+              src="/hero-bg-4.png"
+              alt="Brand Pattern Desktop Background"
+              fill
+              unoptimized
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+          </div>
         </div>
 
         {/* Strong Centered Radial Ambient Glow */}
@@ -113,22 +121,20 @@ export default function Home() {
 
         {/* Navbar - Refined Layout for Massive Mobile Logo */}
         <header className="flex justify-between md:grid md:grid-cols-3 items-center z-50 w-full pb-4 md:pb-10">
-          <div className="flex items-center -ml-10 md:ml-0 shrink-0">
+          <div className="flex items-center -ml-6 md:ml-0 shrink-0 relative h-[100px] md:h-[85px] w-[180px] md:w-[180px]">
             <Image
               src="/logo-transparent.png"
               alt="RAANAE Logo"
-              width={180}
-              height={60}
-              className="h-[100px] md:h-[85px] w-auto object-contain object-left mix-blend-screen origin-left"
+              fill
+              className="object-contain object-left mix-blend-screen"
               priority
             />
           </div>
           
           <nav className="hidden md:flex justify-center gap-10 lg:gap-14 text-[10px] uppercase tracking-[0.3em] font-medium text-white/50">
             <a href="#home" className="hover:text-gold transition-colors text-white">Home</a>
-            <a href="#october" className="hover:text-gold transition-colors">7th October</a>
+            <a href="#october" className="hover:text-gold transition-colors">7th Oct</a>
             <a href="#about" className="hover:text-gold transition-colors">About</a>
-            {/* <a href="#collection" className="hover:text-gold transition-colors">Collection</a> */}
           </nav>
 
           <div className="flex justify-end items-center gap-2 md:gap-4 -mt-5 md:mt-0">
@@ -208,23 +214,31 @@ export default function Home() {
       <section className="section bg-black overflow-hidden relative h-[50dvh] md:h-[100dvh] md:snap-start flex items-center justify-center">
         
         {/* Background Image */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 z-0 pointer-events-none w-full h-full">
           {/* Mobile Background */}
-          <Image
-            src="/section-2-mob-new.png"
-            alt="Initiative Mobile Background"
-            fill
-            className="md:hidden object-cover opacity-90"
-            priority
-          />
+          <div className="md:hidden absolute inset-0 w-full h-full">
+            <Image
+              src="/section-2-mob-new.png"
+              alt="Initiative Mobile Background"
+              fill
+              unoptimized
+              sizes="100vw"
+              className="object-cover opacity-90"
+              priority
+            />
+          </div>
           {/* Desktop Background */}
-          <Image
-            src="/section-2-new.png"
-            alt="Initiative Desktop Background"
-            fill
-            className="hidden md:block object-cover opacity-90"
-            priority
-          />
+          <div className="hidden md:block absolute inset-0 w-full h-full">
+            <Image
+              src="/section-2-new.png"
+              alt="Initiative Desktop Background"
+              fill
+              unoptimized
+              sizes="100vw"
+              className="object-cover opacity-90"
+              priority
+            />
+          </div>
           {/* Top Vignette */}
           <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-black to-transparent z-10" />
           
@@ -239,10 +253,10 @@ export default function Home() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2, ease: "easeOut" }}
-            className="flex flex-col items-center text-center max-w-2xl mx-auto px-6 py-4 border border-white/5 bg-black/15 backdrop-blur-sm rounded-2xl md:px-10 md:py-8 md:bg-black/40 md:backdrop-blur-md md:border-white/10 md:shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+            className="flex flex-col items-center text-center max-w-2xl mx-auto px-6 py-4 border border-white/40 bg-black/10 backdrop-blur-sm rounded-2xl md:px-10 md:py-8 md:bg-black/40 md:backdrop-blur-md md:border-white/10 md:shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
           >
             {/* Minimalist Top Accent */}
-            <div className="w-16 h-[1px] bg-gold mb-6 shadow-[0_0_10px_rgba(200,164,77,0.5)]" />
+            
             
             <h3 className="text-gold text-sm md:text-base font-black uppercase tracking-[0.3em] md:tracking-[0.4em] mb-4 md:mb-6 drop-shadow-md">
               Our Initiative
@@ -416,9 +430,7 @@ export default function Home() {
         {/* Right Most Vertical Social Icons (Centered Vertically) */}
         <div className="hidden md:flex absolute right-6 md:right-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-8 z-50">
           <Instagram className="w-[18px] md:w-[20px] h-[18px] md:h-[20px] text-white hover:text-gold cursor-pointer transition-colors" />
-          <Twitter className="w-[18px] md:w-[20px] h-[18px] md:h-[20px] text-white hover:text-gold cursor-pointer transition-colors" />
           <Facebook className="w-[18px] md:w-[20px] h-[18px] md:h-[20px] text-white hover:text-gold cursor-pointer transition-colors" />
-          <Linkedin className="w-[18px] md:w-[20px] h-[18px] md:h-[20px] text-white hover:text-gold cursor-pointer transition-colors" />
         </div>
       </section>
 
@@ -446,21 +458,27 @@ export default function Home() {
                     const isActive = offset === 0;
                     return (
                       <motion.div
-                        key={`${index}-${offset}`}
-                        initial={{ opacity: 0, scale: 0.8 }}
+                        key={SLIDESHOW_IMAGES[index]}
+                        layout="position"
+                        initial={{ opacity: 0 }}
                         animate={{ 
-                          opacity: isActive ? 1 : 0.35, 
-                          scale: isActive ? 1.1 : 0.9,
-                          borderColor: isActive ? "rgba(200, 164, 77, 1)" : "rgba(255, 255, 255, 0.1)"
+                          opacity: isActive ? 1 : 0.15, 
+                          scale: isActive ? 1.05 : 0.9,
+                          borderColor: isActive ? "rgba(200, 164, 77, 1)" : "rgba(255, 255, 255, 0)"
                         }}
-                        transition={{ duration: 0.8 }}
-                        className={`w-16 h-20 md:w-20 md:h-24 relative border-2 rounded-xl overflow-hidden cursor-pointer ${!isActive ? 'grayscale' : 'shadow-[0_0_30px_rgba(200,164,77,0.3)]'}`}
+                        transition={{ 
+                          layout: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+                          opacity: { duration: 0.6 },
+                          scale: { duration: 0.6 }
+                        }}
+                        className={`w-16 h-20 md:w-20 md:h-24 relative border-2 rounded-xl overflow-hidden cursor-pointer ${!isActive ? 'grayscale' : 'shadow-[0_0_20px_rgba(200,164,77,0.2)]'}`}
                         onClick={() => setCurrentSlide(index)}
                       >
                         <Image 
                           src={SLIDESHOW_IMAGES[index]}
                           alt={`Thumbnail ${index}`}
                           fill
+                          unoptimized
                           className="object-cover"
                         />
                       </motion.div>
@@ -468,25 +486,30 @@ export default function Home() {
                   })}
                 </div>
 
-                {/* Main Slideshow Image */}
+                {/* Main Slideshow Image - Uses Static Persistence for Zero-Lag */}
                 <div className="order-1 lg:order-2 relative w-full h-[380px] md:h-[450px] lg:h-[500px] flex items-center justify-center flex-grow">
-                  <AnimatePresence mode="popLayout">
+                  {SLIDESHOW_IMAGES.map((src, i) => (
                     <motion.div
-                      key={currentSlide}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 1, ease: "easeInOut" }}
-                      className="absolute inset-0 w-full h-full flex items-center justify-center"
+                      key={src}
+                      initial={false}
+                      animate={{ 
+                        opacity: i === currentSlide ? 1 : 0, 
+                        scale: i === currentSlide ? 1 : 1.1, // Zoom out during dissolve
+                        zIndex: i === currentSlide ? 10 : 0 
+                      }}
+                      transition={{ duration: 1.2, ease: [0.4, 0, 0.2, 1] }}
+                      className="absolute inset-0 w-full h-full flex items-center justify-center rounded-[40px] overflow-hidden bg-black"
                     >
                       <Image 
-                        src={SLIDESHOW_IMAGES[currentSlide]} 
-                        alt={`Raanae Slideshow ${currentSlide + 1}`} 
+                        src={src} 
+                        alt={`Raanae Slideshow ${i + 1}`} 
                         fill
-                        className="object-contain object-center drop-shadow-[0_40px_100px_rgba(200,164,77,0.4)]"
+                        unoptimized
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover object-center drop-shadow-[0_40px_100px_rgba(200,164,77,0.3)]"
                       />
                     </motion.div>
-                  </AnimatePresence>
+                  ))}
                 </div>
               </div>
             </div>
@@ -613,9 +636,7 @@ export default function Home() {
               className="flex gap-10 items-center justify-center pt-8 pb-4"
             >
               <Instagram className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
-              <Twitter className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
               <Facebook className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
-              <Linkedin className="w-5 h-5 text-white hover:text-gold transition-colors cursor-pointer" />
             </motion.div>
           </div>
         </section>
@@ -651,7 +672,7 @@ export default function Home() {
                 className="relative z-30 flex flex-col items-center"
               >
                 <div className="w-80 h-[520px] flex items-center justify-center">
-                  <Image src="/Pic_1.png" alt="7th October Perfume" width={320} height={420} className="object-contain drop-shadow-[0_30px_60px_rgba(200, 164, 77,0.35)]" />
+                  <Image src="/Pic_1.png" alt="7th Oct Perfume" width={320} height={420} className="object-contain drop-shadow-[0_30px_60px_rgba(200, 164, 77,0.35)]" />
                 </div>
               </motion.div>
 
@@ -680,7 +701,7 @@ export default function Home() {
               className="md:hidden relative z-30 flex flex-col items-center w-full max-w-[280px]"
             >
               <h3 className="text-2xl font-black uppercase tracking-tighter gold-text mb-4 text-center">
-                7TH OCTOBER<br />COLLECTION
+                7TH OCT<br />COLLECTION
               </h3>
               <div className="w-full h-[350px] flex items-center justify-center p-4">
                 <Image src="/Pic_1.png" alt="7th October Perfume" width={280} height={380} className="object-contain drop-shadow-[0_20px_40px_rgba(200, 164, 77,0.2)]" />
@@ -690,7 +711,7 @@ export default function Home() {
           <div className="absolute bottom-4 md:bottom-0 w-full flex flex-col items-center md:grid md:grid-cols-3 md:items-end gap-8 md:gap-0 md:pb-0">
             <div className="hidden md:flex justify-center md:justify-start text-center md:text-left">
               <h3 className="text-2xl md:text-5xl font-black uppercase tracking-tighter leading-none gold-text">
-                7TH OCTOBER<br />COLLECTION
+                7TH OCT<br />COLLECTION
               </h3>
             </div>
 
@@ -726,6 +747,13 @@ export default function Home() {
         <div className="w-full h-full border border-white/5 rounded-[4rem]" />
       </div>
     </main>
+
+      {/* Invisible Asset Buffer - Forces browser to pre-decode all collection images */}
+      <div className="fixed bottom-0 opacity-0 pointer-events-none w-0 h-0 overflow-hidden">
+        {SLIDESHOW_IMAGES.map((src) => (
+          <Image key={src} src={src} alt="Preload" width={10} height={10} priority unoptimized />
+        ))}
+      </div>
 
       {/* Premium Checkout Modal */}
       <CheckoutModal

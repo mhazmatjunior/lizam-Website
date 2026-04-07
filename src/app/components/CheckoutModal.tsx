@@ -161,7 +161,7 @@ export default function CheckoutModal({ isOpen, onClose, product }: CheckoutModa
                   </div>
 
                   {/* Order Summary */}
-                  <div className="bg-white/3 border border-white/6 rounded-xl p-4 mb-6 flex items-center justify-between">
+                  <div className="bg-white/3 border border-white/6 rounded-xl p-4 mb-2 flex items-center justify-between">
                     <div>
                       <p className="text-white/50 text-[10px] uppercase tracking-widest mb-1">Product</p>
                       <p className="text-white text-sm font-bold uppercase tracking-wider">{product.name}</p>
@@ -169,6 +169,17 @@ export default function CheckoutModal({ isOpen, onClose, product }: CheckoutModa
                     <div className="text-right">
                       <p className="text-white/50 text-[10px] uppercase tracking-widest mb-1">Booking Amount</p>
                       <p className="text-gold font-black text-lg">PKR {product.price.toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  {/* Stock Urgency Badge */}
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gold/10 border border-gold/20 rounded-full">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-gold"></span>
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-gold">Limited Stock</span>
                     </div>
                   </div>
 
