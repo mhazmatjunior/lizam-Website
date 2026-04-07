@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const tracker = searchParams.get('tracker');
@@ -100,5 +100,17 @@ export default function SuccessPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+        <div className="animate-pulse text-gold/20 uppercase tracking-[0.3em] text-[10px] font-black">Finalizing Order...</div>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }

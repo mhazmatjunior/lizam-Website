@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { XCircle } from 'lucide-react';
 
-export default function CancelPage() {
+function CancelContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const hasUpdated = useRef(false);
@@ -75,5 +75,17 @@ export default function CancelPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function CancelPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+        <div className="animate-pulse text-white/20 uppercase tracking-[0.3em] text-[10px] font-black">Loading...</div>
+      </div>
+    }>
+      <CancelContent />
+    </Suspense>
   );
 }
