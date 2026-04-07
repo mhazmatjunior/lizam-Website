@@ -505,6 +505,7 @@ export default function Home() {
                         alt={`Raanae Slideshow ${i + 1}`} 
                         fill
                         unoptimized
+                        priority={i === 0} // Instant-load for the very first bottle
                         sizes="(max-width: 768px) 100vw, 50vw"
                         className="object-cover object-center drop-shadow-[0_40px_100px_rgba(200,164,77,0.3)]"
                       />
@@ -748,10 +749,9 @@ export default function Home() {
       </div>
     </main>
 
-      {/* Invisible Asset Buffer - Forces browser to pre-decode all collection images */}
       <div className="fixed bottom-0 opacity-0 pointer-events-none w-0 h-0 overflow-hidden">
         {SLIDESHOW_IMAGES.map((src) => (
-          <Image key={src} src={src} alt="Preload" width={10} height={10} priority unoptimized />
+          <Image key={src} src={src} alt="Preload" width={10} height={10} unoptimized />
         ))}
       </div>
 
