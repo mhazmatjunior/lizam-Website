@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@sfpy/node-sdk": "^3.0.2",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.35.2",
     "lucide-react": "^0.577.0",

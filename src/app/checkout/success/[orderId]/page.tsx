@@ -1,48 +1,37 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState, use } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 
-export default function SuccessPage() {
-  const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
-  const tracker = searchParams.get('tracker');
+export default function SuccessPage({ params }: { params: Promise<{ orderId: string }> }) {
+  const { orderId } = use(params);
   const hasUpdated = useRef(false);
-  const [orderSaved, setOrderSaved] = useState(false);
+  const [updated, setUpdated] = useState(false);
 
   useEffect(() => {
-    // Only run once even in StrictMode
     if (!orderId || hasUpdated.current) return;
     hasUpdated.current = true;
 
-    // Update order status to "paid"
     fetch('/api/orders', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        orderId,
-        status: 'paid',
-        tracker: tracker || null,
-      }),
+      body: JSON.stringify({ orderId, status: 'paid' }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           console.log(`✅ Order ${orderId} marked as PAID`);
-          setOrderSaved(true);
+          setUpdated(true);
         }
       })
       .catch((err) => console.error('Failed to update order:', err));
-  }, [orderId, tracker]);
+  }, [orderId]);
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white px-6">
       <div className="max-w-md w-full text-center space-y-8">
-
-        {/* Animated checkmark */}
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -54,7 +43,6 @@ export default function SuccessPage() {
           </div>
         </motion.div>
 
-        {/* Title */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -67,24 +55,20 @@ export default function SuccessPage() {
           <p className="text-sm md:text-base uppercase tracking-[0.2em] text-white/60 leading-relaxed font-light">
             Your pre-order has been successfully received.
           </p>
-          {orderId && (
-            <p className="text-white/30 text-[11px] uppercase tracking-widest">
-              Order ID: {orderId}
-            </p>
-          )}
+          <p className="text-white/25 text-[11px] uppercase tracking-widest">
+            Order ID: {orderId}
+          </p>
         </motion.div>
 
-        {/* Message */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
           className="text-white/40 text-xs leading-relaxed"
         >
-          We are preparing your exclusive Raanae fragrance experience. You will receive a confirmation email shortly.
+          We are preparing your exclusive Raanae fragrance experience. You will receive a confirmation shortly.
         </motion.p>
 
-        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -97,7 +81,6 @@ export default function SuccessPage() {
             Return Home
           </Link>
         </motion.div>
-
       </div>
     </div>
   );

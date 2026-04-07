@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Instagram, Twitter, Facebook, Linkedin, ChevronLeft, ChevronRight, ArrowDown, Sparkles, ShieldCheck, Droplets, Globe, Palette, ArrowUpRight, ShoppingBag, Volume2, VolumeX } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import CheckoutModal from "./components/CheckoutModal";
 
 export default function Home() {
   const { addToCart, setIsCartOpen, itemsCount } = useCart();
@@ -12,6 +13,7 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const SLIDESHOW_IMAGES = [
     "/Slideshow- (1).png",
@@ -55,6 +57,7 @@ export default function Home() {
   }, []);
 
   return (
+    <>
     <main 
       ref={containerRef} 
       className="bg-black text-white selection:bg-gold selection:text-black relative h-[100dvh] overflow-y-auto overflow-x-hidden md:snap-y md:snap-mandatory scroll-smooth"
@@ -67,25 +70,21 @@ export default function Home() {
         {/* Cinematic Logo Background Layer - Responsive */}
         <div className="absolute inset-0 h-[100dvh] z-0 opacity-50 pointer-events-none">
           {/* Mobile Background */}
-          <div className="md:hidden contents">
-            <Image
-              src="/hero-bg-5.png"
-              alt="Brand Pattern Mobile Background"
-              fill
-              className="object-cover mix-blend-screen"
-              priority
-            />
-          </div>
+          <Image
+            src="/hero-bg-5.png"
+            alt="Brand Pattern Mobile Background"
+            fill
+            className="md:hidden object-cover"
+            priority
+          />
           {/* Desktop Background */}
-          <div className="hidden md:contents">
-            <Image
-              src="/hero-bg-4.png"
-              alt="Brand Pattern Desktop Background"
-              fill
-              className="object-cover mix-blend-screen"
-              priority
-            />
-          </div>
+          <Image
+            src="/hero-bg-4.png"
+            alt="Brand Pattern Desktop Background"
+            fill
+            className="hidden md:block object-cover"
+            priority
+          />
         </div>
 
         {/* Strong Centered Radial Ambient Glow */}
@@ -144,12 +143,12 @@ export default function Home() {
                   </span>
               )}
             </button>
-            <a 
-              href="#about"
+            <button 
+              onClick={() => setIsCheckoutOpen(true)}
               className="btn-premium-gold text-[10px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-extrabold px-5 md:px-8 py-2 md:py-2.5 rounded-full whitespace-nowrap inline-block"
             >
               Pre Order Now
-            </a>
+            </button>
           </div>
         </header>
 
@@ -191,12 +190,12 @@ export default function Home() {
 
 
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 1.4, ease: 'easeOut' }}
+              initial={{ opacity: 0, letterSpacing: '0.5em', y: 20 }}
+              animate={{ opacity: 1, letterSpacing: '0.15em', y: 0 }}
+              transition={{ duration: 1.5, delay: 1.4, ease: 'easeOut' }}
               className="flex flex-col items-center gap-4"
             >
-              <h3 className="text-gold text-[10px] md:text-[12px] font-black uppercase tracking-[0.15em] md:tracking-[0.2em] max-w-sm md:max-w-2xl leading-loose">
+              <h3 className="text-gold text-[12px] md:text-[15px] font-black uppercase max-w-sm md:max-w-2xl leading-loose text-center">
                 Our Aim Is To Help The Needy And Helpless People Without Asking Anyone For Donations
               </h3>
             </motion.div>
@@ -211,25 +210,21 @@ export default function Home() {
         {/* Background Image */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           {/* Mobile Background */}
-          <div className="md:hidden contents">
-            <Image
-              src="/section-2-mob-new.png"
-              alt="Initiative Mobile Background"
-              fill
-              className="object-cover opacity-90"
-              priority
-            />
-          </div>
+          <Image
+            src="/section-2-mob-new.png"
+            alt="Initiative Mobile Background"
+            fill
+            className="md:hidden object-cover opacity-90"
+            priority
+          />
           {/* Desktop Background */}
-          <div className="hidden md:contents">
-            <Image
-              src="/section-2-new.png"
-              alt="Initiative Desktop Background"
-              fill
-              className="object-cover opacity-90"
-              priority
-            />
-          </div>
+          <Image
+            src="/section-2-new.png"
+            alt="Initiative Desktop Background"
+            fill
+            className="hidden md:block object-cover opacity-90"
+            priority
+          />
           {/* Top Vignette */}
           <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-black to-transparent z-10" />
           
@@ -324,10 +319,7 @@ export default function Home() {
                     className="hidden md:flex mt-10"
                   >
                     <button 
-                      onClick={() => {
-                        addToCart(PRE_ORDER_PRODUCT);
-                        setIsCartOpen(true);
-                      }}
+                      onClick={() => setIsCheckoutOpen(true)}
                       className="btn-premium-gold px-12 py-3.5 rounded-full flex items-center gap-3 text-[11px] font-black uppercase tracking-widest shadow-[0_0_30px_rgba(200,164,77,0.3)] transition-transform hover:scale-105 active:scale-95"
                     >
                       Pre Order Now
@@ -395,10 +387,7 @@ export default function Home() {
                 Our First Launch
               </span>
               <button 
-                onClick={() => {
-                  addToCart(PRE_ORDER_PRODUCT);
-                  setIsCartOpen(true);
-                }}
+                onClick={() => setIsCheckoutOpen(true)}
                 className="btn-premium-gold px-6 py-2.5 rounded-full flex items-center gap-2 text-[9px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(200,164,77,0.3)]"
               >
                 Pre Order Now
@@ -563,10 +552,7 @@ export default function Home() {
             className="flex mt-10 md:mt-16 justify-center"
           >
             <button 
-              onClick={() => {
-                addToCart(PRE_ORDER_PRODUCT);
-                setIsCartOpen(true);
-              }}
+              onClick={() => setIsCheckoutOpen(true)}
               className="btn-premium-gold px-8 md:px-10 py-3 rounded-full flex items-center gap-3 text-[10px] md:text-[11px] font-black uppercase tracking-widest group"
             >
               Pre Order Now
@@ -740,5 +726,13 @@ export default function Home() {
         <div className="w-full h-full border border-white/5 rounded-[4rem]" />
       </div>
     </main>
+
+      {/* Premium Checkout Modal */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        product={PRE_ORDER_PRODUCT}
+      />
+    </>
   );
 }
