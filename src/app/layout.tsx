@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, Alata } from "next/font/google";
+import { Montserrat, Playfair_Display, Alata } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const montserrat = Montserrat({
   variable: "--font-sans",
   subsets: ["latin"],
 });
@@ -17,6 +17,7 @@ const alata = Alata({
   subsets: ["latin"],
   weight: "400",
 });
+
 
 export const metadata: Metadata = {
   title: "Raanae | The Fragrance of Freedom",
@@ -39,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${playfair.variable} ${alata.variable} antialiased selection:bg-gold selection:text-black`}
+        className={`${montserrat.variable} ${playfair.variable} ${alata.variable} antialiased selection:bg-gold selection:text-black`}
       >
         <ProductProvider>
           <CartProvider>

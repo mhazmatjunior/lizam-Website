@@ -1,15 +1,33 @@
+@font-face {
+  font-family: "Kalieb Luxury";
+  src: url("/fonts/KaliebLuxury-Regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @import "tailwindcss";
 
 @theme {
-  --color-gold: #C8A44D;
-  --color-gold-light: #E8CD94;
-  --color-gold-dark: #846828;
+  --color-gold: #e2bb61;
+  --color-gold-light: #f3e8d2;
+  --color-gold-dark: #766235;
+  --color-gold-medium: #b8892f;
+  --color-green-brand: #3f4a2f;
+  --color-olive-brand: #6d7352;
+  --color-sand-brand: #c6ad8d;
+  --color-red-brand: #7a1f1f;
   --color-black-pure: #000000;
   --color-black-soft: #0a0a0a;
 
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
+  --font-kalieb: "Kalieb Luxury", serif;
   --font-alata: var(--font-alata), sans-serif;
+}
+
+.font-kalieb {
+  font-family: "Kalieb Luxury", serif;
 }
 
 .alata-regular {
@@ -17,6 +35,7 @@
   font-weight: 400;
   font-style: normal;
 }
+
 
 :root {
   --background: #000000;
