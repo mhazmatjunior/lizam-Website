@@ -1,66 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Instagram, Facebook, ShoppingBag, Volume2, VolumeX, Star, ArrowDown, Sparkles, Droplets, Globe, Palette, Shield } from "lucide-react";
+import { Instagram, Facebook, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import CheckoutModal from "./components/CheckoutModal";
 
-// Wave Divider component to match the elegant curved dividers in the design
-const WaveDivider = ({ 
-  fillColor = "fill-black-pure", 
-  lineColor = "stroke-[#e2bb61]", 
-  isFlipped = false 
-}) => {
-  return (
-    <div className={`relative w-full overflow-hidden leading-[0] select-none pointer-events-none z-30 ${isFlipped ? 'rotate-180' : ''}`}>
-      <svg
-        viewBox="0 0 1440 120"
-        preserveAspectRatio="none"
-        className="relative block w-full h-[25px] sm:h-[40px] md:h-[60px]"
-      >
-        {/* Curved Gold Line */}
-        <path
-          d="M0,60 C360,105 720,15 1080,85 1260,115 1380,95 1440,80"
-          fill="none"
-          className={lineColor}
-          strokeWidth="3.5"
-        />
-        {/* Filled Area Below the Line */}
-        <path
-          d="M0,60 C360,105 720,15 1080,85 1260,115 1380,95 1440,80 L1440,120 L0,120 Z"
-          className={fillColor}
-        />
-      </svg>
-    </div>
-  );
-};
-
 export default function Home() {
-  const { addToCart, setIsCartOpen, itemsCount } = useCart();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const { setIsCartOpen, itemsCount } = useCart();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(1); // Default to index 1 (Slideshow- (2).png crystal bottle)
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [showDetails, setShowDetails] = useState(false);
 
-  // Slideshow image references
+  // Slideshow image references (using optimized web-ready webp formats)
   const SLIDESHOW_IMAGES = [
-    "/Slideshow- (1).png",
-    "/Slideshow- (2).png",
-    "/Slideshow- (3).png",
-    "/Slideshow- (4).png",
-    "/Slideshow- (5).png"
-  ];
-
-  // Feature icons & texts
-  const FEATURES = [
-    { icon: Sparkles, title: "Rare Infusions", desc: "Obsidian series depth using molecular infusion." },
-    { icon: Palette, title: "Artisanal Craft", desc: "Hand-poured precision from our distillery." },
-    { icon: Droplets, title: "Pure Integrity", desc: "Zero synthetic fillers—just pure nature." },
-    { icon: Shield, title: "Modern Design", desc: "Aesthetics meet advanced distillation tech." },
-    { icon: Globe, title: "Global Heritage", desc: "Sourcing world's most elusive botanicals." }
+    "/SlideShow/Slide Image 1.webp",
+    "/SlideShow/Slide Image 2.webp",
+    "/SlideShow/Slide Image 3.webp",
+    "/SlideShow/Slide Image 4.webp",
+    "/SlideShow/Slide Image 5.webp"
   ];
 
   // Pre-Order Product Info
@@ -69,374 +28,441 @@ export default function Home() {
     name: "7TH OCT (Pre-Order Booking)",
     price: 150,
     category: "Signature Collection",
-    image: "/theme-image5.png"
+    image: "/SlideShow/Slide Image 5.webp"
   };
 
-  // Responsive check
+  // Auto-play slideshow for Section 3
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % SLIDESHOW_IMAGES.length);
+    }, 4500);
+    return () => clearInterval(timer);
   }, []);
 
   return (
     <>
-      <main 
-        ref={containerRef} 
-        className="bg-black text-white selection:bg-gold selection:text-black relative h-[100dvh] overflow-y-auto overflow-x-hidden md:snap-y md:snap-mandatory scroll-smooth custom-scrollbar"
-      >
+      <main className="bg-black text-white selection:bg-[#e2bb61] selection:text-black relative min-h-screen w-full overflow-x-hidden scroll-smooth font-montserrat-regular">
+        
+        {/* Global Navigation Header */}
+        <header className="absolute top-0 left-0 right-0 z-50 flex justify-between items-center w-full px-6 md:px-16 py-4 md:py-6">
+          {/* Logo */}
+          <div className="flex items-center shrink-0 relative h-16 w-32 md:h-20 md:w-40">
+            <Image
+              src="/logo-transparent.png"
+              alt="RAANAE Logo"
+              fill
+              sizes="(max-width: 768px) 128px, 160px"
+              className="object-contain object-left mix-blend-screen"
+              priority
+            />
+          </div>
+          
+          {/* Shopping Bag Button (Center) */}
+          <div className="flex-grow flex justify-center">
+            <button 
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-3.5 bg-black/40 border border-white/10 rounded-[8px] hover:border-[#e2bb61]/50 hover:bg-black/60 transition-all group cursor-pointer"
+              aria-label="Open Cart"
+            >
+              <ShoppingBag className="w-5 h-5 text-white/70 group-hover:text-[#e2bb61] transition-colors" />
+              {itemsCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 bg-[#e2bb61] text-black text-[9px] font-black rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(226,187,97,0.5)]">
+                  {itemsCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Coming Soon Button (Right) */}
+          <div className="flex items-center shrink-0">
+            <button 
+              className="bg-[#d4b474] text-black text-[11px] uppercase tracking-[0.2em] font-montserrat-medium px-5 md:px-8 py-3 rounded-[30px] whitespace-nowrap transition-all shadow-[0_4px_15px_rgba(212,180,116,0.35)] cursor-default"
+            >
+              Coming Soon
+            </button>
+          </div>
+        </header>
+
         {/* Section 1: Hero Section */}
-        <section id="home" className="section relative h-[100dvh] max-h-[100dvh] md:snap-start flex flex-col justify-between overflow-hidden bg-black-pure">
-          {/* Full Cover Satin Background with Perfume bottle on right */}
+        <section id="hero" className="relative min-h-screen w-full flex flex-col justify-between pt-32 pb-12 overflow-hidden bg-black">
+          {/* Satin fabric background with perfume bottle on right */}
           <div className="absolute inset-0 z-0 pointer-events-none select-none">
             <Image
               src="/theme-hero.webp"
-              alt="Raanae Quietly Distinct Hero"
+              alt="Raanae Hero Background"
               fill
               priority
               sizes="100vw"
-              className="object-cover object-center md:object-right-center"
+              className="object-cover object-right md:object-center"
             />
-            {/* Ambient Dark Overlay to make text on left pop */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black-pure/70 via-black-pure/45 to-transparent md:from-black-pure/60 md:via-black-pure/25 md:to-transparent" />
+            {/* Ambient vignette gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent md:from-black/70 md:via-black/30 md:to-transparent" />
           </div>
 
-          {/* Top Navbar */}
-          <header className="relative z-50 flex justify-between items-center w-full px-6 md:px-16 pt-4 md:pt-6">
-            {/* Logo */}
-            <div className="flex items-center shrink-0 relative h-[80px] w-[140px] md:h-[90px] md:w-[160px]">
-              <Image
-                src="/logo-transparent.png"
-                alt="RAANAE Logo"
-                fill
-                className="object-contain object-left mix-blend-screen"
-                priority
-              />
-            </div>
-            
-            {/* Center action button (Cart) */}
-            <div className="flex-grow flex justify-center">
-              <button 
-                onClick={() => setIsCartOpen(true)}
-                className="relative p-3.5 bg-black/40 border border-white/10 rounded-[8px] hover:border-gold/50 hover:bg-black/60 transition-all group"
-                aria-label="Open Cart"
-              >
-                <ShoppingBag className="w-5 h-5 text-white/70 group-hover:text-gold transition-colors" />
-                {itemsCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 bg-gold text-black text-[9px] font-black rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(226,187,97,0.5)]">
-                    {itemsCount}
-                  </span>
-                )}
-              </button>
-            </div>
+          {/* Hero Main Content */}
+          <div className="flex-grow flex flex-col justify-center items-start text-left max-w-7xl mx-auto w-full px-6 md:px-16 relative z-10">
+            <div className="flex flex-col items-start space-y-4 max-w-xl md:max-w-2xl">
 
-            {/* Right action button */}
-            <div className="flex items-center shrink-0">
-              <button 
-                className="bg-[#d4b474] text-black text-[11px] uppercase tracking-[0.2em] font-extrabold px-6 md:px-8 py-3.5 rounded-[30px] whitespace-nowrap inline-block transition-all shadow-[0_4px_15px_rgba(212,180,116,0.35)] cursor-default"
-              >
-                Coming Soon
-              </button>
-            </div>
-          </header>
-
-          {/* Hero Content (Left-Aligned, Vertically Centered) */}
-          <div className="flex-grow flex flex-col justify-center items-start text-left max-w-7xl mx-auto w-full px-6 md:px-16 relative z-20">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-              className="flex flex-col items-start space-y-2 max-w-xl md:max-w-2xl"
-            >
-              {/* RAANAE Label */}
-              <span className="text-[#e2bb61] text-xs font-bold uppercase tracking-[0.4em] mb-2 block">RAANAE</span>
-
-              {/* Proud Muslim Perfume Brand */}
-              <h1 className="text-white text-5xl sm:text-6xl md:text-7xl font-extrabold uppercase tracking-tight leading-[0.95] max-w-xl select-none drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)]">
-                Proud Muslim<br />
-                <span className="text-white">Perfume Brand</span>
-              </h1>
-
-              {/* Tagline / Subtitle */}
-              <div className="mt-4 flex flex-col items-start">
-                <p className="text-white/85 text-xs sm:text-sm md:text-base font-normal tracking-wide max-w-md leading-relaxed drop-shadow-md">
-                  That <span className="text-[#e2bb61] font-semibold">aims to help the oppressed</span> around the globe without asking anyone for donations
-                </p>
+              {/* Main Branding */}
+              <div className="space-y-1">
+                <span className="font-kalieb text-[#e2bb61] text-2xl sm:text-3xl md:text-4xl tracking-[0.25em] uppercase block">
+                  RAANAE
+                </span>
+                <h1 className="text-white text-4xl sm:text-5xl md:text-7xl font-modelica-bold uppercase tracking-tight leading-[1.0] select-none">
+                  Proud Muslim<br />
+                  <span className="text-white">Perfume Brand</span>
+                </h1>
               </div>
-            </motion.div>
+
+              {/* Mission Statement tagline */}
+              <p className="text-white/90 text-sm sm:text-base font-montserrat-medium tracking-wide max-w-md leading-relaxed">
+                That <span className="text-[#e2bb61] font-montserrat-bold">aims to help the oppressed</span> around the globe without asking anyone for donations
+              </p>
+            </div>
           </div>
 
-          {/* Boycott Steps at bottom-left */}
-          <div className="absolute bottom-12 left-6 md:left-16 z-30 text-white/55 text-[10px] md:text-xs uppercase tracking-[0.2em] font-semibold flex flex-col space-y-1">
-            <p>Boycott Is Just First Step</p>
-            <p>Boycott Is Not The Destination</p>
+          {/* Boycott Steps footer text */}
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16 mt-auto">
+            <div className="text-white/60 text-[10px] sm:text-xs font-montserrat-medium uppercase tracking-[0.2em] space-y-1">
+              <p>Boycott Is Just First Step</p>
+              <p>Boycott Is Not The Destination</p>
+            </div>
           </div>
-
-          {/* Wave Divider to Section 2 (Cave) */}
-          <WaveDivider fillColor="fill-black-pure" />
         </section>
 
         {/* Section 2: Cave Section */}
-        <section id="cave-jerusalem" className="section relative h-[100dvh] max-h-[100dvh] md:snap-start flex flex-col justify-between overflow-hidden bg-black-pure">
-          {/* Cave Jerusalem Background Image */}
+        <section id="cave" className="relative min-h-screen w-full flex flex-col justify-between py-24 overflow-hidden bg-black">
+          {/* Cave Background Image with Jerusalem View */}
           <div className="absolute inset-0 z-0 pointer-events-none select-none">
-            <Image
-              src="/theme-image4.png"
-              alt="Dome of the Rock Jerusalem Cave"
-              fill
-              sizes="100vw"
-              className="object-cover object-center"
-            />
-            {/* Dark Vignettes */}
-            <div className="absolute inset-0 bg-black/25 z-0" />
-            <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-black-pure to-transparent z-10" />
-            <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black-pure to-transparent z-10" />
+            {/* Laptop Background */}
+            <div className="hidden lg:block absolute inset-0 w-full h-full">
+              <Image
+                src="/theme-image4.png"
+                alt="Jerusalem Cave View Laptop"
+                fill
+                sizes="100vw"
+                className="object-cover object-center"
+              />
+            </div>
+            {/* Mobile Background */}
+            <div className="block lg:hidden absolute inset-0 w-full h-full">
+              <Image
+                src="/section-2-mob-new.png"
+                alt="Jerusalem Cave View Mobile"
+                fill
+                sizes="100vw"
+                className="object-cover object-center"
+              />
+            </div>
+            {/* Contrast Vignetting */}
+            <div className="absolute inset-0 bg-black/35" />
+            <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent" />
           </div>
 
-          {/* Thin Gold Frame inside the section */}
-          <div className="absolute inset-6 md:inset-12 border border-[#e2bb61]/25 rounded-[20px] z-10 pointer-events-none" />
+          {/* Inset Gold Frame */}
+          <div className="absolute inset-4 md:inset-10 border border-[#e2bb61]/20 rounded-[16px] md:rounded-[24px] z-10 pointer-events-none" />
 
-          {/* Centered Cave Content */}
-          <div className="flex-grow flex items-center justify-between w-full max-w-7xl mx-auto px-10 md:px-24 relative z-20">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-20 w-full items-center text-white">
-              {/* Left Column Text */}
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-                className="flex flex-col space-y-2 text-left"
-              >
-                <h2 className="font-kalieb text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white/95 leading-tight tracking-wide">
-                  Raanae is<br />
-                  not another<br />
-                  perfume brand<br />
-                  but...
-                </h2>
-              </motion.div>
+          {/* Left/Right Narrative overlay */}
+          <div className="relative z-20 w-full max-w-7xl mx-auto px-8 md:px-20 h-[70vh] flex flex-col lg:flex-row justify-between lg:items-center gap-12 my-auto">
+            {/* Left Narrative Text */}
+            <div className="max-w-[280px] self-start lg:self-auto text-left mt-8 lg:mt-0">
+              <h2 className="text-[#e2bb61] text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-modelica-regular leading-tight tracking-wide">
+                Raanae is<br />
+                not another<br />
+                perfume brand<br />
+                <span className="text-white">but...</span>
+              </h2>
+            </div>
 
-              {/* Right Column Text */}
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-                className="flex flex-col space-y-2 text-left md:text-right"
-              >
-                <h2 className="font-kalieb text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#e2bb61] leading-tight tracking-wide">
-                  ...an Initiative<br />
-                  Inspired<br />
-                  by the cause of<br />
-                  Palestine
-                </h2>
-              </motion.div>
+            {/* Right Narrative Text */}
+            <div className="max-w-[280px] self-end lg:self-auto text-left lg:text-right mb-8 lg:mb-0">
+              <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-modelica-regular leading-tight tracking-wide">
+                ...an Initiative<br />
+                Inspired<br />
+                by the cause of<br />
+                Palestine
+              </h2>
             </div>
           </div>
-
-          {/* Wave Divider to Section 3 (Gallery & Features) */}
-          <WaveDivider fillColor="fill-black-pure" />
         </section>
 
-        {/* Section 3: Feature Gallery Section (reused from old code as shown in screenshot) */}
-        <section id="gallery-features" className="section relative min-h-[100dvh] h-auto md:h-[100dvh] md:snap-start flex flex-col justify-center py-12 md:py-0 overflow-y-auto md:overflow-hidden bg-black-pure">
-          <div className="w-full max-w-7xl mx-auto px-6 md:px-16 relative z-10 my-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
-              
-              {/* Left/Top: Gallery Slideshow */}
-              <div className="lg:col-span-6 flex flex-col md:flex-row items-center gap-6 w-full justify-center">
-                {/* Vertical thumbnails on desktop, horizontal on mobile */}
-                <div className="flex lg:flex-col gap-3 md:gap-4 order-2 lg:order-1 justify-center">
-                  {[-1, 0, 1].map((offset) => {
-                    const index = (currentSlide + offset + SLIDESHOW_IMAGES.length) % SLIDESHOW_IMAGES.length;
-                    const isActive = offset === 0;
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentSlide(index)}
-                        className={`w-14 h-18 md:w-16 md:h-20 relative rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
-                          isActive 
-                            ? "border-[#e2bb61] scale-105 shadow-[0_0_15px_rgba(226,187,97,0.3)]" 
-                            : "border-transparent opacity-30 grayscale hover:opacity-50"
-                        }`}
-                      >
-                        <Image
-                          src={SLIDESHOW_IMAGES[index]}
-                          alt={`Thumbnail ${index}`}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                        />
-                      </button>
-                    );
-                  })}
+        {/* Section 3: Our First Launch & Slideshow */}
+        <section id="launch-slideshow" className="relative min-h-screen w-full flex flex-col justify-center py-20 overflow-hidden bg-black">
+          {/* Sienna Satin Texture Background */}
+          <div className="absolute inset-0 z-0 pointer-events-none select-none bg-[radial-gradient(circle_at_center,_#361911_0%,_#150906_75%,_#000000_100%)] opacity-90" />
+
+          {/* Inside Container */}
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16 my-auto">
+            
+            {/* MOBILE LAYOUT: Order-exact stacking (block md:hidden) */}
+            <div className="flex flex-col space-y-8 items-center text-center md:hidden">
+              {/* Text Group 1 */}
+              <div className="space-y-4 max-w-md">
+                <span className="text-[#e2bb61] text-[10px] tracking-[0.3em] font-montserrat-light uppercase block">
+                  Our First Launch
+                </span>
+                
+                <div className="flex items-center justify-center">
+                  <span className="text-white text-5xl font-kalieb tracking-wider uppercase">
+                    OCT 7
+                  </span>
                 </div>
 
-                {/* Main Large Image */}
-                <div className="relative w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] aspect-[4/5] order-1 lg:order-2 rounded-2xl overflow-hidden bg-zinc-950 border border-white/5 shadow-2xl">
-                  {SLIDESHOW_IMAGES.map((src, i) => (
-                    <motion.div
-                      key={src}
-                      initial={false}
-                      animate={{
-                        opacity: i === currentSlide ? 1 : 0,
-                        scale: i === currentSlide ? 1 : 1.05,
-                        zIndex: i === currentSlide ? 10 : 0
-                      }}
-                      transition={{ duration: 0.8, ease: "easeInOut" }}
-                      className="absolute inset-0 w-full h-full"
-                    >
-                      <Image
-                        src={src}
-                        alt={`Raanae Perfume ${i + 1}`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        className="object-cover"
-                      />
-                    </motion.div>
+                <p className="text-white/80 text-sm font-montserrat-light leading-relaxed">
+                  Not merely a name. But a story, <span className="text-[#e2bb61] font-montserrat-medium">a story of resistance</span>
+                </p>
+              </div>
+
+              {/* Slideshow Image Component */}
+              <div className="relative w-full aspect-[4/5] max-w-[280px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-950">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentSlide}
+                    initial={{ opacity: 0, scale: 1.02 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={{ duration: 0.6 }}
+                    className="absolute inset-0 w-full h-full"
+                  >
+                    <Image
+                      src={SLIDESHOW_IMAGES[currentSlide]}
+                      alt={`Product Slide ${currentSlide + 1}`}
+                      fill
+                      priority
+                      className="object-cover"
+                      sizes="280px"
+                    />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Text Group 2 & Actions */}
+              <div className="space-y-6 max-w-md w-full">
+                <p className="text-white/90 text-xs tracking-wider font-montserrat-medium uppercase">
+                  Its not just another perfume but....
+                </p>
+
+
+                {/* Action button */}
+                <div>
+                  <button
+                    onClick={() => setIsCheckoutOpen(true)}
+                    className="bg-[#381c15] text-[#e2bb61] border border-[#e2bb61]/30 hover:border-[#e2bb61] text-xs uppercase tracking-[0.2em] font-montserrat-bold px-10 py-4 rounded-[30px] w-full max-w-[260px] transition-all shadow-[0_5px_20px_rgba(56,28,21,0.5)] cursor-pointer"
+                  >
+                    PRE-ORDER NOW
+                  </button>
+                </div>
+
+                {/* Pagination Dots */}
+                <div className="flex gap-2 justify-center pt-2">
+                  {SLIDESHOW_IMAGES.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentSlide(idx)}
+                      className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                        idx === currentSlide 
+                          ? "bg-[#e2bb61] scale-125 shadow-[0_0_8px_#e2bb61]" 
+                          : "bg-white/20 hover:bg-white/40"
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
                   ))}
                 </div>
               </div>
+            </div>
 
-              {/* Right/Bottom: Title & Features */}
-              <div className="lg:col-span-6 flex flex-col space-y-6 md:space-y-8 text-left">
-                <div className="space-y-3">
-                  <h2 className="text-[#e2bb61] text-xs font-bold uppercase tracking-[0.3em] font-sans">
-                    THE HOUSE OF RAANAE
-                  </h2>
-                  <p className="text-white text-xs sm:text-sm uppercase tracking-[0.1em] font-bold leading-relaxed max-w-xl">
-                    RAANAE IS A LUXURY FRAGRANCE HOUSE RENOWNED FOR DELIVERING UNMATCHED SCENT QUALITY THROUGH INNOVATIVE INFUSIONS. WE BLEND ADVANCED DISTILLATION WITH ARCHITECTURAL DESIGN.
+            {/* DESKTOP/LAPTOP LAYOUT: Balanced split layout (hidden md:grid) */}
+            <div className="hidden md:grid grid-cols-12 gap-12 lg:gap-20 items-center">
+              
+              {/* Left Column: Information, Story & CTA */}
+              <div className="col-span-6 flex flex-col space-y-8 text-left">
+                <div className="space-y-4">
+                  <span className="text-[#e2bb61] text-xs tracking-[0.3em] font-montserrat-light uppercase block">
+                    Our First Launch
+                  </span>
+                  
+                  <div className="flex items-center">
+                    <span className="text-white text-6xl lg:text-7xl font-kalieb tracking-wider uppercase">
+                      OCT 7
+                    </span>
+                  </div>
+
+                  <p className="text-white/85 text-base lg:text-lg font-montserrat-light leading-relaxed max-w-md">
+                    Not merely a name. But a story, <span className="text-[#e2bb61] font-montserrat-medium">a story of resistance</span>
                   </p>
                 </div>
 
-                {/* Features List */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                  {FEATURES.map((item, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="flex items-start gap-3 group text-left"
-                    >
-                      <div className="w-8 h-8 rounded-full border border-[#e2bb61]/20 flex items-center justify-center shrink-0 group-hover:bg-[#e2bb61]/10 transition-colors">
-                        <item.icon className="w-3.5 h-3.5 text-[#e2bb61]" />
-                      </div>
-                      <div className="space-y-0.5">
-                        <h3 className="text-white font-black text-[10px] uppercase tracking-widest">{item.title}</h3>
-                        <p className="text-white/50 text-[9px] leading-tight max-w-[200px]">{item.desc}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                <div className="space-y-6 pt-2">
+                  <p className="text-white/90 text-sm tracking-wider font-montserrat-medium uppercase">
+                    Its not just another perfume but....
+                  </p>
 
-                {/* Pre-Order Action */}
-                <div className="pt-2">
+
                   <button
                     onClick={() => setIsCheckoutOpen(true)}
-                    className="bg-[#d4b474] text-black hover:bg-white text-[11px] uppercase tracking-[0.2em] font-extrabold px-8 py-3.5 rounded-[30px] inline-flex items-center gap-2 transition-all shadow-[0_10px_30px_rgba(212,180,116,0.2)] hover:shadow-[0_15px_35px_rgba(212,180,116,0.4)]"
+                    className="bg-[#381c15] text-[#e2bb61] border border-[#e2bb61]/30 hover:border-[#e2bb61] hover:bg-[#e2bb61] hover:text-black text-xs uppercase tracking-[0.2em] font-montserrat-bold px-12 py-4 rounded-[30px] transition-all shadow-[0_5px_25px_rgba(56,28,21,0.5)] cursor-pointer inline-block"
                   >
-                    Pre Order Now
-                    <ShoppingBag className="w-4 h-4" />
+                    PRE-ORDER NOW
                   </button>
+                </div>
+
+                {/* Pagination Dots */}
+                <div className="flex gap-2.5 pt-4">
+                  {SLIDESHOW_IMAGES.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentSlide(idx)}
+                      className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
+                        idx === currentSlide 
+                          ? "bg-[#e2bb61] scale-125 shadow-[0_0_10px_#e2bb61]" 
+                          : "bg-white/20 hover:bg-white/40"
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Column: Slideshow Frame */}
+              <div className="col-span-6 flex justify-center lg:justify-end">
+                <div className="relative w-full aspect-[4/5] max-w-[380px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-950">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentSlide}
+                      initial={{ opacity: 0, scale: 1.03 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.97 }}
+                      transition={{ duration: 0.7 }}
+                      className="absolute inset-0 w-full h-full"
+                    >
+                      <Image
+                        src={SLIDESHOW_IMAGES[currentSlide]}
+                        alt={`Product Slide Desktop ${currentSlide + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 1024px) 380px, 480px"
+                      />
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </div>
 
             </div>
+
           </div>
         </section>
 
-        {/* Section 4: The House of Raanae (Stats & Footer) */}
-        <section id="stats-footer" className="section relative min-h-[100dvh] h-auto md:h-[100dvh] md:snap-start flex flex-col justify-between overflow-y-auto overflow-x-hidden bg-black-pure border-t border-white/5 pt-16 md:pt-24">
-          <div className="w-full max-w-5xl mx-auto px-6 md:px-16 relative z-10 flex flex-col items-center text-center flex-grow justify-center">
+        {/* Section 4: The House of Raanae & Stats */}
+        <section id="house-of-raanae" className="relative min-h-screen w-full flex flex-col justify-between pt-24 bg-black border-t border-white/5">
+          
+          <div className="w-full max-w-5xl mx-auto px-6 md:px-16 flex-grow flex flex-col justify-center items-center text-center">
+            
+
             {/* Title */}
-            <h2 className="font-kalieb text-[#e2bb61] text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-wide mb-6">
+            <h2 className="font-kalieb text-[#e2bb61] text-3xl sm:text-4xl md:text-6xl tracking-widest mb-6 uppercase">
               THE HOUSE OF RAANAE
             </h2>
             
-            {/* Subtitle */}
-            <p className="text-white/80 text-xs sm:text-sm md:text-base font-normal tracking-wide max-w-3xl leading-relaxed mb-10 md:mb-12">
-              Raanae is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design, keeping <span className="text-white font-bold underline decoration-[#e2bb61]">human wellbeing our top priority.</span>
+            {/* Description Subtitle */}
+            <p className="text-white/80 text-sm sm:text-base font-montserrat-light tracking-wide max-w-3xl leading-relaxed mb-12 sm:mb-16">
+              Raanae is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design, keeping <span className="text-white font-montserrat-bold underline decoration-[#e2bb61] decoration-2 underline-offset-4">human wellbeing our top priority.</span>
             </p>
 
-            {/* 3 Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-4xl">
-              {/* Card 1 */}
+            {/* Three Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-4xl mb-12 sm:mb-20">
+              
+              {/* Card 1: 25-35% */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.1 }}
-                className="bg-black/40 border border-[#e2bb61]/25 hover:border-[#e2bb61]/60 p-6 md:p-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-xl backdrop-blur-sm transition-all duration-300 h-40 md:h-48"
+                transition={{ duration: 0.8 }}
+                className="bg-black/30 border border-[#e2bb61]/20 hover:border-[#e2bb61]/50 p-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-2xl backdrop-blur-sm transition-all duration-300 h-44 md:h-52 group"
               >
-                <span className="text-[#e2bb61] text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
+                <span className="text-white text-3xl sm:text-4xl font-montserrat-bold tracking-tight mb-2 group-hover:text-[#e2bb61] transition-colors">
                   25-35%
                 </span>
-                <span className="text-white/90 text-[10px] sm:text-xs uppercase tracking-widest font-semibold leading-snug">
+                <span className="text-white/60 group-hover:text-white/80 transition-colors text-[10px] sm:text-xs uppercase tracking-[0.15em] font-montserrat-medium leading-snug">
                   High Oil<br />Concentration
                 </span>
               </motion.div>
 
-              {/* Card 2 */}
+              {/* Card 2: Harmless Alternative Used */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="bg-black/40 border border-[#e2bb61]/25 hover:border-[#e2bb61]/60 p-6 md:p-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-xl backdrop-blur-sm transition-all duration-300 h-40 md:h-48"
+                transition={{ duration: 0.8, delay: 0.1 }}
+                className="bg-black/30 border border-[#e2bb61]/20 hover:border-[#e2bb61]/50 p-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-2xl backdrop-blur-sm transition-all duration-300 h-44 md:h-52 group"
               >
-                <span className="text-[#e2bb61] text-base sm:text-lg font-black uppercase tracking-wider mb-2 leading-normal max-w-[200px]">
+                <span className="text-white text-sm sm:text-base font-montserrat-bold uppercase tracking-wider mb-2 leading-tight max-w-[200px] group-hover:text-[#e2bb61] transition-colors">
                   Harmless<br />Alternative Used
                 </span>
-                <span className="text-white/60 text-[8px] sm:text-[10px] uppercase tracking-widest font-semibold">
+                <span className="text-white/50 group-hover:text-white/75 transition-colors text-[8px] sm:text-[9px] uppercase tracking-[0.12em] font-montserrat-medium">
                   No Harmful Chemical Added
                 </span>
               </motion.div>
 
-              {/* Card 3 */}
+              {/* Card 3: 12 HRS+ */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                className="bg-black/40 border border-[#e2bb61]/25 hover:border-[#e2bb61]/60 p-6 md:p-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-xl backdrop-blur-sm transition-all duration-300 h-40 md:h-48"
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="bg-black/30 border border-[#e2bb61]/20 hover:border-[#e2bb61]/50 p-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-2xl backdrop-blur-sm transition-all duration-300 h-44 md:h-52 group"
               >
-                <span className="text-[#e2bb61] text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
+                <span className="text-white text-3xl sm:text-4xl font-montserrat-bold tracking-tight mb-2 group-hover:text-[#e2bb61] transition-colors">
                   12 HRS+
                 </span>
-                <span className="text-white/90 text-[10px] sm:text-xs uppercase tracking-widest font-semibold leading-snug">
+                <span className="text-white/60 group-hover:text-white/80 transition-colors text-[10px] sm:text-xs uppercase tracking-[0.15em] font-montserrat-medium leading-snug">
                   Long Lasting<br />Fragrance
                 </span>
               </motion.div>
+
             </div>
 
-            {/* Social Icons */}
-            <div className="flex gap-6 items-center justify-center mt-10 mb-8">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-[#e2bb61] transition-colors">
+            {/* Social Icons Links */}
+            <div className="flex gap-8 items-center justify-center mb-10">
+              <a 
+                href="https://instagram.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-white/70 hover:text-[#e2bb61] hover:scale-110 transition-all"
+                aria-label="Instagram"
+              >
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-[#e2bb61] transition-colors">
+              <a 
+                href="https://facebook.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-white/70 hover:text-[#e2bb61] hover:scale-110 transition-all"
+                aria-label="Facebook"
+              >
                 <Facebook className="w-5 h-5" />
               </a>
             </div>
+
           </div>
 
-          {/* Footer Bar with Disclaimer & Contact info */}
-          <footer className="w-full bg-[#d4b474] text-[#5a4522] py-4 px-6 md:px-16 mt-auto border-t border-[#b8892f]/20 z-20">
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3 text-[10px] sm:text-xs font-semibold">
+          {/* Ochre disclaimer footer */}
+          <footer className="w-full bg-[#d4b474] text-[#5a4522] py-5 px-6 md:px-16 border-t border-[#b8892f]/20">
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] sm:text-xs font-montserrat-medium">
               <p className="max-w-2xl text-center md:text-left leading-relaxed">
-                <span className="font-bold">Disclaimer:</span> Raanae is not just a perfume brand but a purpose, a vision, a platform, community for one united muslim ummah.
+                <span className="font-montserrat-bold text-[#3d2e13]">Disclaimer:</span> Raanae is not just a perfume brand but a purpose, a vision, a platform, community for one united muslim ummah.
               </p>
-              <p className="whitespace-nowrap">
-                Our Touch Point: <a href="mailto:contact@raanae.com" className="underline hover:text-black transition-colors font-bold">contact@raanae.com</a>
+              <p className="whitespace-nowrap font-montserrat-bold text-[#3d2e13]">
+                Our Touch Point: <a href="mailto:contact@raanae.com" className="underline hover:text-black transition-colors">contact@raanae.com</a>
               </p>
             </div>
           </footer>
+
         </section>
+
       </main>
 
-      {/* Premium Checkout Modal */}
+      {/* Product Checkout Modal */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}

@@ -105,17 +105,45 @@ body::after {
   animation-delay: var(--orb-delay, 0s);
 }
 
+.font-modelica-bold {
+  font-family: "Bw Modelica SS01", var(--font-sans), sans-serif;
+  font-weight: 700;
+}
+
+.font-modelica-regular {
+  font-family: "Bw Modelica SS01", var(--font-sans), sans-serif;
+  font-weight: 400;
+}
+
+.font-montserrat-light {
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 300;
+}
+
+.font-montserrat-regular {
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 400;
+}
+
+.font-montserrat-medium {
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 500;
+}
+
+.font-montserrat-bold {
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 700;
+}
+
 @layer base {
   html, body {
-    height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Lock browser viewport to force main-container snapping */
-    max-height: 100dvh;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-alata);
+    font-family: var(--font-sans);
     letter-spacing: 0.05em;
   }
 }
