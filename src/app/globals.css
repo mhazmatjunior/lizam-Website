@@ -6,6 +6,22 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Alta";
+  src: url("/fonts/Alta_caption (1).otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Brand";
+  src: url("/fonts/Brand (1).otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @import "tailwindcss";
 
 @theme {
@@ -23,11 +39,21 @@
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
   --font-kalieb: "Kalieb Luxury", serif;
+  --font-alta: "Alta", serif;
+  --font-brand: "Brand", serif;
   --font-alata: var(--font-alata), sans-serif;
 }
 
 .font-kalieb {
   font-family: "Kalieb Luxury", serif;
+}
+
+.font-alta {
+  font-family: "Alta", serif;
+}
+
+.font-brand {
+  font-family: "Brand", serif;
 }
 
 .alata-regular {

@@ -13,7 +13,7 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
 
-  // Slideshow image references (using optimized web-ready webp formats)
+  // Slideshow image references (web-ready webp formats in public/SlideShow)
   const SLIDESHOW_IMAGES = [
     "/SlideShow/Slide Image 1.webp",
     "/SlideShow/Slide Image 2.webp",
@@ -46,19 +46,19 @@ export default function Home() {
         {/* Global Navigation Header */}
         <header className="absolute top-0 left-0 right-0 z-50 flex justify-between items-center w-full px-6 md:px-16 py-4 md:py-6">
           {/* Logo */}
-          <div className="flex items-center shrink-0 relative h-16 w-32 md:h-20 md:w-40">
+          <div className="flex items-center shrink-0">
             <Image
               src="/logo-transparent.png"
               alt="RAANAE Logo"
-              fill
-              sizes="(max-width: 768px) 128px, 160px"
-              className="object-contain object-left mix-blend-screen"
+              width={160}
+              height={80}
+              className="w-32 md:w-40 h-auto object-contain cursor-pointer"
               priority
             />
           </div>
           
-          {/* Shopping Bag Button (Center) */}
-          <div className="flex-grow flex justify-center">
+          {/* Action buttons (Center Shopping Bag + Right Shop Raanae button) */}
+          <div className="flex items-center gap-4 ml-auto">
             <button 
               onClick={() => setIsCartOpen(true)}
               className="relative p-3.5 bg-black/40 border border-white/10 rounded-[8px] hover:border-[#e2bb61]/50 hover:bg-black/60 transition-all group cursor-pointer"
@@ -71,14 +71,17 @@ export default function Home() {
                 </span>
               )}
             </button>
-          </div>
 
-          {/* Coming Soon Button (Right) */}
-          <div className="flex items-center shrink-0">
             <button 
-              className="bg-[#d4b474] text-black text-[11px] uppercase tracking-[0.2em] font-montserrat-medium px-5 md:px-8 py-3 rounded-[30px] whitespace-nowrap transition-all shadow-[0_4px_15px_rgba(212,180,116,0.35)] cursor-default"
+              onClick={() => {
+                const shopSection = document.getElementById("launch-slideshow");
+                if (shopSection) {
+                  shopSection.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+              className="bg-[#d4b474] hover:bg-white text-black text-[11px] uppercase tracking-[0.2em] font-montserrat-medium px-5 md:px-8 py-3 rounded-[30px] whitespace-nowrap transition-all shadow-[0_4px_15px_rgba(212,180,116,0.35)] cursor-pointer"
             >
-              Coming Soon
+              Shop Raanae
             </button>
           </div>
         </header>
@@ -102,17 +105,16 @@ export default function Home() {
           {/* Hero Main Content */}
           <div className="flex-grow flex flex-col justify-center items-start text-left max-w-7xl mx-auto w-full px-6 md:px-16 relative z-10">
             <div className="flex flex-col items-start space-y-4 max-w-xl md:max-w-2xl">
+              {/* RAANAE Alta Font Tag */}
+              <span className="font-alta text-[#e2bb61] text-2xl sm:text-3xl md:text-5xl lg:text-6xl tracking-[0.3em] uppercase block">
+                RAANAE
+              </span>
 
               {/* Main Branding */}
-              <div className="space-y-1">
-                <span className="font-kalieb text-[#e2bb61] text-2xl sm:text-3xl md:text-4xl tracking-[0.25em] uppercase block">
-                  RAANAE
-                </span>
-                <h1 className="text-white text-4xl sm:text-5xl md:text-7xl font-modelica-bold uppercase tracking-tight leading-[1.0] select-none">
-                  Proud Muslim<br />
-                  <span className="text-white">Perfume Brand</span>
-                </h1>
-              </div>
+              <h1 className="text-white text-4xl sm:text-5xl md:text-7xl font-modelica-bold uppercase tracking-tight leading-[1.0] select-none">
+                Proud Muslim<br />
+                <span className="text-white">Perfume Brand</span>
+              </h1>
 
               {/* Mission Statement tagline */}
               <p className="text-white/90 text-sm sm:text-base font-montserrat-medium tracking-wide max-w-md leading-relaxed">
@@ -188,24 +190,23 @@ export default function Home() {
         </section>
 
         {/* Section 3: Our First Launch & Slideshow */}
-        <section id="launch-slideshow" className="relative min-h-screen w-full flex flex-col justify-center py-20 overflow-hidden bg-black">
-          {/* Sienna Satin Texture Background */}
-          <div className="absolute inset-0 z-0 pointer-events-none select-none bg-[radial-gradient(circle_at_center,_#361911_0%,_#150906_75%,_#000000_100%)] opacity-90" />
-
-          {/* Inside Container */}
-          <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16 my-auto">
-            
-            {/* MOBILE LAYOUT: Order-exact stacking (block md:hidden) */}
-            <div className="flex flex-col space-y-8 items-center text-center md:hidden">
+        <section id="launch-slideshow" className="relative min-h-screen w-full flex flex-col justify-center overflow-hidden bg-black">
+          
+          {/* MOBILE LAYOUT: Sequential vertical stacking matching Mobile PDF 1 (block lg:hidden) */}
+          <div className="block lg:hidden relative z-10 w-full py-20 px-6 bg-[radial-gradient(circle_at_center,_#361911_0%,_#150906_75%,_#000000_100%)]">
+            <div className="flex flex-col space-y-8 items-center text-center max-w-md mx-auto">
               {/* Text Group 1 */}
-              <div className="space-y-4 max-w-md">
+              <div className="space-y-4">
                 <span className="text-[#e2bb61] text-[10px] tracking-[0.3em] font-montserrat-light uppercase block">
                   Our First Launch
                 </span>
                 
-                <div className="flex items-center justify-center">
-                  <span className="text-white text-5xl font-kalieb tracking-wider uppercase">
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-white text-5xl font-brand tracking-wider uppercase">
                     OCT 7
+                  </span>
+                  <span className="border border-[#e2bb61] text-[#e2bb61] text-[10px] tracking-[0.2em] font-montserrat-medium px-3 py-1 rounded-[4px] uppercase">
+                    BRAND
                   </span>
                 </div>
 
@@ -238,17 +239,38 @@ export default function Home() {
               </div>
 
               {/* Text Group 2 & Actions */}
-              <div className="space-y-6 max-w-md w-full">
+              <div className="space-y-6 w-full">
                 <p className="text-white/90 text-xs tracking-wider font-montserrat-medium uppercase">
                   Its not just another perfume but....
                 </p>
 
+                {/* Details Accordion */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setShowDetails(!showDetails)}
+                    className="text-white/60 hover:text-white text-xs underline uppercase tracking-widest cursor-pointer transition-colors"
+                  >
+                    {showDetails ? "Hide Details" : "More Details"}
+                  </button>
+                  <AnimatePresence>
+                    {showDetails && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-white/70 text-[11px] leading-relaxed max-w-[260px] mx-auto font-montserrat-light"
+                      >
+                        7th October is an olfactory signature of pride. Crafted with premium natural oils, it delivers an initial burst of crisp citrus, maturing into deep notes of spice and organic woods.
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-                {/* Action button */}
+                {/* PRE-ORDER button */}
                 <div>
                   <button
                     onClick={() => setIsCheckoutOpen(true)}
-                    className="bg-[#381c15] text-[#e2bb61] border border-[#e2bb61]/30 hover:border-[#e2bb61] text-xs uppercase tracking-[0.2em] font-montserrat-bold px-10 py-4 rounded-[30px] w-full max-w-[260px] transition-all shadow-[0_5px_20px_rgba(56,28,21,0.5)] cursor-pointer"
+                    className="bg-[#381c15] text-white hover:text-[#e2bb61] border border-white/10 hover:border-[#e2bb61] text-xs uppercase tracking-[0.2em] font-montserrat-bold px-10 py-4 rounded-[30px] w-full max-w-[260px] transition-all shadow-[0_5px_20px_rgba(56,28,21,0.5)] cursor-pointer"
                   >
                     PRE-ORDER NOW
                   </button>
@@ -271,86 +293,83 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* DESKTOP/LAPTOP LAYOUT: Balanced split layout (hidden md:grid) */}
-            <div className="hidden md:grid grid-cols-12 gap-12 lg:gap-20 items-center">
-              
-              {/* Left Column: Information, Story & CTA */}
-              <div className="col-span-6 flex flex-col space-y-8 text-left">
-                <div className="space-y-4">
-                  <span className="text-[#e2bb61] text-xs tracking-[0.3em] font-montserrat-light uppercase block">
-                    Our First Launch
+          {/* LAPTOP LAYOUT: Split side-by-side matching Laptop PDF 2 (hidden lg:grid) */}
+          <div className="hidden lg:grid grid-cols-12 min-h-screen w-full relative z-10">
+            {/* Left Half: Warm Ochre Tan Solid Block (#b08a50) */}
+            <div className="col-span-5 bg-[#b08a50] text-[#1c120a] flex flex-col justify-center px-12 lg:px-16 py-20 relative">
+              <div className="space-y-6 max-w-md">
+                <span className="text-[#3d2714] text-xs tracking-[0.3em] font-montserrat-medium uppercase block">
+                  Our First Launch
+                </span>
+                
+                <div className="flex items-center gap-4">
+                  <span className="text-white text-6xl lg:text-7xl font-brand tracking-wider uppercase drop-shadow-md">
+                    OCT 7
                   </span>
-                  
-                  <div className="flex items-center">
-                    <span className="text-white text-6xl lg:text-7xl font-kalieb tracking-wider uppercase">
-                      OCT 7
-                    </span>
-                  </div>
-
-                  <p className="text-white/85 text-base lg:text-lg font-montserrat-light leading-relaxed max-w-md">
-                    Not merely a name. But a story, <span className="text-[#e2bb61] font-montserrat-medium">a story of resistance</span>
-                  </p>
+                  <span className="border border-white/60 text-white text-xs tracking-[0.2em] font-montserrat-medium px-3.5 py-1 rounded-[4px] uppercase">
+                    BRAND
+                  </span>
                 </div>
 
-                <div className="space-y-6 pt-2">
-                  <p className="text-white/90 text-sm tracking-wider font-montserrat-medium uppercase">
-                    Its not just another perfume but....
-                  </p>
+                <p className="text-[#2b1b0d] text-base lg:text-lg font-montserrat-medium leading-relaxed">
+                  Not merely a name.<br />
+                  But a story, <span className="font-montserrat-bold text-black">a story of resistance...</span>
+                </p>
 
-
+                <div className="pt-6">
                   <button
                     onClick={() => setIsCheckoutOpen(true)}
-                    className="bg-[#381c15] text-[#e2bb61] border border-[#e2bb61]/30 hover:border-[#e2bb61] hover:bg-[#e2bb61] hover:text-black text-xs uppercase tracking-[0.2em] font-montserrat-bold px-12 py-4 rounded-[30px] transition-all shadow-[0_5px_25px_rgba(56,28,21,0.5)] cursor-pointer inline-block"
+                    className="bg-[#24130b] hover:bg-black text-white hover:text-[#e2bb61] text-xs uppercase tracking-[0.2em] font-montserrat-bold px-10 py-4 rounded-[30px] transition-all shadow-xl cursor-pointer"
                   >
-                    PRE-ORDER NOW
+                    ORDER NOW
                   </button>
                 </div>
-
-                {/* Pagination Dots */}
-                <div className="flex gap-2.5 pt-4">
-                  {SLIDESHOW_IMAGES.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentSlide(idx)}
-                      className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
-                        idx === currentSlide 
-                          ? "bg-[#e2bb61] scale-125 shadow-[0_0_10px_#e2bb61]" 
-                          : "bg-white/20 hover:bg-white/40"
-                      }`}
-                      aria-label={`Go to slide ${idx + 1}`}
-                    />
-                  ))}
-                </div>
               </div>
-
-              {/* Right Column: Slideshow Frame */}
-              <div className="col-span-6 flex justify-center lg:justify-end">
-                <div className="relative w-full aspect-[4/5] max-w-[380px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-950">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentSlide}
-                      initial={{ opacity: 0, scale: 1.03 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.97 }}
-                      transition={{ duration: 0.7 }}
-                      className="absolute inset-0 w-full h-full"
-                    >
-                      <Image
-                        src={SLIDESHOW_IMAGES[currentSlide]}
-                        alt={`Product Slide Desktop ${currentSlide + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 1024px) 380px, 480px"
-                      />
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </div>
-
             </div>
 
+            {/* Right Half: Sienna Fabric & Box + Bottle Slideshow Frame */}
+            <div className="col-span-7 bg-[radial-gradient(circle_at_center,_#361911_0%,_#150906_75%,_#000000_100%)] flex flex-col justify-center items-center px-12 py-20 relative">
+              <div className="relative w-full aspect-[4/5] max-w-[420px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-950 my-auto">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentSlide}
+                    initial={{ opacity: 0, scale: 1.03 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.97 }}
+                    transition={{ duration: 0.7 }}
+                    className="absolute inset-0 w-full h-full"
+                  >
+                    <Image
+                      src={SLIDESHOW_IMAGES[currentSlide]}
+                      alt={`Product Slide Laptop ${currentSlide + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="420px"
+                    />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Laptop Slideshow Pagination Dots at Bottom */}
+              <div className="flex gap-3 justify-center pt-8">
+                {SLIDESHOW_IMAGES.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentSlide(idx)}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
+                      idx === currentSlide 
+                        ? "bg-[#e2bb61] scale-125 shadow-[0_0_10px_#e2bb61]" 
+                        : "bg-white/20 hover:bg-white/40"
+                    }`}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
+
         </section>
 
         {/* Section 4: The House of Raanae & Stats */}
@@ -358,7 +377,6 @@ export default function Home() {
           
           <div className="w-full max-w-5xl mx-auto px-6 md:px-16 flex-grow flex flex-col justify-center items-center text-center">
             
-
             {/* Title */}
             <h2 className="font-kalieb text-[#e2bb61] text-3xl sm:text-4xl md:text-6xl tracking-widest mb-6 uppercase">
               THE HOUSE OF RAANAE
@@ -366,10 +384,10 @@ export default function Home() {
             
             {/* Description Subtitle */}
             <p className="text-white/80 text-sm sm:text-base font-montserrat-light tracking-wide max-w-3xl leading-relaxed mb-12 sm:mb-16">
-              Raanae is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design, keeping <span className="text-white font-montserrat-bold underline decoration-[#e2bb61] decoration-2 underline-offset-4">human wellbeing our top priority.</span>
+              Raanae is a luxury perfume brand made to provide quality products to our customers. We don't claim to be perfect but you can rely on us because of our quality
             </p>
 
-            {/* Three Stats Cards */}
+            {/* Three Stats Cards matching Laptop PDF 2 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-4xl mb-12 sm:mb-20">
               
               {/* Card 1: 25-35% */}
@@ -388,7 +406,7 @@ export default function Home() {
                 </span>
               </motion.div>
 
-              {/* Card 2: Harmless Alternative Used */}
+              {/* Card 2: NO HARMFUL CHEMICALS ADDED (from Laptop PDF 2) */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -397,10 +415,10 @@ export default function Home() {
                 className="bg-black/30 border border-[#e2bb61]/20 hover:border-[#e2bb61]/50 p-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-2xl backdrop-blur-sm transition-all duration-300 h-44 md:h-52 group"
               >
                 <span className="text-white text-sm sm:text-base font-montserrat-bold uppercase tracking-wider mb-2 leading-tight max-w-[200px] group-hover:text-[#e2bb61] transition-colors">
-                  Harmless<br />Alternative Used
+                  NO HARMFUL<br />CHEMICALS ADDED
                 </span>
                 <span className="text-white/50 group-hover:text-white/75 transition-colors text-[8px] sm:text-[9px] uppercase tracking-[0.12em] font-montserrat-medium">
-                  No Harmful Chemical Added
+                  Harmless Alternatives Are Used
                 </span>
               </motion.div>
 
