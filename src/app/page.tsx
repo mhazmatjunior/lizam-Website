@@ -193,30 +193,27 @@ export default function Home() {
         <section id="launch-slideshow" className="relative min-h-screen w-full flex flex-col justify-center overflow-hidden bg-black">
           
           {/* MOBILE LAYOUT: Sequential vertical stacking matching Mobile PDF 1 (block lg:hidden) */}
-          <div className="block lg:hidden relative z-10 w-full py-20 px-6 bg-[radial-gradient(circle_at_center,_#361911_0%,_#150906_75%,_#000000_100%)]">
+          <div className="block lg:hidden relative z-10 w-full py-20 px-6 bg-[#4e251b]">
             <div className="flex flex-col space-y-8 items-center text-center max-w-md mx-auto">
               {/* Text Group 1 */}
               <div className="space-y-4">
-                <span className="text-[#e2bb61] text-[10px] tracking-[0.3em] font-montserrat-light uppercase block">
+                <span className="text-[#d8c0a8] text-[10px] tracking-[0.3em] font-montserrat-light uppercase block">
                   Our First Launch
                 </span>
                 
-                <div className="flex items-center justify-center gap-3">
-                  <span className="text-white text-5xl font-brand tracking-wider uppercase">
+                <div className="flex items-center justify-center">
+                  <span className="text-white text-6xl sm:text-7xl font-brand tracking-wider uppercase">
                     OCT 7
-                  </span>
-                  <span className="border border-[#e2bb61] text-[#e2bb61] text-[10px] tracking-[0.2em] font-montserrat-medium px-3 py-1 rounded-[4px] uppercase">
-                    BRAND
                   </span>
                 </div>
 
-                <p className="text-white/80 text-sm font-montserrat-light leading-relaxed">
-                  Not merely a name. But a story, <span className="text-[#e2bb61] font-montserrat-medium">a story of resistance</span>
+                <p className="text-white/90 text-sm font-montserrat-light leading-relaxed">
+                  Not merely a name. But a story, <span className="text-white font-montserrat-bold">a story of resistance</span>
                 </p>
               </div>
 
               {/* Slideshow Image Component */}
-              <div className="relative w-full aspect-[4/5] max-w-[280px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-950">
+              <div className="relative w-full aspect-[4/5] max-w-[320px] rounded-xl overflow-hidden shadow-2xl">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentSlide}
@@ -227,12 +224,12 @@ export default function Home() {
                     className="absolute inset-0 w-full h-full"
                   >
                     <Image
-                      src={SLIDESHOW_IMAGES[currentSlide]}
+                      src={currentSlide === 0 ? "/Section-3-new-pic-mobile.jpeg" : SLIDESHOW_IMAGES[currentSlide]}
                       alt={`Product Slide ${currentSlide + 1}`}
                       fill
                       priority
                       className="object-cover"
-                      sizes="280px"
+                      sizes="(max-width: 768px) 320px, 400px"
                     />
                   </motion.div>
                 </AnimatePresence>
@@ -248,7 +245,7 @@ export default function Home() {
                 <div className="space-y-2">
                   <button
                     onClick={() => setShowDetails(!showDetails)}
-                    className="text-white/60 hover:text-white text-xs underline uppercase tracking-widest cursor-pointer transition-colors"
+                    className="text-white/70 hover:text-white text-xs underline uppercase tracking-widest cursor-pointer transition-colors"
                   >
                     {showDetails ? "Hide Details" : "More Details"}
                   </button>
@@ -258,7 +255,7 @@ export default function Home() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="text-white/70 text-[11px] leading-relaxed max-w-[260px] mx-auto font-montserrat-light"
+                        className="text-white/80 text-[11px] leading-relaxed max-w-[260px] mx-auto font-montserrat-light"
                       >
                         7th October is an olfactory signature of pride. Crafted with premium natural oils, it delivers an initial burst of crisp citrus, maturing into deep notes of spice and organic woods.
                       </motion.div>
@@ -270,7 +267,7 @@ export default function Home() {
                 <div>
                   <button
                     onClick={() => setIsCheckoutOpen(true)}
-                    className="bg-[#381c15] text-white hover:text-[#e2bb61] border border-white/10 hover:border-[#e2bb61] text-xs uppercase tracking-[0.2em] font-montserrat-bold px-10 py-4 rounded-[30px] w-full max-w-[260px] transition-all shadow-[0_5px_20px_rgba(56,28,21,0.5)] cursor-pointer"
+                    className="bg-[#240e09] text-white hover:text-[#e2bb61] border border-white/20 hover:border-[#e2bb61] text-xs uppercase tracking-[0.2em] font-montserrat-bold px-10 py-4 rounded-[30px] w-full max-w-[260px] transition-all shadow-2xl cursor-pointer"
                   >
                     PRE-ORDER NOW
                   </button>
@@ -284,8 +281,8 @@ export default function Home() {
                       onClick={() => setCurrentSlide(idx)}
                       className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
                         idx === currentSlide 
-                          ? "bg-[#e2bb61] scale-125 shadow-[0_0_8px_#e2bb61]" 
-                          : "bg-white/20 hover:bg-white/40"
+                          ? "bg-white scale-125 shadow-[0_0_8px_rgba(255,255,255,0.8)]" 
+                          : "bg-white/30 hover:bg-white/50"
                       }`}
                       aria-label={`Go to slide ${idx + 1}`}
                     />
@@ -304,12 +301,9 @@ export default function Home() {
                   Our First Launch
                 </span>
                 
-                <div className="flex items-center gap-4">
-                  <span className="text-white text-6xl lg:text-7xl font-brand tracking-wider uppercase drop-shadow-md">
+                <div className="flex items-center">
+                  <span className="text-white text-7xl lg:text-8xl xl:text-9xl font-brand tracking-wider uppercase drop-shadow-md">
                     OCT 7
-                  </span>
-                  <span className="border border-white/60 text-white text-xs tracking-[0.2em] font-montserrat-medium px-3.5 py-1 rounded-[4px] uppercase">
-                    BRAND
                   </span>
                 </div>
 
