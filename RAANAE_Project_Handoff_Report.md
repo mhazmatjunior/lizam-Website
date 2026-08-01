@@ -106,22 +106,3 @@ The backend of the platform is designed to be self-healing, fast, and secure.
 2.  **Failsafe Fallback (Self-Healing)**: If the backend database lacks the new payment method columns, the system automatically appends the selection to the product descriptor (e.g., `[cod_founder]`) and completes the transaction, ensuring checkout never crashes.
 3.  **Supabase CDN Storage**: High-resolution image assets are hosted on a public CDN bucket for fast page load times.
 4.  **Automatic Image Optimization**: Next.js automatically optimizes and caches image dimensions to improve mobile loading performance.
-
----
-
-## SECTION 5: PRODUCTION ENVIRONMENT VARIABLES (VERCEL CHECKLIST)
-
-Add the following keys in your Vercel Project settings:
-
-| Key | Value Description |
-| :--- | :--- |
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://ybhzcrqaxtglysnpxcmd.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Anon Key (Copy from `.env.local`) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Service Role Key (Copy from `.env.local`) |
-| `NEXTAUTH_URL` | `https://www.raanae.com` |
-| `NEXTAUTH_SECRET` | Secret JWT hash (Copy from `.env.local`) |
-| `ADMIN_EMAIL` | `raanae980@gmail.com` |
-| `ADMIN_PASSWORD_HASH` | Bcrypt password hash |
-| `NEXT_PUBLIC_SAFEPAY_ENVIRONMENT` | `sandbox` OR `production` |
-| `NEXT_PUBLIC_SAFEPAY_PUBLIC` | Safepay Public Key |
-| `SAFEPAY_SECRET` | Safepay Secret Key |
