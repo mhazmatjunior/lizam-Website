@@ -27,7 +27,7 @@ export const PRODUCTS: Product[] = [
       heart: "Leather, Bulgarian Rose",
       base: "Cambodian Oud, Sandalwood"
     },
-    image: "/Pic_1_Transparent.png",
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image5.png",
     stock: 42,
   },
   {
@@ -42,7 +42,7 @@ export const PRODUCTS: Product[] = [
       heart: "Damask Rose, Incense",
       base: "Ambergris, Musk"
     },
-    image: "/Pic_1_Transparent.png",
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image5.png",
     stock: 28,
   },
   {
@@ -57,7 +57,7 @@ export const PRODUCTS: Product[] = [
       heart: "Iris Root, Violet Leaf",
       base: "White Sandalwood, Papyrus"
     },
-    image: "/Pic_1_Transparent.png",
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image5.png",
     stock: 35,
   },
   {
@@ -72,7 +72,7 @@ export const PRODUCTS: Product[] = [
       heart: "Silver Birch, Lavender",
       base: "Oakmoss, White Cedar"
     },
-    image: "/Pic_1_Transparent.png",
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image5.png",
     stock: 64,
   },
   {
@@ -87,7 +87,7 @@ export const PRODUCTS: Product[] = [
       heart: "Transparent Jasmine",
       base: "White Musk, Ambrette"
     },
-    image: "/Pic_1_Transparent.png",
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image5.png",
     stock: 85,
   },
   {
@@ -102,7 +102,7 @@ export const PRODUCTS: Product[] = [
       heart: "Haitian Vetiver, Sage",
       base: "Cedarwood, Patchouli"
     },
-    image: "/Pic_1_Transparent.png",
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image5.png",
     stock: 48,
   },
   {
@@ -117,7 +117,7 @@ export const PRODUCTS: Product[] = [
       heart: "Ozone Accord, Lily",
       base: "Ambrette, Crisp Musk"
     },
-    image: "/Pic_1_Transparent.png",
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image5.png",
     stock: 31,
   },
   {
@@ -132,7 +132,7 @@ export const PRODUCTS: Product[] = [
       heart: "Siam Benzoin, Amber",
       base: "Vanilla Bean, Roasted Tonka"
     },
-    image: "/Pic_1_Transparent.png",
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image5.png",
     stock: 55,
   },
   {
@@ -147,7 +147,7 @@ export const PRODUCTS: Product[] = [
       heart: "Guaiac Wood, Juniper",
       base: "Smoky Incense, Leather"
     },
-    image: "/Pic_1_Transparent.png",
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image5.png",
     stock: 26,
   },
 ];

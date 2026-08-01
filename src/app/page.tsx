@@ -15,11 +15,11 @@ export default function Home() {
 
   // Slideshow image references (web-ready webp formats in public/SlideShow)
   const SLIDESHOW_IMAGES = [
-    "/SlideShow/Slide Image 1.webp",
-    "/SlideShow/Slide Image 2.webp",
-    "/SlideShow/Slide Image 3.webp",
-    "/SlideShow/Slide Image 4.webp",
-    "/SlideShow/Slide Image 5.webp"
+    "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%201.webp",
+    "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%202.webp",
+    "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%203.webp",
+    "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%204.webp",
+    "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%205.webp"
   ];
 
   // Pre-Order Product Info
@@ -28,7 +28,7 @@ export default function Home() {
     name: "7TH OCT (Pre-Order Booking)",
     price: 150,
     category: "Signature Collection",
-    image: "/SlideShow/Slide Image 5.webp"
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%205.webp"
   };
 
   // Auto-play slideshow for Section 3
@@ -48,11 +48,11 @@ export default function Home() {
           {/* Logo */}
           <div className="flex items-center shrink-0">
             <Image
-              src="/logo-transparent.png"
+              src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/logo-transparent.png"
               alt="RAANAE Logo"
               width={160}
               height={80}
-              className="w-32 md:w-40 h-auto object-contain cursor-pointer"
+              className="w-32 md:w-40 h-auto object-contain cursor-pointer -ml-7 md:-ml-5"
               priority
             />
           </div>
@@ -91,7 +91,7 @@ export default function Home() {
           {/* Satin fabric background with perfume bottle on right */}
           <div className="absolute inset-0 z-0 pointer-events-none select-none">
             <Image
-              src="/theme-hero.webp"
+              src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-hero.webp"
               alt="Raanae Hero Background"
               fill
               priority
@@ -139,7 +139,7 @@ export default function Home() {
             {/* Laptop Background */}
             <div className="hidden lg:block absolute inset-0 w-full h-full">
               <Image
-                src="/theme-image4.png"
+                src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image4.png"
                 alt="Jerusalem Cave View Laptop"
                 fill
                 sizes="100vw"
@@ -149,7 +149,7 @@ export default function Home() {
             {/* Mobile Background */}
             <div className="block lg:hidden absolute inset-0 w-full h-full">
               <Image
-                src="/section-2-mob-new.png"
+                src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/section-2-mob-new.png"
                 alt="Jerusalem Cave View Mobile"
                 fill
                 sizes="100vw"
@@ -214,21 +214,32 @@ export default function Home() {
 
               {/* Slideshow Image Component */}
               <div className="relative w-full aspect-[4/5] max-w-[320px] rounded-xl overflow-hidden shadow-2xl">
-                <AnimatePresence mode="wait">
+                <AnimatePresence>
                   <motion.div
                     key={currentSlide}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.6}
+                    onDragEnd={(event, info) => {
+                      const swipeThreshold = 50;
+                      if (info.offset.x < -swipeThreshold) {
+                        setCurrentSlide((prev) => (prev + 1) % SLIDESHOW_IMAGES.length);
+                      } else if (info.offset.x > swipeThreshold) {
+                        setCurrentSlide((prev) => (prev - 1 + SLIDESHOW_IMAGES.length) % SLIDESHOW_IMAGES.length);
+                      }
+                    }}
                     initial={{ opacity: 0, scale: 1.02 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.98 }}
-                    transition={{ duration: 0.6 }}
-                    className="absolute inset-0 w-full h-full"
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing touch-pan-y"
                   >
                     <Image
-                      src={currentSlide === 0 ? "/Section-3-new-pic-mobile.jpeg" : SLIDESHOW_IMAGES[currentSlide]}
+                      src={currentSlide === 0 ? "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/Section-3-new-pic-mobile.jpeg" : SLIDESHOW_IMAGES[currentSlide]}
                       alt={`Product Slide ${currentSlide + 1}`}
                       fill
                       priority
-                      className="object-cover"
+                      className="object-cover pointer-events-none"
                       sizes="(max-width: 768px) 320px, 400px"
                     />
                   </motion.div>
@@ -237,32 +248,6 @@ export default function Home() {
 
               {/* Text Group 2 & Actions */}
               <div className="space-y-6 w-full">
-                <p className="text-white/90 text-xs tracking-wider font-montserrat-medium uppercase">
-                  Its not just another perfume but....
-                </p>
-
-                {/* Details Accordion */}
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setShowDetails(!showDetails)}
-                    className="text-white/70 hover:text-white text-xs underline uppercase tracking-widest cursor-pointer transition-colors"
-                  >
-                    {showDetails ? "Hide Details" : "More Details"}
-                  </button>
-                  <AnimatePresence>
-                    {showDetails && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="text-white/80 text-[11px] leading-relaxed max-w-[260px] mx-auto font-montserrat-light"
-                      >
-                        7th October is an olfactory signature of pride. Crafted with premium natural oils, it delivers an initial burst of crisp citrus, maturing into deep notes of spice and organic woods.
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
                 {/* PRE-ORDER button */}
                 <div>
                   <button
@@ -326,13 +311,13 @@ export default function Home() {
             {/* Right Half: Sienna Fabric & Box + Bottle Slideshow Frame */}
             <div className="col-span-7 bg-[radial-gradient(circle_at_center,_#361911_0%,_#150906_75%,_#000000_100%)] flex flex-col justify-center items-center px-12 py-20 relative">
               <div className="relative w-full aspect-[4/5] max-w-[420px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-950 my-auto">
-                <AnimatePresence mode="wait">
+                <AnimatePresence>
                   <motion.div
                     key={currentSlide}
                     initial={{ opacity: 0, scale: 1.03 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.97 }}
-                    transition={{ duration: 0.7 }}
+                    transition={{ duration: 0.5 }}
                     className="absolute inset-0 w-full h-full"
                   >
                     <Image
@@ -473,6 +458,14 @@ export default function Home() {
         </section>
 
       </main>
+
+      {/* Hidden preloader for slideshow images to prevent latency flashes */}
+      <div className="hidden pointer-events-none opacity-0 select-none w-0 h-0 overflow-hidden">
+        {SLIDESHOW_IMAGES.map((src) => (
+          <Image key={src} src={src} alt="Preload" width={10} height={10} priority />
+        ))}
+        <Image src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/Section-3-new-pic-mobile.jpeg" alt="Preload" width={10} height={10} priority />
+      </div>
 
       {/* Product Checkout Modal */}
       <CheckoutModal

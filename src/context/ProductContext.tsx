@@ -1,107 +1,127 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { PRODUCTS as INITIAL_PRODUCTS, type Product } from "@/data/products";
+import { type Product } from "@/data/products";
 
 interface ProductContextType {
   products: Product[];
-  addProduct: (product: Omit<Product, "id">) => void;
-  deleteProduct: (id: number) => void;
-  decrementStock: (productId: number, quantity: number) => void;
-  updateStock: (productId: number, newStock: number) => void;
-  updateProduct: (id: number, product: Partial<Product>) => void;
+  addProduct: (product: Omit<Product, "id">) => Promise<void>;
+  deleteProduct: (id: number) => Promise<void>;
+  decrementStock: (productId: number, quantity: number) => Promise<void>;
+  updateStock: (productId: number, newStock: number) => Promise<void>;
+  updateProduct: (id: number, product: Partial<Product>) => Promise<void>;
+  refreshProducts: () => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export function ProductProvider({ children }: { children: React.ReactNode }) {
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
 
-  // Load from localStorage on mount
+  // Fetch initial products from the API
+  const refreshProducts = async () => {
+    try {
+      const res = await fetch("/api/products");
+      const data = await res.json();
+      if (data.products) {
+        setProducts(data.products);
+      }
+    } catch (e) {
+      console.error("Failed to load products from database:", e);
+    }
+  };
+
   useEffect(() => {
-    const loadProducts = () => {
-      const saved = localStorage.getItem("raanae_products");
-      if (saved) {
-        try {
-          setProducts(JSON.parse(saved));
-        } catch (e) {
-          console.error("Failed to parse saved products", e);
-        }
-      }
-      setIsInitialized(true);
-    };
-
-    loadProducts();
-
-    // Sync across tabs
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "raanae_products") {
-        loadProducts();
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    refreshProducts();
   }, []);
 
-  // Save to localStorage whenever products change
-  useEffect(() => {
-    if (isInitialized) {
-      try {
-        localStorage.setItem("raanae_products", JSON.stringify(products));
-      } catch (e) {
-        console.error("Storage quota exceeded", e);
-        // Alert the user only if it's a quota error
-        if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-          alert("Your collection is very large! Some images might not be saved until you delete older scents.");
+  const addProduct = async (newProductData: Omit<Product, "id">) => {
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newProductData),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.product) {
+          setProducts((prev) => [data.product, ...prev]);
         }
       }
+    } catch (e) {
+      console.error("Failed to add product:", e);
     }
-  }, [products, isInitialized]);
-
-  const addProduct = (newProductData: Omit<Product, "id">) => {
-    const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-    const newProduct: Product = {
-      ...newProductData,
-      id: newId,
-    };
-    setProducts((prev) => [newProduct, ...prev]);
   };
 
-  const deleteProduct = (id: number) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  const decrementStock = (productId: number, quantity: number) => {
-    setProducts((prev) => prev.map(p => {
-      if (p.id === productId) {
-        return { ...p, stock: Math.max(0, p.stock - quantity) };
+  const deleteProduct = async (id: number) => {
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setProducts((prev) => prev.filter((p) => p.id !== id));
       }
-      return p;
-    }));
+    } catch (e) {
+      console.error("Failed to delete product:", e);
+    }
   };
 
-  const updateStock = (productId: number, newStock: number) => {
-    setProducts((prev) => prev.map(p => {
-      if (p.id === productId) {
-        return { ...p, stock: newStock };
-      }
-      return p;
-    }));
+  const decrementStock = async (productId: number, quantity: number) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+    const newStock = Math.max(0, product.stock - quantity);
+    await updateStock(productId, newStock);
   };
 
-  const updateProduct = (id: number, updatedData: Partial<Product>) => {
-    setProducts((prev) => prev.map(p => {
-      if (p.id === id) {
-        return { ...p, ...updatedData };
+  const updateStock = async (productId: number, newStock: number) => {
+    try {
+      const res = await fetch(`/api/products/${productId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stock: newStock }),
+      });
+      if (res.ok) {
+        setProducts((prev) =>
+          prev.map((p) => (p.id === productId ? { ...p, stock: newStock } : p))
+        );
       }
-      return p;
-    }));
+    } catch (e) {
+      console.error("Failed to update stock:", e);
+    }
+  };
+
+  const updateProduct = async (id: number, updatedData: Partial<Product>) => {
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.product) {
+          setProducts((prev) =>
+            prev.map((p) => (p.id === id ? data.product : p))
+          );
+        }
+      }
+    } catch (e) {
+      console.error("Failed to update product:", e);
+    }
   };
 
   return (
-    <ProductContext.Provider value={{ products, addProduct, deleteProduct, decrementStock, updateStock, updateProduct }}>
+    <ProductContext.Provider
+      value={{
+        products,
+        addProduct,
+        deleteProduct,
+        decrementStock,
+        updateStock,
+        updateProduct,
+        refreshProducts,
+      }}
+    >
       {children}
     </ProductContext.Provider>
   );
