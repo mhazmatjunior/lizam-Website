@@ -26,6 +26,7 @@ interface Order {
   amount: number;
   currency: string;
   status: string;
+  paymentMethod?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -182,6 +183,16 @@ const OrderDetailsModal = ({ order, onClose }: { order: Order; onClose: () => vo
             <DetailRow icon={Mail} label="Digital Contact" value={order.email} field="email" index={1} />
             <DetailRow icon={Phone} label="Line of Communication" value={order.phone} field="phone" index={2} />
             <DetailRow icon={Truck} label="Dispatch Coordinates" value={order.address} field="address" index={3} />
+            <DetailRow 
+              icon={CheckCircle} 
+              label="Payment / Delivery Method" 
+              value={
+                order.paymentMethod === 'cod_founder' ? 'Cash on Delivery (Founder Delivery)' :
+                order.paymentMethod === 'cod_standard' ? 'Cash on Delivery (Standard)' :
+                'Online Payment (Safepay)'
+              } 
+              index={4} 
+            />
           </div>
 
           <div className="pt-4 flex flex-col sm:flex-row gap-3">
@@ -350,7 +361,17 @@ export default function OrdersPage() {
                       <td className="px-8 py-6">
                         <div className="space-y-1">
                           <p className="text-[11px] font-black text-white/90">Rs {order.amount.toLocaleString()}</p>
-                          <p className="text-[8px] text-white/20 font-medium tracking-tight">1 Item</p>
+                          <div className="flex items-center gap-1.5 pt-0.5">
+                            {order.paymentMethod === 'cod_founder' && (
+                              <span className="text-[7px] font-black uppercase tracking-widest text-[#e2bb61] bg-[#e2bb61]/10 px-1.5 py-0.5 rounded border border-[#e2bb61]/20">COD Founder</span>
+                            )}
+                            {order.paymentMethod === 'cod_standard' && (
+                              <span className="text-[7px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">COD Standard</span>
+                            )}
+                            {(order.paymentMethod === 'safepay' || !order.paymentMethod) && (
+                              <span className="text-[7px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/10">Safepay</span>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-8 py-6">

@@ -15,6 +15,7 @@ export default function CheckoutPage() {
   const { decrementStock } = useProducts();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [paymentMethod, setPaymentMethod] = useState<'safepay' | 'cod_standard' | 'cod_founder'>('safepay');
   const [formData, setFormData] = useState({
     email: "",
     fullName: "",
@@ -25,6 +26,8 @@ export default function CheckoutPage() {
     country: "Pakistan",
     phone: "",
   });
+
+  const totalAmount = subtotal + (paymentMethod === 'cod_founder' ? 5000 : 0);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -70,8 +73,9 @@ export default function CheckoutPage() {
           phone: formData.phone,
           address: fullAddress,
           product: productSummary,
-          amount: subtotal,
+          amount: totalAmount,
           currency: 'PKR',
+          payment_method: paymentMethod,
         }),
       });
 
@@ -85,25 +89,40 @@ export default function CheckoutPage() {
         decrementStock(item.id, item.quantity);
       });
 
-      // 3. Create Safepay checkout session
-      const checkoutRes = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: subtotal,
-          currency: 'PKR',
-          orderId,
-        }),
-      });
+      // 3. Conditional routing based on payment method
+      if (paymentMethod === 'safepay') {
+        // Create Safepay checkout session
+        const checkoutRes = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: totalAmount,
+            currency: 'PKR',
+            orderId,
+          }),
+        });
 
-      const checkoutData = await checkoutRes.json();
-      if (!checkoutData.url) throw new Error(checkoutData.error || 'Failed to initialize payment');
+        const checkoutData = await checkoutRes.json();
+        if (!checkoutData.url) throw new Error(checkoutData.error || 'Failed to initialize payment');
 
-      // 4. Clear client cart
-      clearCart();
+        // Clear client cart & redirect to Safepay
+        clearCart();
+        window.location.href = checkoutData.url;
+      } else {
+        // For Cash on Delivery (Standard or Founder): direct success confirmation
+        // Let's call patch or updates if we want to confirm status as processing
+        await fetch('/api/orders', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId,
+            status: 'processing'
+          })
+        });
 
-      // 5. Redirect to Safepay Checkout URL
-      window.location.href = checkoutData.url;
+        clearCart();
+        router.push(`/checkout/success/${orderId}`);
+      }
     } catch (err: any) {
       console.error('❌ Checkout placement failed:', err.message);
       alert(`Checkout failed: ${err.message}`);
@@ -247,18 +266,57 @@ export default function CheckoutPage() {
                 <div className="w-8 h-8 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-gold text-xs font-bold">3</div>
                 <h2 className="text-xl font-black uppercase tracking-tight">Payment Method</h2>
               </div>
-              <div className="bg-white/[0.02] border border-[#e2bb61]/30 rounded-2xl p-6 flex items-center justify-between relative shadow-[0_0_15px_rgba(226,187,97,0.03)]">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#e2bb61]/10 flex items-center justify-center border border-[#e2bb61]/20">
-                    <ShieldCheck className="w-5 h-5 text-[#e2bb61]" />
+              <div className="space-y-4">
+                {/* Safepay Option */}
+                <div 
+                  onClick={() => setPaymentMethod('safepay')}
+                  className={`cursor-pointer rounded-2xl p-5 border transition-all duration-300 flex items-center justify-between relative ${paymentMethod === 'safepay' ? 'bg-[#e2bb61]/5 border-[#e2bb61] shadow-[0_0_20px_rgba(226,187,97,0.05)]' : 'bg-white/[0.02] border-white/10 hover:border-white/20'}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${paymentMethod === 'safepay' ? 'border-[#e2bb61] bg-[#e2bb61]' : 'border-white/20'}`}>
+                      {paymentMethod === 'safepay' && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-white">Online Payment (Safepay)</h4>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Secure credit cards, debit cards & mobile wallets</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-white">Safepay Payment Gateway</h4>
-                    <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Secure Credit/Debit Cards & Mobile Wallets</p>
-                  </div>
+                  <span className="text-[7px] font-black uppercase tracking-widest bg-[#e2bb61]/10 text-[#e2bb61] px-2 py-0.5 rounded border border-[#e2bb61]/20">Instant</span>
                 </div>
-                <span className="text-[8px] font-black uppercase tracking-widest bg-[#e2bb61]/10 text-[#e2bb61] px-2.5 py-1 rounded border border-[#e2bb61]/20">Active</span>
-                <div className="absolute inset-0 bg-[#e2bb61]/5 blur-2xl opacity-10 -z-10" />
+
+                {/* Standard COD Option */}
+                <div 
+                  onClick={() => setPaymentMethod('cod_standard')}
+                  className={`cursor-pointer rounded-2xl p-5 border transition-all duration-300 flex items-center justify-between relative ${paymentMethod === 'cod_standard' ? 'bg-[#e2bb61]/5 border-[#e2bb61] shadow-[0_0_20px_rgba(226,187,97,0.05)]' : 'bg-white/[0.02] border-white/10 hover:border-white/20'}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${paymentMethod === 'cod_standard' ? 'border-[#e2bb61] bg-[#e2bb61]' : 'border-white/20'}`}>
+                      {paymentMethod === 'cod_standard' && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-white">Standard Cash on Delivery</h4>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Pay in cash upon delivery to your doorstep</p>
+                    </div>
+                  </div>
+                  <span className="text-[7px] font-black uppercase tracking-widest bg-white/10 text-white/60 px-2 py-0.5 rounded border border-white/10">Free Shipping</span>
+                </div>
+
+                {/* Founder COD Option */}
+                <div 
+                  onClick={() => setPaymentMethod('cod_founder')}
+                  className={`cursor-pointer rounded-2xl p-5 border transition-all duration-300 flex items-center justify-between relative ${paymentMethod === 'cod_founder' ? 'bg-gold/10 border-gold shadow-[0_0_25px_rgba(200,164,77,0.1)]' : 'bg-white/[0.02] border-white/10 hover:border-white/20'}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${paymentMethod === 'cod_founder' ? 'border-gold bg-gold' : 'border-white/20'}`}>
+                      {paymentMethod === 'cod_founder' && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-gold">Founder Delivery (Cash on Delivery)</h4>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Premium delivery directly by the founder of RAANAE</p>
+                    </div>
+                  </div>
+                  <span className="text-[7px] font-black uppercase tracking-widest bg-gold text-black px-2 py-0.5 rounded font-black border border-gold">+ Rs 5,000</span>
+                </div>
               </div>
             </section>
 
@@ -294,6 +352,12 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span>Rs {subtotal.toLocaleString()}</span>
                 </div>
+                {paymentMethod === 'cod_founder' && (
+                  <div className="flex justify-between text-[10px] uppercase tracking-widest text-[#e2bb61] font-bold">
+                    <span>Founder Delivery Fee</span>
+                    <span>Rs 5,000</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold">
                   <span>Shipping</span>
                   <span className="text-gold">FREE (PREMIUM)</span>
@@ -304,7 +368,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between border-t border-white/5 pt-4">
                   <span className="text-sm font-black uppercase tracking-widest">Total Amount</span>
-                  <span className="text-xl font-black text-gold underline underline-offset-8 decoration-gold/30">Rs {subtotal.toLocaleString()}</span>
+                  <span className="text-xl font-black text-gold underline underline-offset-8 decoration-gold/30">Rs {totalAmount.toLocaleString()}</span>
                 </div>
               </div>
 

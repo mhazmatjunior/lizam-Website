@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, address, amount, currency, product } = body;
+    const { name, email, phone, address, amount, currency, product, payment_method } = body;
 
     if (!name || !email || !phone || !address) {
       return NextResponse.json({ error: 'All customer fields are required' }, { status: 400 });
@@ -13,26 +13,42 @@ export async function POST(req: NextRequest) {
 
     const orderId = `ORD-${Date.now()}`;
     
-    const { data: newOrder, error } = await supabaseAdmin
+    let insertObj: any = {
+      order_id: orderId,
+      name,
+      email,
+      phone,
+      address,
+      product: product || '7TH OCT (Pre-Order)',
+      amount: amount || 150,
+      currency: currency || 'PKR',
+      status: 'pending',
+      tracker: null,
+      payment_method: payment_method || 'safepay'
+    };
+
+    let { data: newOrder, error } = await supabaseAdmin
       .from('orders')
-      .insert([
-        {
-          order_id: orderId,
-          name,
-          email,
-          phone,
-          address,
-          product: product || '7TH OCT (Pre-Order)',
-          amount: amount || 150,
-          currency: currency || 'PKR',
-          status: 'pending',
-          tracker: null
-        }
-      ])
+      .insert([insertObj])
       .select('*')
       .single();
 
-    if (error) {
+    if (error && error.message.includes('column "payment_method" of relation "orders" does not exist')) {
+      console.warn('⚠️ Column "payment_method" does not exist. Retrying with fallback (appending to product field)...');
+      delete insertObj.payment_method;
+      insertObj.product = `${insertObj.product} [${payment_method || 'safepay'}]`;
+      
+      const retryResult = await supabaseAdmin
+        .from('orders')
+        .insert([insertObj])
+        .select('*')
+        .single();
+      
+      if (retryResult.error) {
+        throw retryResult.error;
+      }
+      newOrder = retryResult.data;
+    } else if (error) {
       throw error;
     }
 
@@ -90,20 +106,34 @@ export async function GET() {
     }
 
     // Map database snake_case fields to frontend camelCase fields
-    const mappedOrders = (orders || []).map((o: any) => ({
-      orderId: o.order_id,
-      name: o.name,
-      email: o.email,
-      phone: o.phone,
-      address: o.address,
-      product: o.product,
-      amount: o.amount,
-      currency: o.currency,
-      status: o.status,
-      tracker: o.tracker,
-      createdAt: o.created_at,
-      updatedAt: o.updated_at
-    }));
+    const mappedOrders = (orders || []).map((o: any) => {
+      // Determine payment method (read from column, or fallback parsed from product name)
+      let payMethod = o.payment_method || 'safepay';
+      let prodName = o.product || '';
+      if (!o.payment_method && prodName.includes('[cod_')) {
+        const match = prodName.match(/\[(cod_[a-z_]+|safepay)\]/);
+        if (match) {
+          payMethod = match[1];
+          prodName = prodName.replace(/\s*\[(cod_[a-z_]+|safepay)\]/, '');
+        }
+      }
+
+      return {
+        orderId: o.order_id,
+        name: o.name,
+        email: o.email,
+        phone: o.phone,
+        address: o.address,
+        product: prodName,
+        amount: o.amount,
+        currency: o.currency,
+        status: o.status,
+        tracker: o.tracker,
+        paymentMethod: payMethod,
+        createdAt: o.created_at,
+        updatedAt: o.updated_at
+      };
+    });
 
     return NextResponse.json({ orders: mappedOrders });
   } catch (error: any) {
