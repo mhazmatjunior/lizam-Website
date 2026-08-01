@@ -9,9 +9,19 @@ export interface Product {
     top: string;
     heart: string;
     base: string;
+    [key: string]: string;
   };
   image: string;
   stock: number;
+  characteristics?: {
+    intensity: string;
+    profile: string;
+    longevity: string;
+  };
+  usps?: Array<{
+    title: string;
+    description: string;
+  }>;
 }
 
 export const PRODUCTS: Product[] = [
@@ -150,4 +160,38 @@ export const PRODUCTS: Product[] = [
     image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image5.png",
     stock: 26,
   },
+  {
+    id: 71099,
+    name: "7TH OCT (Pre-Order)",
+    price: 18500,
+    category: "Signature Collection",
+    description: "A captivating, ultra-long lasting signature scent of resistance and pride. No Harmful Effects and No Side Effects.",
+    longDescription: "Crafted with clean, skin-friendly natural oil formulations, this fragrance represents a story of resistance. Combining a captivating, long-lasting performance with exquisite gourmand and woody notes, it represents luxury designed for confidence, with No Harmful Effects and No Side Effects.",
+    notes: {
+      top: "Crisp Apple, Rich Davana",
+      heart: "Elegant Damask Rose, Earthy Cedarwood, Exotic Osmanthus",
+      base: "Deep Vanilla Absolute, Warm Tonka Bean, Grounding Patchouli"
+    },
+    image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%205.webp",
+    stock: 100,
+    characteristics: {
+      intensity: "Parfum Intense",
+      profile: "A captivating blend of Woody, Gourmand, Sweet, and Powdery accords",
+      longevity: "Exceptional 15 to 20 Hours of lasting performance"
+    },
+    usps: [
+      {
+        title: "15 to 20 Hours Ultra-Long Lasting",
+        description: "Formulated at a high concentration to keep you smelling effortless all day and night."
+      },
+      {
+        title: "Clean & Safe Formulation",
+        description: "Crafted with zero harmful chemicals, ensuring a premium scent experience without compromise."
+      },
+      {
+        title: "Skin-Friendly (No Side Effects)",
+        description: "Carefully blended with non-irritating ingredients so you can wear your signature scent with complete confidence."
+      }
+    ]
+  }
 ];

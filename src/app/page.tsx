@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Instagram, Facebook, ShoppingBag } from "lucide-react";
@@ -250,12 +251,12 @@ export default function Home() {
               <div className="space-y-6 w-full">
                 {/* PRE-ORDER button */}
                 <div>
-                  <button
-                    onClick={() => setIsCheckoutOpen(true)}
-                    className="bg-[#240e09] text-white hover:text-[#e2bb61] border border-white/20 hover:border-[#e2bb61] text-xs uppercase tracking-[0.2em] font-montserrat-bold px-10 py-4 rounded-[30px] w-full max-w-[260px] transition-all shadow-2xl cursor-pointer"
+                  <Link
+                    href="/products/71099"
+                    className="inline-block bg-[#240e09] text-white hover:text-[#e2bb61] border border-white/20 hover:border-[#e2bb61] text-xs uppercase tracking-[0.2em] font-montserrat-bold px-10 py-4 rounded-[30px] w-full max-w-[260px] text-center transition-all shadow-2xl cursor-pointer"
                   >
                     PRE-ORDER NOW
-                  </button>
+                  </Link>
                 </div>
 
                 {/* Pagination Dots */}
@@ -298,12 +299,12 @@ export default function Home() {
                 </p>
 
                 <div className="pt-6">
-                  <button
-                    onClick={() => setIsCheckoutOpen(true)}
-                    className="bg-[#24130b] hover:bg-black text-white hover:text-[#e2bb61] text-xs uppercase tracking-[0.2em] font-montserrat-bold px-10 py-4 rounded-[30px] transition-all shadow-xl cursor-pointer"
+                  <Link
+                    href="/products/71099"
+                    className="inline-block bg-[#24130b] hover:bg-black text-white hover:text-[#e2bb61] text-xs uppercase tracking-[0.2em] font-montserrat-bold px-10 py-4 rounded-[30px] text-center transition-all shadow-xl cursor-pointer"
                   >
                     ORDER NOW
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

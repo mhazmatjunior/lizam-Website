@@ -114,9 +114,6 @@ export default function ProductDetailPage() {
                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold px-3 py-1 bg-gold/10 rounded-full border border-gold/20">
                   {product.category}
                 </span>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">
-                  Eau De Parfum / 100ml
-                </span>
               </div>
               <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9]">
                 {product.name}
@@ -131,9 +128,24 @@ export default function ProductDetailPage() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="space-y-6"
             >
-              <p className="text-white/40 text-[14px] leading-relaxed font-medium">
-                {product.longDescription}
-              </p>
+              <div className="text-white/40 text-[14px] leading-relaxed font-medium">
+                {(() => {
+                  const phrase = "No Harmful Effects and No Side Effects.";
+                  if (product.longDescription.includes(phrase)) {
+                    const parts = product.longDescription.split(phrase);
+                    return (
+                      <>
+                        <p>{parts[0]}</p>
+                        <span className="block mt-4 p-4 rounded-2xl bg-gradient-to-r from-[#e2bb61]/10 to-transparent border-l-2 border-[#e2bb61] text-[#e2bb61] font-black text-xs uppercase tracking-widest text-left shadow-[0_4px_20px_rgba(226,187,97,0.05)]">
+                          ✨ {phrase}
+                        </span>
+                        {parts[1] && <p className="mt-4">{parts[1]}</p>}
+                      </>
+                    );
+                  }
+                  return <p>{product.longDescription}</p>;
+                })()}
+              </div>
             </motion.div>
 
             {/* Olfactory Pyramid (Notes) */}
@@ -221,89 +233,145 @@ export default function ProductDetailPage() {
             </div>
             <div className="flex items-center justify-center gap-3 text-[9px] uppercase tracking-widest font-bold text-white/30">
               <Truck className="w-4 h-4 text-gold/30" />
-              Global Premium Shipping
+              Premium Shipping
             </div>
           </div>
         </motion.div>
+
+        {/* Dynamic Scent Characteristics and USPs */}
+        {product.characteristics && (
+          <div className="border-t border-white/5 py-16 mt-20 space-y-20">
+            {/* Characteristics Section */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
+            >
+              <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Intensity</span>
+                <p className="text-xl font-black text-white uppercase tracking-tight">{product.characteristics.intensity}</p>
+              </div>
+              <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] flex flex-col justify-center space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Scent Profile</span>
+                <p className="text-xs font-medium text-white/60 leading-relaxed max-w-[200px] mx-auto">{product.characteristics.profile}</p>
+              </div>
+              <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Longevity</span>
+                <p className="text-xl font-black text-white uppercase tracking-tight">{product.characteristics.longevity}</p>
+              </div>
+            </motion.div>
+
+            {/* USP Section */}
+            {product.usps && (
+              <div className="space-y-12 pt-8">
+                <div className="text-center space-y-3">
+                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gold/60">Our USP</span>
+                  <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">What Makes Us Different?</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {product.usps.map((usp, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] hover:border-gold/20 hover:bg-white/[0.04] transition-all space-y-4"
+                    >
+                      <div className="w-10 h-10 rounded-2xl bg-gold/10 flex items-center justify-center text-gold text-sm font-black">
+                        {idx + 1}
+                      </div>
+                      <h4 className="text-md font-black text-white uppercase tracking-tight">{usp.title}</h4>
+                      <p className="text-white/40 text-[11px] leading-relaxed font-medium">{usp.description}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Recommended Section - High Fidelity */}
-      <section className="px-8 md:px-24 py-24 md:py-32 border-t border-white/5 bg-white/[0.01] relative overflow-hidden">
-        {/* Background Ambience */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-radial-gradient from-gold/[0.03] to-transparent pointer-events-none" />
+      {product.id !== 71099 && (
+        <section className="px-8 md:px-24 py-24 md:py-32 border-t border-white/5 bg-white/[0.01] relative overflow-hidden">
+          {/* Background Ambience */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-radial-gradient from-gold/[0.03] to-transparent pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto space-y-16 relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center space-y-3"
-          >
-            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gold/60">The Scent Journey</span>
-            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight [word-spacing:0.1em] gold-text pb-2">You May Also Seek</h2>
-          </motion.div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {products
-              .filter(p => p.id !== product?.id)
-              .sort((a, b) => (a.category === product?.category ? -1 : 1)) // Prioritize same category
-              .slice(0, 4)
-              .map((p, index) => (
-              <motion.div 
-                key={p.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
-                className="group relative"
-              >
-                <div className="aspect-[4/5] bg-white/[0.02] border border-white/5 rounded-3xl flex flex-col items-center justify-center p-8 transition-all duration-500 hover:border-gold/20 hover:bg-white/[0.04] group/card">
-                  
-                  {/* Category Tag */}
-                  <span className="absolute top-4 left-4 text-[7px] font-black uppercase tracking-widest text-white/20 group-hover/card:text-gold/60 transition-colors">
-                    {p.category}
-                  </span>
+          <div className="max-w-7xl mx-auto space-y-16 relative z-10">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center space-y-3"
+            >
+              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gold/60">The Scent Journey</span>
+              <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight [word-spacing:0.1em] gold-text pb-2">You May Also Seek</h2>
+            </motion.div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {products
+                .filter(p => p.id !== product?.id)
+                .sort((a, b) => (a.category === product?.category ? -1 : 1)) // Prioritize same category
+                .slice(0, 4)
+                .map((p, index) => (
+                <motion.div 
+                  key={p.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  className="group relative"
+                >
+                  <div className="aspect-[4/5] bg-white/[0.02] border border-white/5 rounded-3xl flex flex-col items-center justify-center p-8 transition-all duration-500 hover:border-gold/20 hover:bg-white/[0.04] group/card">
+                    
+                    {/* Category Tag */}
+                    <span className="absolute top-4 left-4 text-[7px] font-black uppercase tracking-widest text-white/20 group-hover/card:text-gold/60 transition-colors">
+                      {p.category}
+                    </span>
 
-                  <Link href={`/products/${p.id}`} className="flex-grow flex items-center justify-center w-full transform transition-transform duration-700 group-hover/card:scale-110">
-                    <Image src={p.image} alt={p.name} width={180} height={220} className="object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]" />
-                  </Link>
+                    <Link href={`/products/${p.id}`} className="flex-grow flex items-center justify-center w-full transform transition-transform duration-700 group-hover/card:scale-110">
+                      <Image src={p.image} alt={p.name} width={180} height={220} className="object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]" />
+                    </Link>
 
-                  <div className="w-full pt-6 space-y-2 text-center">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80 group-hover/card:text-gold transition-colors">{p.name}</h3>
-                    <p className="text-[10px] font-black text-white/30">${p.price}</p>
+                    <div className="w-full pt-6 space-y-2 text-center">
+                      <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80 group-hover/card:text-gold transition-colors">{p.name}</h3>
+                      <p className="text-[10px] font-black text-white/30">${p.price}</p>
+                    </div>
+
+                    {/* Quick Add Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 pointer-events-none group-hover/card:pointer-events-auto">
+                       <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            addToCart(p);
+                            setIsCartOpen(true);
+                          }}
+                          className="bg-gold text-black p-4 rounded-full shadow-[0_10px_20px_rgba(200, 164, 77,0.3)] hover:scale-110 active:scale-95 transition-all"
+                       >
+                         <ShoppingBag className="w-5 h-5" />
+                       </button>
+                    </div>
                   </div>
+                </motion.div>
+              ))}
+            </div>
 
-                  {/* Quick Add Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 pointer-events-none group-hover/card:pointer-events-auto">
-                     <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          addToCart(p);
-                          setIsCartOpen(true);
-                        }}
-                        className="bg-gold text-black p-4 rounded-full shadow-[0_10px_20px_rgba(200, 164, 77,0.3)] hover:scale-110 active:scale-95 transition-all"
-                     >
-                       <ShoppingBag className="w-5 h-5" />
-                     </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-center pt-8"
+            >
+              <Link href="/products" className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 hover:text-gold transition-colors inline-flex items-center gap-2 group">
+                View Entire Collection
+                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
           </div>
-
-          <motion.div 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center pt-8"
-          >
-            <Link href="/products" className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 hover:text-gold transition-colors inline-flex items-center gap-2 group">
-              View Entire Collection
-              <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </motion.div>
-        </div>
-      </section>
+        </section>
+      )}
     </main>
   );
 }
