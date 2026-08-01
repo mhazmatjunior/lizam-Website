@@ -107,7 +107,7 @@ export default function Home() {
               fill
               priority
               sizes="100vw"
-              className="block md:hidden object-cover object-[center_35%]"
+              className="block md:hidden object-cover object-[center_35%] scale-105"
             />
             {/* Ambient vignette gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent md:from-black/70 md:via-black/30 md:to-transparent" />
