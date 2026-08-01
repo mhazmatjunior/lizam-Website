@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSafepayClient } from '@/lib/safepay';
+import { supabaseAdmin } from '@/lib/supabase';
+import { sendOrderConfirmationEmail } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,8 +26,38 @@ export async function POST(req: NextRequest) {
 
     // 3. Handle specific events (e.g., payment succeeded)
     if (event.type === 'payment.succeeded') {
-       console.log(`💰 Payment Succeeded for Order: ${event.data.order_id}`);
-       // TODO: Update Order status in Database
+       const orderId = event.data.order_id;
+       console.log(`💰 Payment Succeeded for Order: ${orderId}`);
+
+       // Update Order status in Database
+       const { data: order, error: updateError } = await supabaseAdmin
+         .from('orders')
+         .update({ 
+           status: 'paid', 
+           updated_at: new Date().toISOString() 
+         })
+         .eq('order_id', orderId)
+         .select('*')
+         .single();
+
+       if (updateError) {
+         console.error(`❌ Webhook Order Update Error for ${orderId}:`, updateError.message);
+       } else if (order) {
+         console.log(`🔄 Database Status updated to PAID for order: ${orderId}`);
+         // Trigger transactional email
+         sendOrderConfirmationEmail({
+           orderId: order.order_id,
+           name: order.name,
+           email: order.email,
+           phone: order.phone,
+           address: order.address,
+           product: order.product,
+           amount: order.amount,
+           paymentMethod: order.payment_method || 'safepay'
+         }).catch(err => {
+           console.error('❌ Failed to send online order confirmation email:', err.message);
+         });
+       }
     }
 
     return NextResponse.json({ received: true });

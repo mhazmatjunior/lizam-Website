@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { sendOrderConfirmationEmail } from '@/lib/email';
 
 // POST - Create a new order in Supabase
 export async function POST(req: NextRequest) {
@@ -57,6 +58,22 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`✅ New Order Saved in Supabase: ${orderId} - ${name} (${email})`);
+
+    // If the payment method is Cash on Delivery, send confirmation email immediately
+    if (payment_method && payment_method.startsWith('cod_')) {
+      sendOrderConfirmationEmail({
+        orderId,
+        name,
+        email,
+        phone,
+        address,
+        product: product || '7TH OCT (Pre-Order)',
+        amount: amount || 150,
+        paymentMethod: payment_method,
+      }).catch(err => {
+        console.error('❌ Failed to send COD order confirmation email:', err.message);
+      });
+    }
 
     return NextResponse.json({ success: true, orderId });
   } catch (error: any) {
