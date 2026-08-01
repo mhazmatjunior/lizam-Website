@@ -91,13 +91,23 @@ export default function Home() {
         <section id="hero" className="relative min-h-screen w-full flex flex-col justify-between pt-32 pb-12 overflow-hidden bg-black">
           {/* Satin fabric background with perfume bottle on right */}
           <div className="absolute inset-0 z-0 pointer-events-none select-none">
+            {/* Desktop Background */}
             <Image
               src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-hero.webp"
-              alt="Raanae Hero Background"
+              alt="Raanae Hero Background Desktop"
               fill
               priority
               sizes="100vw"
-              className="object-cover object-right md:object-center"
+              className="hidden md:block object-cover object-center"
+            />
+            {/* Mobile Background (cropped up/down) */}
+            <Image
+              src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/hero-bg-mob.jpg"
+              alt="Raanae Hero Background Mobile"
+              fill
+              priority
+              sizes="100vw"
+              className="block md:hidden object-cover object-[center_35%]"
             />
             {/* Ambient vignette gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent md:from-black/70 md:via-black/30 md:to-transparent" />
