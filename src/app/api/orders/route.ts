@@ -33,7 +33,11 @@ export async function POST(req: NextRequest) {
       .select('*')
       .single();
 
-    if (error && error.message.includes('column "payment_method" of relation "orders" does not exist')) {
+    if (error && (
+      error.message.includes('column "payment_method"') ||
+      error.message.includes('payment_method') ||
+      error.message.includes('schema cache')
+    )) {
       console.warn('⚠️ Column "payment_method" does not exist. Retrying with fallback (appending to product field)...');
       delete insertObj.payment_method;
       insertObj.product = `${insertObj.product} [${payment_method || 'safepay'}]`;
