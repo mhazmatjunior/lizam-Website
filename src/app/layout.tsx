@@ -3,7 +3,7 @@ import { Montserrat, Playfair_Display, Alata } from "next/font/google";
 import "./globals.css";
 
 const montserrat = Montserrat({
-  variable: "--font-sans",
+  variable: "--font-montserrat",
   subsets: ["latin"],
 });
 
@@ -37,10 +37,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Font variables live on <html> so the :root design font stacks in
+  // globals.css can resolve them.
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${montserrat.variable} ${playfair.variable} ${alata.variable}`}
+    >
       <body
-        className={`${montserrat.variable} ${playfair.variable} ${alata.variable} antialiased selection:bg-gold selection:text-black`}
+        className="antialiased selection:bg-gold selection:text-black"
       >
         <ProductProvider>
           <CartProvider>
