@@ -6,6 +6,7 @@
   font-display: swap;
 }
 
+/* TODO: license + self-host — only the .otf was supplied; add .woff2/.woff for web delivery */
 @font-face {
   font-family: "Alta";
   src: url("/fonts/Alta_caption (1).otf") format("opentype");
@@ -14,13 +15,72 @@
   font-display: swap;
 }
 
+/* Design map: --font-eyebrow. Same file as "Alta" above, exposed under the
+   name used in the Photoshop source. */
+/* TODO: license + self-host — only the .otf was supplied; add .woff2/.woff for web delivery */
 @font-face {
-  font-family: "Brand";
-  src: url("/fonts/Brand (1).otf") format("opentype");
-  font-weight: normal;
+  font-family: "Alta Caption";
+  src: url("/fonts/Alta_caption (1).otf") format("opentype");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
+
+/* Design map: --font-display */
+/* TODO: license + self-host — only the .otf was supplied; add .woff2/.woff for web delivery */
+@font-face {
+  font-family: "Brand";
+  src: url("/fonts/Brand (1).otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Design map: --font-heading (Bw Modelica SS01, weights 400/500/700).
+   Commercial licence — Branding with Type. No files present in the repo, so the
+   stack currently falls through to Poppins/system-ui.
+   TODO: license + self-host — drop the files in /public/fonts and uncomment. */
+/*
+@font-face {
+  font-family: "Bw Modelica SS01";
+  src: url("/fonts/BwModelicaSS01-Regular.woff2") format("woff2"),
+       url("/fonts/BwModelicaSS01-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Bw Modelica SS01";
+  src: url("/fonts/BwModelicaSS01-Medium.woff2") format("woff2"),
+       url("/fonts/BwModelicaSS01-Medium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Bw Modelica SS01";
+  src: url("/fonts/BwModelicaSS01-Bold.woff2") format("woff2"),
+       url("/fonts/BwModelicaSS01-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
+/* Design map: --font-stat (Good Headline Pro Condensed Bold, weight 700).
+   Commercial licence — Good Type Foundry. No files present in the repo, so the
+   stack currently falls through to Oswald/Arial Narrow.
+   TODO: license + self-host — drop the files in /public/fonts and uncomment. */
+/*
+@font-face {
+  font-family: "Good Headline Pro";
+  src: url("/fonts/GoodHeadlinePro-CondBold.woff2") format("woff2"),
+       url("/fonts/GoodHeadlinePro-CondBold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+*/
 
 @import "tailwindcss";
 
@@ -37,7 +97,9 @@
   --color-black-soft: #0a0a0a;
 
   --font-serif: "Playfair Display", serif;
-  --font-sans: "Inter", sans-serif;
+  /* Tailwind's `font-sans` utility — kept pointing at the self-hosted
+     Montserrat that next/font injects, same face as --font-body. */
+  --font-sans: var(--font-montserrat), system-ui, sans-serif;
   --font-kalieb: "Kalieb Luxury", serif;
   --font-alta: "Alta", serif;
   --font-brand: "Brand", serif;
@@ -66,12 +128,32 @@
 :root {
   --background: #000000;
   --foreground: #ffffff;
+
+  /* ---- Photoshop design font stacks -----------------------------------
+     --font-montserrat is injected on <html> by next/font (see layout.tsx),
+     which self-hosts Montserrat as a variable font (300–700). -------- */
+  --font-display: "Brand", var(--font-serif, "Playfair Display"), Georgia, serif;
+  --font-heading: "Bw Modelica SS01", "Poppins", system-ui, sans-serif;
+  --font-body: var(--font-montserrat, "Montserrat"), "Montserrat", system-ui, -apple-system, sans-serif;
+  --font-eyebrow: "Alta Caption", "Cormorant Garamond", Georgia, serif;
+  --font-stat: "Good Headline Pro", "Oswald", "Arial Narrow", sans-serif;
+
+  /* ---- Design artboard scale ------------------------------------------
+     The Photoshop artboard is 1920px wide, but the layout it describes is
+     ~1024 CSS px across: Website_Theme/Website Design.pdf has a MediaBox of
+     1024.5pt, and the native values only make sense at that width (33px body
+     copy and a 42px "Disclaimer:" are 2x web-normal). So every clamp below
+     keeps its measured vw growth curve — the design's own proportions — but
+     its ceiling is the native size taken back to the artboard's real width,
+     1024/1920. Type therefore stops growing past ~1024px instead of doubling
+     on a 1920px monitor. Set this to 1 for literal design-native sizes. */
+  --ds-cap: 0.5333;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -132,32 +214,32 @@ body::after {
 }
 
 .font-modelica-bold {
-  font-family: "Bw Modelica SS01", var(--font-sans), sans-serif;
+  font-family: var(--font-heading);
   font-weight: 700;
 }
 
 .font-modelica-regular {
-  font-family: "Bw Modelica SS01", var(--font-sans), sans-serif;
+  font-family: var(--font-heading);
   font-weight: 400;
 }
 
 .font-montserrat-light {
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-body);
   font-weight: 300;
 }
 
 .font-montserrat-regular {
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-body);
   font-weight: 400;
 }
 
 .font-montserrat-medium {
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-body);
   font-weight: 500;
 }
 
 .font-montserrat-bold {
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
 }
 
@@ -169,7 +251,7 @@ body::after {
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-sans);
+    font-family: var(--font-body);
     letter-spacing: 0.05em;
   }
 }
@@ -444,4 +526,210 @@ body::after {
 
 .font-algerian {
   font-family: 'Algerian', 'Times New Roman', serif;
+}
+
+/* =============================================================================
+   RAANAE DESIGN TYPOGRAPHY MAP
+   Transcribed from the Photoshop source. Native sizes are measured at a 1920px
+   artboard; the vw value is size/1920, and each is clamped so it neither
+   collapses on mobile nor overshoots on ultrawide. The min of every clamp is the
+   size the element already used at this project's smallest breakpoint, so mobile
+   is unchanged and desktop scales up to the design's native value.
+
+   These rules are intentionally unlayered so they win over Tailwind's own
+   text-size and font-weight utilities. They only ever set font-family,
+   font-weight and font-size — never colour, spacing or layout.
+   ========================================================================== */
+
+/* ---- Hero ---------------------------------------------------------------- */
+
+/* "Shop Raanae" — Montserrat 500 / 33px */
+.ds-hero-shop {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: clamp(11px, 1.72vw, calc(33px * var(--ds-cap)));
+}
+
+/* "RAANAE" eyebrow — Alta Caption 400 / 90px */
+.ds-hero-eyebrow {
+  font-family: var(--font-eyebrow);
+  font-weight: 400;
+  font-size: clamp(24px, 4.69vw, calc(90px * var(--ds-cap)));
+}
+
+/* "Proud Muslim / Perfume Brand" — Bw Modelica SS01 700 / 110px */
+.ds-hero-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(36px, 5.73vw, calc(110px * var(--ds-cap)));
+}
+
+/* Mission statement — Montserrat 500 / 33px */
+.ds-hero-mission {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: clamp(14px, 1.72vw, calc(33px * var(--ds-cap)));
+}
+
+/* "aims to help the oppressed" inline — Montserrat 700, same size */
+.ds-hero-mission-em {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 1em;
+}
+
+/* "Boycott Is Just First Step / Not The Destination" — Montserrat 500 / 33px */
+.ds-hero-boycott {
+  font-family: var(--font-body);
+  font-weight: 500;
+  
+}
+
+/* ---- Cave / Palestine ---------------------------------------------------- */
+
+/* "Raanae is not another perfume brand but..." — Bw Modelica SS01 400 / 62px */
+.ds-cave-left {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(24px, 3.23vw, calc(62px * var(--ds-cap)));
+}
+
+/* "...an Initiative Inspired by the cause of Palestine" — Bw Modelica SS01 400 / 58px */
+.ds-cave-right {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(24px, 3.02vw, calc(58px * var(--ds-cap)));
+}
+
+/* ---- Oct 7 launch ------------------------------------------------------- */
+
+/* "Our First Launch" — Montserrat 300 / 55px */
+.ds-launch-eyebrow {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(10px, 2.86vw, calc(55px * var(--ds-cap)));
+}
+
+/* "Oct 7" — Brand 400. "O" and "7" at 286px... */
+.ds-oct {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(60px, 14.9vw, calc(286px * var(--ds-cap)));
+}
+
+/* ...and the "ct" at 184px, baseline-aligned inside the same line. */
+.ds-oct-ct {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(38px, 9.58vw, calc(184px * var(--ds-cap)));
+}
+
+/* "Not merely a name. / But a story," — Montserrat 300 / 38px */
+.ds-launch-body {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(14px, 1.98vw, calc(38px * var(--ds-cap)));
+}
+
+/* "a story of resistance..." inline — Montserrat 500, same size */
+.ds-launch-body-em {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 1em;
+}
+
+/* "ORDER NOW" — Bw Modelica SS01 500 / 26px */
+.ds-cta {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: clamp(12px, 1.35vw, calc(26px * var(--ds-cap)));
+}
+
+/* ---- House of Raanae ---------------------------------------------------- */
+
+/* "The HOUSE OF RAANAE" — Brand 400 / 133px */
+.ds-house-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(30px, 6.93vw, calc(133px * var(--ds-cap)));
+}
+
+/* Body paragraph — Montserrat 400 / 41px */
+.ds-house-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(14px, 2.14vw, calc(41px * var(--ds-cap)));
+}
+
+/* Inline emphasis in that paragraph — Montserrat 600, same size */
+.ds-house-body-em {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1em;
+}
+
+/* "25-35" — Good Headline Pro Condensed 700 / 118px */
+.ds-stat-25 {
+  font-family: var(--font-stat);
+  font-weight: 700;
+  font-size: clamp(30px, 6.15vw, calc(118px * var(--ds-cap)));
+}
+
+/* "12" — Good Headline Pro Condensed 700 / 141px */
+.ds-stat-12 {
+  font-family: var(--font-stat);
+  font-weight: 700;
+  font-size: clamp(36px, 7.34vw, calc(141px * var(--ds-cap)));
+}
+
+/* "%" and "HRS+" — Good Headline Pro Condensed 700 / 89px */
+.ds-stat-unit {
+  font-family: var(--font-stat);
+  font-weight: 700;
+  font-size: clamp(22px, 4.64vw, calc(89px * var(--ds-cap)));
+}
+
+/* "NO HARMFUL / CHEMICALS ADDED" — Good Headline Pro Condensed 700 / 54px */
+.ds-stat-headline {
+  font-family: var(--font-stat);
+  font-weight: 700;
+  font-size: clamp(14px, 2.81vw, calc(54px * var(--ds-cap)));
+}
+
+/* "High Oil Concentration" / "Long Lasting Fragrance" — Montserrat 500 / 36px */
+.ds-stat-label {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: clamp(10px, 1.88vw, calc(36px * var(--ds-cap)));
+}
+
+/* "Harmless Alternatives Are Used" — Montserrat 500 / 30px */
+.ds-stat-sublabel {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: clamp(8px, 1.56vw, calc(30px * var(--ds-cap)));
+}
+
+/* ---- Footer ------------------------------------------------------------- */
+
+/* "Disclaimer:" — Montserrat 500 / 42px */
+.ds-disclaimer-label {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: clamp(10px, 2.19vw, calc(42px * var(--ds-cap)));
+}
+
+/* Disclaimer body, "Our Touch Point", "contact@raanae.com" — Montserrat 300 / 41px */
+.ds-footer-body {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(10px, 2.14vw, calc(41px * var(--ds-cap)));
+}
+
+/* "More Details" — Montserrat 300 / 36px. Inferred, not measured (the string was
+   flattened into the background art). No element in the codebase renders it. */
+.ds-more-details {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(10px, 1.88vw, calc(36px * var(--ds-cap)));
 }
