@@ -114,7 +114,7 @@ export default function Home() {
           </div>
 
           {/* Hero Main Content */}
-          <div className="flex-grow flex flex-col justify-center items-start text-left max-w-7xl mx-auto w-full px-6 md:px-16 relative z-10">
+          <div className="flex-grow flex flex-col justify-start md:justify-center items-start text-left max-w-7xl mx-auto w-full px-6 md:px-16 relative z-10 mt-0">
             <div className="flex flex-col items-start space-y-4 max-w-xl md:max-w-2xl">
               {/* RAANAE Alta Font Tag */}
               <span className="ds-hero-eyebrow text-[#e2bb61] tracking-[0.3em] uppercase block">
@@ -179,7 +179,7 @@ export default function Home() {
           {/* Left/Right Narrative overlay */}
           <div className="relative z-20 w-full max-w-7xl mx-auto px-8 md:px-20 h-[70vh] flex flex-col lg:flex-row justify-between lg:items-center gap-12 my-auto">
             {/* Left Narrative Text */}
-            <div className="max-w-[280px] self-start lg:self-auto text-left mt-8 lg:mt-0">
+            <div className="max-w-[280px] self-start text-left mt-8 lg:mt-0">
               <h2 className="text-[#e2bb61] ds-cave-left leading-tight tracking-wide">
                 Raanae is<br />
                 not another<br />
@@ -189,7 +189,7 @@ export default function Home() {
             </div>
 
             {/* Right Narrative Text */}
-            <div className="max-w-[280px] self-end lg:self-auto text-left lg:text-right mb-8 lg:mb-0">
+            <div className="max-w-[280px] self-end text-left lg:text-right mb-8 lg:mb-0">
               <h2 className="text-white ds-cave-right leading-tight tracking-wide">
                 ...an Initiative<br />
                 Inspired<br />
