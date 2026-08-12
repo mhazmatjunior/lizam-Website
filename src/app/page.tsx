@@ -119,21 +119,23 @@ export default function Home() {
 
           {/* Hero Main Content */}
           <div className="flex-grow flex flex-col justify-start md:justify-center items-start text-left max-w-7xl mx-auto w-full px-6 md:px-16 relative z-10 mt-0">
-            <div className="flex flex-col items-start space-y-4 max-w-xl md:max-w-2xl">
-              {/* RAANAE Alta Font Tag */}
-              <span className="ds-hero-eyebrow text-[#e2bb61] uppercase block">
+            <div className="flex flex-col items-start max-w-xl md:max-w-2xl">
+              {/* RAANAE Alta Font Tag.
+                  leading-none removes the ~19px of empty line-box under the
+                  letters; GAP: change mb-2 to adjust the space below RAANAE. */}
+              <span className="ds-hero-eyebrow text-[#e2bb61] uppercase block leading-none">
                 RAANAE
               </span>
 
-              {/* Main Branding */}
-              <h1 className="text-white ds-hero-title  tracking-tight leading-[1.0] select-none">
+              {/* Main Branding. GAP: change mb-5 for space below the headline. */}
+              <h1 className="text-white ds-hero-title  tracking-tight leading-[1.0] select-none mb-2">
                 Proud Muslim<br />
                 <span className="text-white">Perfume Brand</span>
               </h1>
 
               {/* Mission Statement tagline */}
               <p className="text-white/90 ds-hero-mission tracking-wide max-w-md leading-relaxed">
-                That <span className="text-[#e2bb61] ds-hero-mission-em">aims to help the oppressed</span> around the globe without asking anyone for donations
+                That <span className="ds-hero-mission-em bg-gold-sweep bg-clip-text text-transparent box-decoration-clone">aims to help the oppressed</span> around the globe without asking anyone for donations
               </p>
             </div>
           </div>
