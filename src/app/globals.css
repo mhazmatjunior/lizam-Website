@@ -613,10 +613,11 @@ body::after {
 /* ---- Oct 7 launch ------------------------------------------------------- */
 
 /* "Our First Launch" — Montserrat 300 / 55px */
+/* "Our First Launch".
+   Font only — size is set inline in page.tsx with Tailwind text-* classes. */
 .ds-launch-eyebrow {
   font-family: var(--font-body);
   font-weight: 300;
-  font-size: clamp(10px, 2.86vw, calc(55px * var(--ds-cap)));
 }
 
 /* "Oct 7" — Brand 400. "O" and "7" at 286px... */
@@ -701,10 +702,6 @@ body::after {
 }
 
 /* "Harmless Alternatives Are Used" — Montserrat 500 / 30px */
-.ds-stat-sublabel {
-  font-family: var(--font-body);
-  font-weight: 500;
-}
 
 /* ---- Footer ------------------------------------------------------------- */
 

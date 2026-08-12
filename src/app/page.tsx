@@ -55,8 +55,9 @@ export default function Home() {
               height={906}
               /* Sized by height: the mark is portrait (0.63), and unlike the old
                  file this one has almost no transparent padding, so the negative
-                 left margin that compensated for it is no longer needed. */
-              className="h-16 md:h-20 w-auto object-contain cursor-pointer"
+                 left margin that compensated for it is no longer needed.
+                 SIZE: change h-20 / md:h-28 to resize the logo. */
+              className="h-20 md:h-28 w-auto object-contain cursor-pointer"
               priority
             />
           </div>
@@ -120,7 +121,7 @@ export default function Home() {
           <div className="flex-grow flex flex-col justify-start md:justify-center items-start text-left max-w-7xl mx-auto w-full px-6 md:px-16 relative z-10 mt-0">
             <div className="flex flex-col items-start space-y-4 max-w-xl md:max-w-2xl">
               {/* RAANAE Alta Font Tag */}
-              <span className="ds-hero-eyebrow text-[#e2bb61] tracking-[0.3em] uppercase block">
+              <span className="ds-hero-eyebrow text-[#e2bb61] uppercase block">
                 RAANAE
               </span>
 
@@ -211,7 +212,8 @@ export default function Home() {
             <div className="flex flex-col space-y-8 items-center text-center max-w-md mx-auto">
               {/* Text Group 1 */}
               <div className="space-y-4">
-                <span className="text-[#d8c0a8] ds-launch-eyebrow tracking-[0.3em] uppercase block">
+                {/* SIZE: change text-base / md:text-2xl to resize this line */}
+                <span className="text-[#d8c0a8] ds-launch-eyebrow text-base md:text-2xl block text-center">
                   Our First Launch
                 </span>
 
@@ -297,12 +299,15 @@ export default function Home() {
           <div className="hidden lg:grid grid-cols-12 min-h-screen w-full relative z-10">
             {/* Left Half: Warm Ochre Tan Solid Block (#b08a50) */}
             <div className="col-span-5 bg-[#b08a50] text-[#1c120a] flex flex-col justify-center px-12 lg:px-16 py-20 relative">
-              <div className="space-y-6 max-w-md">
-                <span className="text-[#3d2714] ds-launch-eyebrow tracking-[0.3em] uppercase block">
+              {/* mx-auto centres the block itself in the panel; text-center
+                  centres every line inside it. */}
+              <div className="space-y-6 max-w-md mx-auto text-center">
+                {/* SIZE: change text-base / md:text-2xl to resize this line */}
+                <span className="text-[#3d2714] ds-launch-eyebrow text-base md:text-2xl block">
                   Our First Launch
                 </span>
 
-                <div className="flex items-center">
+                <div className="flex items-center justify-center">
                   {/* "Oct 7": the O and the 7 are set large, the "ct" smaller on
                       the same baseline. */}
                   <span className="text-white ds-oct tracking-wider uppercase drop-shadow-md">
@@ -422,7 +427,7 @@ export default function Home() {
                   <span>CHEMICALS ADDED</span>
                 </span>
                 {/* SIZE: change text-xs / md:text-sm to resize this label */}
-                <span className="text-white/50 group-hover:text-white/75 transition-colors ds-stat-sublabel text-xs md:text-sm tracking-[0.12em]">
+                <span className="text-white/60 group-hover:text-white/80 transition-colors ds-stat-label text-xs md:text-sm tracking-[0.15em] leading-snug">
                   Harmless Alternatives Are Used
                 </span>
               </motion.div>
