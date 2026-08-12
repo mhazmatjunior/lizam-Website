@@ -49,11 +49,14 @@ export default function Home() {
           {/* Logo */}
           <div className="flex items-center shrink-0">
             <Image
-              src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/logo-transparent.png"
+              src="/raanai-logo.png"
               alt="RAANAE Logo"
-              width={160}
-              height={80}
-              className="w-32 md:w-40 h-auto object-contain cursor-pointer -ml-7 md:-ml-5"
+              width={600}
+              height={906}
+              /* Sized by height: the mark is portrait (0.63), and unlike the old
+                 file this one has almost no transparent padding, so the negative
+                 left margin that compensated for it is no longer needed. */
+              className="h-16 md:h-20 w-auto object-contain cursor-pointer"
               priority
             />
           </div>
@@ -62,7 +65,7 @@ export default function Home() {
           <div className="flex items-center gap-4 ml-auto">
             <button 
               onClick={() => setIsCartOpen(true)}
-              className="relative p-3.5 bg-black/40 border border-white/10 rounded-[8px] hover:border-[#e2bb61]/50 hover:bg-black/60 transition-all group cursor-pointer"
+              className="relative p-3.5 bg-black/40 border border-white/25 rounded-full hover:border-[#e2bb61]/50 hover:bg-black/60 transition-all group cursor-pointer"
               aria-label="Open Cart"
             >
               <ShoppingBag className="w-5 h-5 text-white/70 group-hover:text-[#e2bb61] transition-colors" />
@@ -80,7 +83,7 @@ export default function Home() {
                   shopSection.scrollIntoView({ behavior: "smooth" });
                 }
               }}
-              className="bg-[#d4b474] hover:bg-white text-black ds-hero-shop   px-5 md:px-8 py-3 rounded-[30px] transition-all shadow-[0_4px_15px_rgba(212,180,116,0.35)] cursor-pointer"
+              className="bg-gold-sweep hover:bg-none hover:bg-white text-black ds-hero-shop   px-5 md:px-8 py-3 rounded-[30px] transition-all shadow-[0_4px_15px_rgba(212,180,116,0.35)] cursor-pointer"
             >
               Shop Raanae
             </button>
@@ -369,20 +372,23 @@ export default function Home() {
         {/* Section 4: The House of Raanae & Stats */}
         <section id="house-of-raanae" className="relative min-h-screen w-full flex flex-col justify-between pt-24 bg-black border-t border-white/5">
           
-          <div className="w-full max-w-5xl mx-auto px-6 md:px-16 flex-grow flex flex-col justify-center items-center text-center">
+          <div className="w-full max-w-6xl mx-auto px-6 md:px-16 flex-grow flex flex-col justify-center items-center text-center">
 
             {/* Title */}
-            <h2 className="ds-house-title text-[#e2bb61] tracking-widest mb-6 uppercase">
+            <h2 className="ds-house-title text-[#e2bb61] tracking-wide mb-6 uppercase">
               THE HOUSE OF RAANAE
             </h2>
 
             {/* Description Subtitle */}
-            <p className="text-white/80 ds-house-body tracking-wide max-w-3xl leading-relaxed mb-12 sm:mb-16">
-              Raanae is a luxury perfume brand made to provide quality products to our customers. We don't claim to be perfect but you can rely on us because of our quality
+            <p className="text-white/80 ds-house-body tracking-wide max-w-5xl leading-relaxed mb-12 sm:mb-16">
+              Raanae is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design, keeping{" "}
+              <span className="text-white ds-house-body-em underline underline-offset-4 decoration-white/90">
+                human wellbeing our top priority.
+              </span>
             </p>
 
             {/* Three Stats Cards matching Laptop PDF 2 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-4xl mb-12 sm:mb-20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-5xl mb-12 sm:mb-20">
               
               {/* Card 1: 25-35% */}
               <motion.div
@@ -390,13 +396,15 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
-                className="bg-black/30 border border-[#e2bb61]/20 hover:border-[#e2bb61]/50 p-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-2xl backdrop-blur-sm transition-all duration-300 min-h-44 md:min-h-52 group"
+                className="bg-black/30 border border-[#e2bb61]/20 hover:border-[#e2bb61]/50 px-5 py-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-2xl backdrop-blur-sm transition-all duration-300 min-h-44 md:min-h-52 group"
               >
-                <span className="text-white ds-stat-25 tracking-tight mb-2 group-hover:text-[#e2bb61] transition-colors">
-                  25-35<span className="ds-stat-unit">%</span>
+                {/* SIZE: change text-4xl / md:text-5xl to resize the number */}
+                <span className="text-white ds-stat-25 text-4xl md:text-5xl tracking-tight leading-none mb-2 min-h-16 flex items-center justify-center group-hover:text-[#e2bb61] transition-colors">
+                  25-35<span className="ds-stat-unit text-2xl md:text-3xl">%</span>
                 </span>
-                <span className="text-white/60 group-hover:text-white/80 transition-colors ds-stat-label uppercase tracking-[0.15em] leading-snug">
-                  High Oil<br />Concentration
+                {/* SIZE: change text-xs / md:text-sm to resize this label */}
+                <span className="text-white/60 group-hover:text-white/80 transition-colors ds-stat-label text-xs md:text-sm tracking-[0.15em] leading-snug">
+                  High Oil Concentration
                 </span>
               </motion.div>
 
@@ -406,12 +414,15 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: 0.1 }}
-                className="bg-black/30 border border-[#e2bb61]/20 hover:border-[#e2bb61]/50 p-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-2xl backdrop-blur-sm transition-all duration-300 min-h-44 md:min-h-52 group"
+                className="bg-black/30 border border-[#e2bb61]/20 hover:border-[#e2bb61]/50 px-5 py-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-2xl backdrop-blur-sm transition-all duration-300 min-h-44 md:min-h-52 group"
               >
-                <span className="text-white ds-stat-headline uppercase tracking-wider mb-2 leading-tight max-w-[200px] group-hover:text-[#e2bb61] transition-colors">
-                  NO HARMFUL<br />CHEMICALS ADDED
+                {/* SIZE: change text-xl / md:text-2xl to resize this headline */}
+                <span className="text-white ds-stat-headline text-xl md:text-2xl uppercase tracking-wider mb-2 leading-tight min-h-16 flex flex-col items-center justify-center group-hover:text-[#e2bb61] transition-colors">
+                  <span>NO HARMFUL</span>
+                  <span>CHEMICALS ADDED</span>
                 </span>
-                <span className="text-white/50 group-hover:text-white/75 transition-colors ds-stat-sublabel uppercase tracking-[0.12em]">
+                {/* SIZE: change text-xs / md:text-sm to resize this label */}
+                <span className="text-white/50 group-hover:text-white/75 transition-colors ds-stat-sublabel text-xs md:text-sm tracking-[0.12em]">
                   Harmless Alternatives Are Used
                 </span>
               </motion.div>
@@ -422,13 +433,15 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="bg-black/30 border border-[#e2bb61]/20 hover:border-[#e2bb61]/50 p-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-2xl backdrop-blur-sm transition-all duration-300 min-h-44 md:min-h-52 group"
+                className="bg-black/30 border border-[#e2bb61]/20 hover:border-[#e2bb61]/50 px-5 py-8 rounded-[20px] flex flex-col justify-center items-center text-center shadow-2xl backdrop-blur-sm transition-all duration-300 min-h-44 md:min-h-52 group"
               >
-                <span className="text-white tracking-tight mb-2 group-hover:text-[#e2bb61] transition-colors">
-                  <span className="ds-stat-12">12</span> <span className="ds-stat-unit">HRS+</span>
+                {/* SIZE: change text-4xl / md:text-5xl to resize the number */}
+                <span className="text-white tracking-tight leading-none mb-2 min-h-16 flex items-center justify-center group-hover:text-[#e2bb61] transition-colors">
+                  <span className="ds-stat-12 text-4xl md:text-5xl">12</span>&nbsp;<span className="ds-stat-unit text-2xl md:text-3xl">HRS+</span>
                 </span>
-                <span className="text-white/60 group-hover:text-white/80 transition-colors ds-stat-label uppercase tracking-[0.15em] leading-snug">
-                  Long Lasting<br />Fragrance
+                {/* SIZE: change text-xs / md:text-sm to resize this label */}
+                <span className="text-white/60 group-hover:text-white/80 transition-colors ds-stat-label text-xs md:text-sm tracking-[0.15em] leading-snug">
+                  Long Lasting Fragrance
                 </span>
               </motion.div>
 
@@ -459,7 +472,7 @@ export default function Home() {
           </div>
 
           {/* Ochre disclaimer footer */}
-          <footer className="w-full bg-[#d4b474] text-[#5a4522] py-5 px-6 md:px-16 border-t border-[#b8892f]/20">
+          <footer className="w-full bg-gold-sweep text-[#5a4522] py-5 px-6 md:px-16 border-t border-[#b8892f]/20">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="ds-footer-body max-w-2xl text-center md:text-left leading-relaxed">
                 <span className="ds-disclaimer-label text-[#3d2e13]">Disclaimer:</span> Raanae is not just a perfume brand but a purpose, a vision, a platform, community for one united muslim ummah.

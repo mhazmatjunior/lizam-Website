@@ -106,6 +106,15 @@
   --font-alata: var(--font-alata), sans-serif;
 }
 
+/* Brand gold sweep — sampled from the design comps (Shop button + footer).
+   Both are a plain two-stop horizontal interpolation: the measured midpoint
+   matches a straight lerp, so there are no intermediate stops.
+   Declared with @utility (not a bare class) so it lands in Tailwind's
+   utilities layer and `hover:` variants can still override it. */
+@utility bg-gold-sweep {
+  background-image: linear-gradient(90deg, #d5af71 0%, #a2814b 100%);
+}
+
 .font-kalieb {
   font-family: "Kalieb Luxury", serif;
 }
@@ -668,46 +677,33 @@ body::after {
   font-size: 1em;
 }
 
-/* "25-35" — Good Headline Pro Condensed 700 / 118px */
-.ds-stat-25 {
-  font-family: var(--font-stat);
-  font-weight: 700;
-  font-size: clamp(30px, 6.15vw, calc(118px * var(--ds-cap)));
-}
-
-/* "12" — Good Headline Pro Condensed 700 / 141px */
-.ds-stat-12 {
-  font-family: var(--font-stat);
-  font-weight: 700;
-  font-size: clamp(36px, 7.34vw, calc(141px * var(--ds-cap)));
-}
-
-/* "%" and "HRS+" — Good Headline Pro Condensed 700 / 89px */
+/* Outer two stat cards ("25-35%" and "12 HRS+").
+   Font only — their SIZE is set inline in page.tsx with normal Tailwind
+   text-* classes so it can be adjusted there without touching this file. */
+.ds-stat-25,
+.ds-stat-12,
 .ds-stat-unit {
   font-family: var(--font-stat);
   font-weight: 700;
-  font-size: clamp(22px, 4.64vw, calc(89px * var(--ds-cap)));
 }
 
 /* "NO HARMFUL / CHEMICALS ADDED" — Good Headline Pro Condensed 700 / 54px */
 .ds-stat-headline {
   font-family: var(--font-stat);
   font-weight: 700;
-  font-size: clamp(14px, 2.81vw, calc(54px * var(--ds-cap)));
 }
 
-/* "High Oil Concentration" / "Long Lasting Fragrance" — Montserrat 500 / 36px */
+/* "High Oil Concentration" / "Long Lasting Fragrance".
+   Font only — size is set inline in page.tsx (see note above). */
 .ds-stat-label {
   font-family: var(--font-body);
   font-weight: 500;
-  font-size: clamp(10px, 1.88vw, calc(36px * var(--ds-cap)));
 }
 
 /* "Harmless Alternatives Are Used" — Montserrat 500 / 30px */
 .ds-stat-sublabel {
   font-family: var(--font-body);
   font-weight: 500;
-  font-size: clamp(8px, 1.56vw, calc(30px * var(--ds-cap)));
 }
 
 /* ---- Footer ------------------------------------------------------------- */
