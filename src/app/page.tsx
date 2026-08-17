@@ -16,11 +16,11 @@ export default function Home() {
 
   // Slideshow image references (web-ready webp formats in public/SlideShow)
   const SLIDESHOW_IMAGES = [
-    "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%201.webp",
-    "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%202.webp",
-    "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%203.webp",
-    "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%204.webp",
-    "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%205.webp"
+    "/SlideShow/Slide%20Image%201.webp",
+    "/SlideShow/Slide%20Image%202.webp",
+    "/SlideShow/Slide%20Image%203.webp",
+    "/SlideShow/Slide%20Image%204.webp",
+    "/SlideShow/Slide%20Image%205.webp"
   ];
 
   // Pre-Order Product Info
