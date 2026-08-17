@@ -151,6 +151,8 @@ export async function GET() {
         status: o.status,
         tracker: o.tracker,
         paymentMethod: payMethod,
+        hasProof: Boolean(o.payment_proof_url),
+        paymentReference: o.payment_reference ?? null,
         createdAt: o.created_at,
         updatedAt: o.updated_at
       };

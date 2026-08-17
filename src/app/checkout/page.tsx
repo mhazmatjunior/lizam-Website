@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft, ShoppingBag, ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, Lock } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
+import { BANK_ACCOUNTS, VERIFICATION_WINDOW } from "@/data/bank-details";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function CheckoutPage() {
   const { decrementStock } = useProducts();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [paymentMethod, setPaymentMethod] = useState<'safepay' | 'cod_standard' | 'cod_founder'>('safepay');
+  const [paymentMethod, setPaymentMethod] = useState<'safepay' | 'bank_transfer' | 'cod_standard' | 'cod_founder'>('safepay');
   const [formData, setFormData] = useState({
     email: "",
     fullName: "",
@@ -108,6 +109,12 @@ export default function CheckoutPage() {
         // Clear client cart & redirect to Safepay
         clearCart();
         window.location.href = checkoutData.url;
+      } else if (paymentMethod === 'bank_transfer') {
+        // Leave the order 'pending' on purpose: the confirmation page asks for a
+        // screenshot next, and the upload route only accepts a proof while the
+        // order is still pending. Status advances to awaiting_verification then.
+        clearCart();
+        router.push(`/checkout/success/${orderId}`);
       } else {
         // For Cash on Delivery (Standard or Founder): direct success confirmation
         // Let's call patch or updates if we want to confirm status as processing
@@ -284,8 +291,68 @@ export default function CheckoutPage() {
                   <span className="text-[7px] font-black uppercase tracking-widest bg-[#e2bb61]/10 text-[#e2bb61] px-2 py-0.5 rounded border border-[#e2bb61]/20">Instant</span>
                 </div>
 
+                {/* Bank Transfer Option */}
+                <div
+                  onClick={() => setPaymentMethod('bank_transfer')}
+                  className={`cursor-pointer rounded-2xl p-5 border transition-all duration-300 flex items-center justify-between relative ${paymentMethod === 'bank_transfer' ? 'bg-[#e2bb61]/5 border-[#e2bb61] shadow-[0_0_20px_rgba(226,187,97,0.05)]' : 'bg-white/[0.02] border-white/10 hover:border-white/20'}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${paymentMethod === 'bank_transfer' ? 'border-[#e2bb61] bg-[#e2bb61]' : 'border-white/20'}`}>
+                      {paymentMethod === 'bank_transfer' && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-white">Bank Transfer / JazzCash / Easypaisa</h4>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Transfer manually, then upload your receipt</p>
+                    </div>
+                  </div>
+                  <span className="text-[7px] font-black uppercase tracking-widest bg-white/5 text-white/50 px-2 py-0.5 rounded border border-white/10">Manual</span>
+                </div>
+
+                {/* Account details, revealed only when bank transfer is chosen */}
+                {paymentMethod === 'bank_transfer' && (
+                  <div className="rounded-2xl border border-[#e2bb61]/20 bg-[#e2bb61]/[0.03] p-5 space-y-4">
+                    <p className="text-[9px] uppercase tracking-[0.2em] text-[#e2bb61] font-black">
+                      Transfer Rs {totalAmount.toLocaleString()} to any account below
+                    </p>
+                    <div className="space-y-3">
+                      {BANK_ACCOUNTS.map((acct) => (
+                        <div key={acct.provider} className="rounded-xl bg-black/40 border border-white/5 p-4 space-y-1.5">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-white">{acct.provider}</p>
+                          <dl className="space-y-1">
+                            <div className="flex justify-between gap-4 text-[10px]">
+                              <dt className="text-white/35 uppercase tracking-wider">Title</dt>
+                              <dd className="text-white/80 font-medium text-right">{acct.accountTitle}</dd>
+                            </div>
+                            <div className="flex justify-between gap-4 text-[10px]">
+                              <dt className="text-white/35 uppercase tracking-wider">Number</dt>
+                              <dd className="text-white/80 font-mono text-right">{acct.accountNumber}</dd>
+                            </div>
+                            {acct.iban && (
+                              <div className="flex justify-between gap-4 text-[10px]">
+                                <dt className="text-white/35 uppercase tracking-wider">IBAN</dt>
+                                <dd className="text-white/80 font-mono text-right break-all">{acct.iban}</dd>
+                              </div>
+                            )}
+                            {acct.branch && (
+                              <div className="flex justify-between gap-4 text-[10px]">
+                                <dt className="text-white/35 uppercase tracking-wider">Branch</dt>
+                                <dd className="text-white/60 text-right">{acct.branch}</dd>
+                              </div>
+                            )}
+                          </dl>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-white/45 leading-relaxed">
+                      After placing your order you will be asked to upload the receipt and enter the
+                      transaction reference. Your order is confirmed once we verify the payment,
+                      usually within {VERIFICATION_WINDOW}.
+                    </p>
+                  </div>
+                )}
+
                 {/* Standard COD Option */}
-                <div 
+                <div
                   onClick={() => setPaymentMethod('cod_standard')}
                   className={`cursor-pointer rounded-2xl p-5 border transition-all duration-300 flex items-center justify-between relative ${paymentMethod === 'cod_standard' ? 'bg-[#e2bb61]/5 border-[#e2bb61] shadow-[0_0_20px_rgba(226,187,97,0.05)]' : 'bg-white/[0.02] border-white/10 hover:border-white/20'}`}
                 >

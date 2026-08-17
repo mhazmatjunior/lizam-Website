@@ -27,15 +27,27 @@ interface Order {
   currency: string;
   status: string;
   paymentMethod?: string;
+  hasProof?: boolean;
+  paymentReference?: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 const STATUS_CONFIG: Record<string, { color: string, icon: any }> = {
   pending: { color: "text-gold bg-gold/10 border-gold/20", icon: Clock },
+  awaiting_verification: { color: "text-amber-300 bg-amber-500/10 border-amber-500/25", icon: Clock },
+  proof_rejected: { color: "text-orange-400 bg-orange-500/10 border-orange-500/20", icon: XCircle },
+  processing: { color: "text-sky-300 bg-sky-500/10 border-sky-500/20", icon: Clock },
   paid: { color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20", icon: CheckCircle },
   shipped: { color: "text-blue-400 bg-blue-500/10 border-blue-500/20", icon: Truck },
   cancelled: { color: "text-rose-400 bg-rose-500/10 border-rose-500/20", icon: XCircle },
+};
+
+const PAYMENT_LABELS: Record<string, string> = {
+  cod_founder: 'Cash on Delivery (Founder Delivery)',
+  cod_standard: 'Cash on Delivery (Standard)',
+  bank_transfer: 'Bank Transfer / Wallet (manual)',
+  safepay: 'Online Payment (Safepay)',
 };
 
 // Admin can only manually trigger these transitions
@@ -105,7 +117,115 @@ const StatusDropdown = ({ currentStatus, onUpdate, isLoading }: {
   );
 };
 
-const OrderDetailsModal = ({ order, onClose }: { order: Order; onClose: () => void }) => {
+/**
+ * Bank-transfer verification. The proofs bucket is private, so the receipt is
+ * fetched through a short-lived signed link rather than a public URL.
+ */
+const PaymentProofPanel = ({ order, onUpdated }: { order: Order; onUpdated?: () => void }) => {
+  const [proofUrl, setProofUrl] = useState<string | null>(null);
+  const [reference, setReference] = useState<string | null>(order.paymentReference ?? null);
+  const [loading, setLoading] = useState(false);
+  const [acting, setActing] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState(order.status);
+
+  useEffect(() => {
+    if (!order.hasProof) return;
+    setLoading(true);
+    fetch(`/api/orders/${order.orderId}/proof`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.url) { setProofUrl(d.url); setReference(d.reference ?? null); }
+        else setError(d.error || 'Could not load the receipt');
+      })
+      .catch(() => setError('Could not load the receipt'))
+      .finally(() => setLoading(false));
+  }, [order.orderId, order.hasProof]);
+
+  const setOrderStatus = async (next: string) => {
+    setActing(next);
+    setError(null);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.orderId, status: next }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Update failed');
+      setStatus(next);
+      onUpdated?.();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setActing(null);
+    }
+  };
+
+  if (!order.hasProof) {
+    return (
+      <div className="rounded-[24px] border border-white/5 bg-white/[0.02] p-5 space-y-1">
+        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">Payment Proof</p>
+        <p className="text-[11px] text-white/50">
+          Customer has not uploaded a receipt yet. Order stays pending until they do.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-[24px] border border-amber-500/20 bg-amber-500/[0.03] p-5 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-amber-300/70">Payment Proof</p>
+        <span className="text-[8px] font-black uppercase tracking-widest text-white/30">{status.replace(/_/g, ' ')}</span>
+      </div>
+
+      {reference && (
+        <div className="space-y-0.5">
+          <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">Bank Reference</p>
+          <p className="text-[13px] font-mono font-bold text-white/90 break-all">{reference}</p>
+          <p className="text-[9px] text-white/30">Match this against your bank statement before verifying.</p>
+        </div>
+      )}
+
+      {loading && <p className="text-[11px] text-white/40">Loading receipt…</p>}
+
+      {proofUrl && (
+        <a
+          href={proofUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block rounded-xl border border-white/10 bg-black/40 p-3 text-[10px] font-black uppercase tracking-widest text-gold hover:border-gold/40 transition-colors text-center"
+        >
+          Open receipt in new tab
+        </a>
+      )}
+
+      {error && <p className="text-[10px] text-rose-300">{error}</p>}
+
+      {status !== 'paid' && (
+        <div className="flex gap-2">
+          <button
+            onClick={() => setOrderStatus('paid')}
+            disabled={acting !== null}
+            className="flex-grow h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[9px] font-black uppercase tracking-widest hover:bg-emerald-500/25 disabled:opacity-40 transition-all"
+          >
+            {acting === 'paid' ? 'Verifying…' : 'Verify payment'}
+          </button>
+          <button
+            onClick={() => setOrderStatus('proof_rejected')}
+            disabled={acting !== null}
+            className="px-5 h-11 rounded-xl bg-white/5 border border-white/10 text-white/50 text-[9px] font-black uppercase tracking-widest hover:text-rose-300 hover:border-rose-500/30 disabled:opacity-40 transition-all"
+          >
+            {acting === 'proof_rejected' ? '…' : 'Reject'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const OrderDetailsModal = ({ order, onClose, onUpdated }: { order: Order; onClose: () => void; onUpdated?: () => void }) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, field: string) => {
@@ -183,17 +303,17 @@ const OrderDetailsModal = ({ order, onClose }: { order: Order; onClose: () => vo
             <DetailRow icon={Mail} label="Digital Contact" value={order.email} field="email" index={1} />
             <DetailRow icon={Phone} label="Line of Communication" value={order.phone} field="phone" index={2} />
             <DetailRow icon={Truck} label="Dispatch Coordinates" value={order.address} field="address" index={3} />
-            <DetailRow 
-              icon={CheckCircle} 
-              label="Payment / Delivery Method" 
-              value={
-                order.paymentMethod === 'cod_founder' ? 'Cash on Delivery (Founder Delivery)' :
-                order.paymentMethod === 'cod_standard' ? 'Cash on Delivery (Standard)' :
-                'Online Payment (Safepay)'
-              } 
-              index={4} 
+            <DetailRow
+              icon={CheckCircle}
+              label="Payment / Delivery Method"
+              value={PAYMENT_LABELS[order.paymentMethod || 'safepay'] || 'Online Payment (Safepay)'}
+              index={4}
             />
           </div>
+
+          {order.paymentMethod === 'bank_transfer' && (
+            <PaymentProofPanel order={order} onUpdated={onUpdated} />
+          )}
 
           <div className="pt-4 flex flex-col sm:flex-row gap-3">
             <button 
@@ -413,7 +533,7 @@ export default function OrdersPage() {
 
       <AnimatePresence>
         {selectedOrder && (
-          <OrderDetailsModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+          <OrderDetailsModal order={selectedOrder} onClose={() => setSelectedOrder(null)} onUpdated={fetchOrders} />
         )}
       </AnimatePresence>
 
