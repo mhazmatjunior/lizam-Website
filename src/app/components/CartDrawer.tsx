@@ -23,7 +23,7 @@ export default function CartDrawer() {
             className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100]"
           />
 
-          {/* Drawer */}
+          {/* Drawer  */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
