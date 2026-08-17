@@ -23,10 +23,10 @@ export default function Home() {
     "/SlideShow/Slide%20Image%205.webp"
   ];
 
-  // Pre-Order Product Info
-  const PRE_ORDER_PRODUCT = {
+  // Order Product Info
+  const ORDER_PRODUCT = {
     id: 71099,
-    name: "7TH OCT (Pre-Order Booking)",
+    name: "7TH OCT",
     price: 150,
     category: "Signature Collection",
     image: "https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/SlideShow/Slide%20Image%205.webp"
@@ -106,7 +106,7 @@ export default function Home() {
             />
             {/* Mobile Background (cropped up/down) */}
             <Image
-              src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/hero-bg-mob.jpg"
+              src="/section-img/Section%201%20image%20-%20Mobile.webp"
               alt="Raanae Hero Background Mobile"
               fill
               priority
@@ -169,7 +169,7 @@ export default function Home() {
             {/* Mobile Background */}
             <div className="block lg:hidden absolute inset-0 w-full h-full">
               <Image
-                src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/section-2-mob-new.png"
+                src="/section-img/Section%202%20Image%20-%20Mobile.webp"
                 alt="Jerusalem Cave View Mobile"
                 fill
                 sizes="100vw"
@@ -271,13 +271,13 @@ export default function Home() {
 
               {/* Text Group 2 & Actions */}
               <div className="space-y-6 w-full">
-                {/* PRE-ORDER button */}
+                {/* ORDER NOW button */}
                 <div>
                   <Link
                     href="/products/71099"
                     className="inline-block bg-[#240e09] text-white hover:text-[#e2bb61] border border-white/20 hover:border-[#e2bb61] ds-cta uppercase tracking-[0.2em] px-10 py-4 rounded-[30px] w-full max-w-[260px] text-center transition-all shadow-2xl cursor-pointer"
                   >
-                    PRE-ORDER NOW
+                    ORDER NOW
                   </Link>
                 </div>
 
@@ -509,7 +509,7 @@ export default function Home() {
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
-        product={PRE_ORDER_PRODUCT}
+        product={ORDER_PRODUCT}
       />
     </>
   );

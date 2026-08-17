@@ -25,12 +25,16 @@ export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { addToCart, setIsCartOpen } = useCart();
-  const { products } = useProducts();
+  const { products, isLoading } = useProducts();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeNote, setActiveNote] = useState<"top" | "heart" | "base">("top");
 
   useEffect(() => {
+    // Wait for the catalogue to arrive; redirecting while it is still empty
+    // would bounce every direct visit straight back to the listing page.
+    if (isLoading) return;
+
     const id = Number(params.id);
     const foundProduct = products.find((p) => p.id === id);
     if (foundProduct) {
@@ -38,7 +42,7 @@ export default function ProductDetailPage() {
     } else {
       router.push("/products");
     }
-  }, [params.id, products, router]);
+  }, [params.id, products, router, isLoading]);
 
   if (!product) return null;
 
@@ -155,11 +159,11 @@ export default function ProductDetailPage() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="space-y-6"
             >
-              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Scent Pyramid</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Fragrance Profile &amp; Notes</h3>
               <div className="grid grid-cols-3 gap-4">
                 {[
                   { id: "top", label: "Top Notes", icon: Sparkles, color: "text-blue-400" },
-                  { id: "heart", label: "Heart Notes", icon: Droplets, color: "text-red-400" },
+                  { id: "heart", label: "Heart Notes (Middle)", icon: Droplets, color: "text-red-400" },
                   { id: "base", label: "Base Notes", icon: Wind, color: "text-gold" },
                 ].map((note) => (
                   <button
@@ -242,12 +246,14 @@ export default function ProductDetailPage() {
         {product.characteristics && (
           <div className="border-t border-white/5 py-16 mt-20 space-y-20">
             {/* Characteristics Section */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
+              className="space-y-8"
             >
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 text-center">Scent Characteristics</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] space-y-3">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Intensity</span>
                 <p className="text-xl font-black text-white uppercase tracking-tight">{product.characteristics.intensity}</p>
@@ -259,6 +265,7 @@ export default function ProductDetailPage() {
               <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] space-y-3">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Longevity</span>
                 <p className="text-xl font-black text-white uppercase tracking-tight">{product.characteristics.longevity}</p>
+                </div>
               </div>
             </motion.div>
 
@@ -268,6 +275,9 @@ export default function ProductDetailPage() {
                 <div className="text-center space-y-3">
                   <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gold/60">Our USP</span>
                   <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">What Makes Us Different?</h2>
+                  <p className="text-white/50 text-xs md:text-sm font-medium leading-relaxed max-w-2xl mx-auto pt-4">
+                    We believe luxury fragrances should be as gentle on your skin as they are memorable to your senses. Here&rsquo;s why our perfumes stand out:
+                  </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {product.usps.map((usp, idx) => (

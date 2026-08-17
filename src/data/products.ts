@@ -162,7 +162,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 71099,
-    name: "7TH OCT (Pre-Order)",
+    name: "7TH OCT",
     price: 18500,
     category: "Signature Collection",
     description: "A captivating, ultra-long lasting signature scent of resistance and pride. No Harmful Effects and No Side Effects.",

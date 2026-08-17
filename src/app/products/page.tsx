@@ -28,7 +28,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function ProductListPage() {
-    const { products } = useProducts();
+    const { products, isLoading } = useProducts();
     const { addToCart, setIsCartOpen, itemsCount } = useCart();
     const [filter, setFilter] = useState("All");
     const [sortBy, setSortBy] = useState("new");
@@ -281,8 +281,16 @@ export default function ProductListPage() {
                         </motion.div>
                     </AnimatePresence>
 
+                    {/* Loading State */}
+                    {isLoading && (
+                        <div className="w-full py-40 flex flex-col items-center justify-center text-center space-y-4">
+                            <div className="w-8 h-8 rounded-full border-2 border-gold/20 border-t-gold animate-spin" />
+                            <p className="text-white/30 text-[10px] uppercase tracking-[0.3em] font-bold">Loading collection</p>
+                        </div>
+                    )}
+
                     {/* Empty State */}
-                    {filteredProducts.length === 0 && (
+                    {!isLoading && filteredProducts.length === 0 && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}

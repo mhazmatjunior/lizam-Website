@@ -65,7 +65,7 @@ function SuccessContent() {
             Thank You
           </h1>
           <p className="text-sm md:text-base uppercase tracking-[0.2em] text-white/60 leading-relaxed font-light">
-            Your pre-order has been successfully received.
+            Your order has been successfully received.
           </p>
           {orderId && (
             <p className="text-white/30 text-[11px] uppercase tracking-widest">

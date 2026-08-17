@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       email,
       phone,
       address,
-      product: product || '7TH OCT (Pre-Order)',
+      product: product || '7TH OCT',
       amount: amount || 150,
       currency: currency || 'PKR',
       status: 'pending',
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         email,
         phone,
         address,
-        product: product || '7TH OCT (Pre-Order)',
+        product: product || '7TH OCT',
         amount: amount || 150,
         paymentMethod: payment_method,
       }).catch(err => {

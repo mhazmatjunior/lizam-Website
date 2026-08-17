@@ -53,7 +53,7 @@ export default function SuccessPage({ params }: { params: Promise<{ orderId: str
             Thank You
           </h1>
           <p className="text-sm md:text-base uppercase tracking-[0.2em] text-white/60 leading-relaxed font-light">
-            Your pre-order has been successfully received.
+            Your order has been successfully received.
           </p>
           <p className="text-white/25 text-[11px] uppercase tracking-widest">
             Order ID: {orderId}

@@ -5,6 +5,7 @@ import { type Product } from "@/data/products";
 
 interface ProductContextType {
   products: Product[];
+  isLoading: boolean;
   addProduct: (product: Omit<Product, "id">) => Promise<void>;
   deleteProduct: (id: number) => Promise<void>;
   decrementStock: (productId: number, quantity: number) => Promise<void>;
@@ -17,6 +18,8 @@ const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export function ProductProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
+  // Starts true so consumers can tell "not loaded yet" apart from "genuinely empty".
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch initial products from the API
   const refreshProducts = async () => {
@@ -28,6 +31,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (e) {
       console.error("Failed to load products from database:", e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -114,6 +119,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     <ProductContext.Provider
       value={{
         products,
+        isLoading,
         addProduct,
         deleteProduct,
         decrementStock,
