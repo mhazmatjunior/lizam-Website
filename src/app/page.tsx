@@ -86,7 +86,7 @@ export default function Home() {
               }}
               className="bg-gold-sweep hover:bg-none hover:bg-white text-black ds-hero-shop   px-5 md:px-8 py-3 rounded-[30px] transition-all shadow-[0_4px_15px_rgba(212,180,116,0.35)] cursor-pointer"
             >
-              Shop Raanae
+              Shop Raanae test
             </button>
           </div>
         </header>
