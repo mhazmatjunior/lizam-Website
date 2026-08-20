@@ -2,27 +2,48 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendOrderConfirmationEmail } from '@/lib/email';
 import { isAdminRequest } from '@/lib/auth';
+import { priceOrder } from '@/lib/order-pricing';
 
 // POST - Create a new order in Supabase
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, address, amount, currency, product, payment_method } = body;
+    const { name, email, phone, address, amount, currency, product, payment_method, items, city } = body;
 
     if (!name || !email || !phone || !address) {
       return NextResponse.json({ error: 'All customer fields are required' }, { status: 400 });
     }
 
+    // Price the order from the database, never from the browser. A saved cart
+    // holds whatever the price was when it was added, and a crafted request
+    // could otherwise name its own amount.
+    let chargeAmount = amount;
+    let productSummary = product;
+
+    if (Array.isArray(items) && items.length > 0) {
+      const priced = await priceOrder(items, payment_method || 'safepay', city || '');
+      chargeAmount = priced.total;
+      productSummary = priced.summary;
+
+      if (typeof amount === 'number' && amount !== priced.total) {
+        console.warn(
+          `⚠️ Client sent amount ${amount} but server priced ${priced.total} — using the server figure.`
+        );
+      }
+    } else {
+      console.warn('⚠️ Order posted without line items; falling back to the client amount.');
+    }
+
     const orderId = `ORD-${Date.now()}`;
-    
+
     let insertObj: any = {
       order_id: orderId,
       name,
       email,
       phone,
       address,
-      product: product || '7TH OCT',
-      amount: amount || 150,
+      product: productSummary || '7TH OCT',
+      amount: chargeAmount ?? 0,
       currency: currency || 'PKR',
       status: 'pending',
       tracker: null,
@@ -68,8 +89,8 @@ export async function POST(req: NextRequest) {
         email,
         phone,
         address,
-        product: product || '7TH OCT',
-        amount: amount || 150,
+        product: productSummary || '7TH OCT',
+        amount: chargeAmount ?? 0,
         paymentMethod: payment_method,
       }).catch(err => {
         console.error('❌ Failed to send COD order confirmation email:', err.message);

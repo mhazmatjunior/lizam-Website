@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
+import { useProducts } from "@/context/ProductContext";
 
 export interface CartItem {
   id: number;
@@ -28,6 +29,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const { products } = useProducts();
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -45,6 +47,26 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
+
+  /**
+   * Re-price every line against the live catalogue.
+   *
+   * The saved cart holds whatever the price was when the item was added, and a
+   * cart can sit in localStorage for weeks. Without this, changing a price in
+   * the admin leaves old carts charging the old amount -- which is how orders
+   * were placed at Rs 18,500 after the price had been dropped to Rs 3,600.
+   *
+   * Products missing from the catalogue keep their stored values so the line
+   * does not vanish mid-checkout.
+   */
+  const pricedCart = useMemo<CartItem[]>(() => {
+    if (!products.length) return cart;
+    return cart.map((item) => {
+      const live = products.find((p) => p.id === item.id);
+      if (!live) return item;
+      return { ...item, price: live.price, name: live.name, image: live.image };
+    });
+  }, [cart, products]);
 
   const addToCart = (product: any) => {
     setCart((prevCart) => {
@@ -79,13 +101,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setCart([]);
   };
 
-  const itemsCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const itemsCount = pricedCart.reduce((total, item) => total + item.quantity, 0);
+  const subtotal = pricedCart.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
     <CartContext.Provider
       value={{
-        cart,
+        cart: pricedCart,
         addToCart,
         removeFromCart,
         updateQuantity,

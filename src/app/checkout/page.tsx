@@ -82,6 +82,10 @@ export default function CheckoutPage() {
           amount: totalAmount,
           currency: 'PKR',
           payment_method: paymentMethod,
+          // The server re-prices from these rather than trusting `amount`,
+          // so a stale saved cart cannot charge an out-of-date price.
+          items: cart.map((item) => ({ id: item.id, quantity: item.quantity })),
+          city: formData.city,
         }),
       });
 

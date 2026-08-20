@@ -488,6 +488,14 @@ export default function OrdersPage() {
                             {order.paymentMethod === 'cod_standard' && (
                               <span className="text-[7px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">COD Standard</span>
                             )}
+                            {order.paymentMethod === 'bank_transfer' && (
+                              <span className="text-[7px] font-black uppercase tracking-widest text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Bank Transfer</span>
+                            )}
+                            {/* Flags a manual payment still waiting on a receipt, so it is
+                                visible without opening the order. */}
+                            {order.paymentMethod === 'bank_transfer' && !order.hasProof && (
+                              <span className="text-[7px] font-black uppercase tracking-widest text-white/40 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">No Receipt</span>
+                            )}
                             {(order.paymentMethod === 'safepay' || !order.paymentMethod) && (
                               <span className="text-[7px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/10">Safepay</span>
                             )}

@@ -39,16 +39,13 @@ export default function SuccessPage({ params }: { params: Promise<{ orderId: str
         const found: OrderState | undefined = data.order;
         setOrder(found ?? null);
 
-        // Only the gateway flow may auto-confirm. A bank transfer stays pending
-        // until a human verifies the receipt, and cash on delivery is settled
-        // at the door — marking either 'paid' here would be false.
-        if (found && found.paymentMethod === 'safepay' && found.status === 'pending') {
-          await fetch('/api/orders', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId, status: 'paid' }),
-          });
-        }
+        // Nothing is marked paid here on purpose.
+        //
+        // Reaching this page only means the browser was redirected to it — the
+        // customer may have abandoned the payment, or typed the URL. Payment is
+        // confirmed solely by the Safepay webhook, which verifies a signature
+        // server-side. Marking 'paid' on page load produced orders that claimed
+        // to be paid when no money had arrived.
       } catch (err) {
         console.error('Failed to load order:', err);
       } finally {
