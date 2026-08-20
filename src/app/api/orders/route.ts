@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendOrderConfirmationEmail } from '@/lib/email';
+import { isAdminRequest } from '@/lib/auth';
 
 // POST - Create a new order in Supabase
 export async function POST(req: NextRequest) {
@@ -117,6 +118,12 @@ export async function PATCH(req: NextRequest) {
 // GET - Retrieve all orders from Supabase (for admin use)
 export async function GET() {
   try {
+    // Admin only. This returns every customer name, email, phone and address,
+    // so it must never be readable by an anonymous visitor.
+    if (!(await isAdminRequest())) {
+      return NextResponse.json({ error: 'Not authorised' }, { status: 401 });
+    }
+
     const { data: orders, error } = await supabaseAdmin
       .from('orders')
       .select('*')

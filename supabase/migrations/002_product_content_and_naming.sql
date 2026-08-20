@@ -56,6 +56,6 @@ select id,
        name,
        price,
        stock,
-       characteristics is not null as has_characteristics,
+       characteristics is not null as has_characteristics
        from public.products
  where id = 71099;
