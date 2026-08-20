@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, 
@@ -43,6 +44,20 @@ const STATUS_CONFIG: Record<string, { color: string, icon: any }> = {
   cancelled: { color: "text-rose-400 bg-rose-500/10 border-rose-500/20", icon: XCircle },
 };
 
+// Short, human labels. The raw values contain underscores and
+// "awaiting_verification" is far too long for a fixed-width pill.
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'Pending',
+  awaiting_verification: 'Awaiting',
+  proof_rejected: 'Rejected',
+  processing: 'Processing',
+  paid: 'Paid',
+  shipped: 'Shipped',
+  cancelled: 'Cancelled',
+};
+
+const statusLabel = (s: string) => STATUS_LABELS[s] || s.replace(/_/g, ' ');
+
 const PAYMENT_LABELS: Record<string, string> = {
   cod_founder: 'Cash on Delivery (Founder Delivery)',
   cod_standard: 'Cash on Delivery (Standard)',
@@ -53,66 +68,105 @@ const PAYMENT_LABELS: Record<string, string> = {
 // Admin can only manually trigger these transitions
 const ADMIN_STATUS_OPTIONS = ["shipped", "cancelled"];
 
-const StatusDropdown = ({ currentStatus, onUpdate, isLoading }: { 
-  currentStatus: string, 
+const MENU_WIDTH = 160; // px, matches the w-40 below
+
+const StatusDropdown = ({ currentStatus, onUpdate, isLoading }: {
+  currentStatus: string,
   onUpdate: (s: string) => void,
   isLoading: boolean
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const statusInfo = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.pending;
   const Icon = statusInfo.icon;
+
+  // The menu is rendered into document.body rather than next to the button.
+  // The table scrolls horizontally (overflow-x-auto), and CSS refuses to keep
+  // overflow-y visible when overflow-x is auto -- so an absolutely positioned
+  // menu was being clipped by the table on the lower rows.
+  const place = () => {
+    const el = buttonRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const estimatedHeight = ADMIN_STATUS_OPTIONS.length * 42 + 16;
+    const openUpwards = r.bottom + estimatedHeight > window.innerHeight - 8;
+
+    setCoords({
+      top: openUpwards ? r.top - estimatedHeight - 8 : r.bottom + 8,
+      // Keep it on screen when the button sits near the right edge.
+      left: Math.min(r.left, window.innerWidth - MENU_WIDTH - 12),
+    });
+  };
+
+  const toggle = () => {
+    if (isOpen) { setIsOpen(false); return; }
+    place();
+    setIsOpen(true);
+  };
+
+  // A fixed menu would drift away from its button once anything scrolls, so
+  // close it instead of trying to follow.
+  useEffect(() => {
+    if (!isOpen) return;
+    const close = () => setIsOpen(false);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [isOpen]);
 
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         disabled={isLoading}
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-32 px-4 py-2.5 rounded-full border text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-between gap-2 hover:scale-105 active:scale-95
+        onClick={toggle}
+        className={`min-w-32 max-w-full px-4 py-2.5 rounded-full border text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-between gap-2 hover:scale-105 active:scale-95
           ${statusInfo.color} ${isLoading ? 'opacity-50' : ''}`}
       >
-        <div className="flex items-center gap-2">
-           <Icon className="w-3 h-3" />
-           {currentStatus}
+        <div className="flex items-center gap-2 min-w-0">
+           <Icon className="w-3 h-3 shrink-0" />
+           <span className="truncate">{statusLabel(currentStatus)}</span>
         </div>
-        <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute z-50 top-full mt-2 left-0 w-40 bg-[#0d0d0d] border border-white/10 rounded-2xl p-2 shadow-2xl backdrop-blur-3xl overflow-hidden"
-            >
-              <div className="space-y-1">
-                {ADMIN_STATUS_OPTIONS.map((opt) => {
-                  const optInfo = STATUS_CONFIG[opt];
-                  const OptIcon = optInfo.icon;
-                  return (
-                    <button
-                      key={opt}
-                      onClick={() => {
-                        onUpdate(opt);
-                        setIsOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-3
-                        ${currentStatus === opt 
-                          ? 'bg-gold/10 text-gold' 
-                          : 'text-white/40 hover:text-white hover:bg-white/5'}`}
-                    >
-                      <OptIcon className="w-3.5 h-3.5" />
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {isOpen && coords && typeof document !== 'undefined' && createPortal(
+        <>
+          <div className="fixed inset-0 z-[190]" onClick={() => setIsOpen(false)} />
+          <div
+            style={{ top: coords.top, left: coords.left, width: MENU_WIDTH }}
+            className="fixed z-[200] bg-[#0d0d0d] border border-white/10 rounded-2xl p-2 shadow-2xl backdrop-blur-3xl overflow-hidden"
+          >
+            <div className="space-y-1">
+              {ADMIN_STATUS_OPTIONS.map((opt) => {
+                const optInfo = STATUS_CONFIG[opt];
+                const OptIcon = optInfo.icon;
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      onUpdate(opt);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-3
+                      ${currentStatus === opt
+                        ? 'bg-gold/10 text-gold'
+                        : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                  >
+                    <OptIcon className="w-3.5 h-3.5 shrink-0" />
+                    {statusLabel(opt)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
     </div>
   );
 };
@@ -177,7 +231,7 @@ const PaymentProofPanel = ({ order, onUpdated }: { order: Order; onUpdated?: () 
     <div className="rounded-[24px] border border-amber-500/20 bg-amber-500/[0.03] p-5 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <p className="text-[8px] font-black uppercase tracking-[0.3em] text-amber-300/70">Payment Proof</p>
-        <span className="text-[8px] font-black uppercase tracking-widest text-white/30">{status.replace(/_/g, ' ')}</span>
+        <span className="text-[8px] font-black uppercase tracking-widest text-white/30 shrink-0">{statusLabel(status)}</span>
       </div>
 
       {reference && (
@@ -264,20 +318,22 @@ const OrderDetailsModal = ({ order, onClose, onUpdated }: { order: Order; onClos
     </motion.div>
   );
 
+  // items-start + overflow-y-auto so a tall order (payment proof panel and all)
+  // can scroll. Centring it clipped the bottom with no way to reach it.
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
+    <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 bg-black/95 backdrop-blur-2xl" 
+        className="fixed inset-0 bg-black/95 backdrop-blur-2xl"
       />
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 30 }}
-        className="relative w-full max-w-lg bg-[#080808] border border-gold/10 rounded-[40px] p-8 shadow-[0_50px_100px_rgba(0,0,0,0.8),0_0_80px_rgba(200,164,77,0.05)] overflow-hidden"
+        className="relative w-full max-w-lg my-6 md:my-10 bg-[#080808] border border-gold/10 rounded-[40px] p-8 shadow-[0_50px_100px_rgba(0,0,0,0.8),0_0_80px_rgba(200,164,77,0.05)] overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 blur-[100px] -mr-32 -mt-32 animate-pulse" />
         

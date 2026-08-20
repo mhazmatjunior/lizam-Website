@@ -19,6 +19,8 @@ export async function GET() {
     if (!products || products.length === 0) {
       console.log('🌱 Database products table is empty. Auto-seeding initial collections...');
       
+      // characteristics/usps are omitted on purpose: they are optional columns
+      // that may not exist yet, and naming a missing one fails the whole insert.
       const formattedProducts = INITIAL_PRODUCTS.map(p => ({
         id: p.id,
         name: p.name,
@@ -28,9 +30,7 @@ export async function GET() {
         long_description: p.longDescription,
         image: p.image,
         stock: p.stock,
-        notes: p.notes,
-        characteristics: p.characteristics ?? null,
-        usps: p.usps ?? null
+        notes: p.notes
       }));
 
       const { data: seededProducts, error: seedError } = await supabaseAdmin
@@ -112,23 +112,27 @@ export async function POST(req: NextRequest) {
       newId = (highest?.id ?? 0) + 1;
     }
 
+    const insertRow: any = {
+      id: newId,
+      name,
+      price,
+      category: category || 'Signature Collection',
+      description: description || '',
+      long_description: longDescription || '',
+      image: image || '/placeholder.png',
+      stock: stock || 0,
+      notes: notes || { top: '', heart: '', base: '' },
+    };
+
+    // Only send these when actually supplied. They are optional columns that
+    // may not exist yet (migration 002), and naming a missing column makes
+    // Postgres reject the whole insert.
+    if (characteristics !== undefined) insertRow.characteristics = characteristics;
+    if (usps !== undefined) insertRow.usps = usps;
+
     const { data: newProduct, error } = await supabaseAdmin
       .from('products')
-      .insert([
-        {
-          id: newId,
-          name,
-          price,
-          category: category || 'Signature Collection',
-          description: description || '',
-          long_description: longDescription || '',
-          image: image || '/placeholder.png',
-          stock: stock || 0,
-          notes: notes || { top: '', heart: '', base: '' },
-          characteristics: characteristics ?? null,
-          usps: usps ?? null
-        }
-      ])
+      .insert([insertRow])
       .select('*')
       .single();
 
