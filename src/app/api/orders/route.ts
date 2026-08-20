@@ -138,11 +138,14 @@ export async function GET() {
       // Determine payment method (read from column, or fallback parsed from product name)
       let payMethod = o.payment_method || 'safepay';
       let prodName = o.product || '';
-      if (!o.payment_method && prodName.includes('[cod_')) {
-        const match = prodName.match(/\[(cod_[a-z_]+|safepay)\]/);
+      // Legacy rows written before payment_method existed carry the method as a
+      // "[bank_transfer]" style suffix on the product name. Match ANY method: the
+      // old '[cod_' test reported every bank transfer as Safepay.
+      if (!o.payment_method) {
+        const match = prodName.match(/\[([a-z_]+)\]\s*$/);
         if (match) {
           payMethod = match[1];
-          prodName = prodName.replace(/\s*\[(cod_[a-z_]+|safepay)\]/, '');
+          prodName = prodName.replace(/\s*\[[a-z_]+\]\s*$/, '');
         }
       }
 
