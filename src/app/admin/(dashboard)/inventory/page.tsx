@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Edit2, Package, X, CheckCircle, Plus, AlertCircle } from "lucide-react";
+import { Search, Edit2, Package, X, CheckCircle, Plus, AlertCircle, Trash2 } from "lucide-react";
 import { useProducts } from "@/context/ProductContext";
 import { type Product } from "@/data/products";
 
@@ -64,12 +64,16 @@ const inputCls =
   "w-full bg-white/[0.02] border border-white/10 focus:border-gold/30 rounded-xl px-4 py-3 text-xs text-white outline-none font-medium tracking-wide";
 
 export default function InventoryPage() {
-  const { products, updateProduct, addProduct } = useProducts();
+  const { products, updateProduct, addProduct, deleteProduct } = useProducts();
   const [searchTerm, setSearchTerm] = useState("");
   const [mode, setMode] = useState<"edit" | "add" | null>(null);
   const [form, setForm] = useState<FormState>(BLANK);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Two-step delete: the first click only arms it, so a stray click on a live
+  // store cannot remove a product.
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -78,7 +82,25 @@ export default function InventoryPage() {
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
-  const openEdit = (p: Product) => { setForm(toForm(p)); setError(null); setMode("edit"); };
+  const openEdit = (p: Product) => {
+    setForm(toForm(p));
+    setError(null);
+    setConfirmDelete(false);
+    setMode("edit");
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    setError(null);
+    try {
+      await deleteProduct(Number(form.id));
+      close();
+    } catch (err: any) {
+      setError(err?.message || "Delete failed.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const openAdd = () => {
     const nextId = products.length ? Math.max(...products.map((p) => p.id)) + 1 : 1;
@@ -364,6 +386,48 @@ export default function InventoryPage() {
                     {isSaving ? "Saving..." : mode === "add" ? "Create Product" : "Save Product Details"}
                     <CheckCircle className="w-4 h-4" />
                   </button>
+
+                  {/* Delete lives at the very bottom, behind a confirm step, and
+                      only when editing. Past orders keep the product name as
+                      plain text, so removing a product does not affect them. */}
+                  {mode === "edit" && (
+                    <div className="pt-5 border-t border-white/5">
+                      {!confirmDelete ? (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDelete(true)}
+                          className="w-full h-11 rounded-xl text-[9px] font-black uppercase tracking-widest text-white/30 hover:text-rose-300 border border-white/5 hover:border-rose-500/30 transition-all flex items-center justify-center gap-2"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Delete this product
+                        </button>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-[10px] text-rose-300 leading-relaxed text-center">
+                            Remove <span className="font-black">{form.name}</span> from the store
+                            permanently? Existing orders are not affected.
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={handleDelete}
+                              disabled={isDeleting}
+                              className="flex-grow h-11 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[9px] font-black uppercase tracking-widest hover:bg-rose-500/25 disabled:opacity-40 transition-all"
+                            >
+                              {isDeleting ? "Deleting..." : "Yes, delete permanently"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDelete(false)}
+                              disabled={isDeleting}
+                              className="px-6 h-11 rounded-xl bg-white/5 border border-white/10 text-white/50 text-[9px] font-black uppercase tracking-widest hover:text-white disabled:opacity-40 transition-all"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </form>
               </div>
             </motion.div>
