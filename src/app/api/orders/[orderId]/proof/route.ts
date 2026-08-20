@@ -50,7 +50,7 @@ export async function POST(
 
     const { data: order, error: findError } = await supabaseAdmin
       .from('orders')
-      .select('order_id, status, payment_method, payment_proof_url')
+      .select('*') // '*' on purpose: the proof columns may not exist yet
       .eq('order_id', orderId)
       .single();
 
@@ -177,7 +177,7 @@ export async function GET(
 
     const { data: order, error } = await supabaseAdmin
       .from('orders')
-      .select('payment_proof_url, payment_reference')
+      .select('*')
       .eq('order_id', orderId)
       .single();
 

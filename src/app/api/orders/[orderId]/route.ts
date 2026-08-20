@@ -18,7 +18,7 @@ export async function GET(
 
     const { data: order, error } = await supabaseAdmin
       .from('orders')
-      .select('order_id, status, payment_method, amount, currency, payment_proof_url')
+      .select('*') // '*' on purpose: payment_proof_url may not exist until migration 001 runs
       .eq('order_id', orderId)
       .single();
 

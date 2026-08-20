@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSafepayClient } from '@/lib/safepay';
+import { getSafepayClient, hasWebhookSecret } from '@/lib/safepay';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendOrderConfirmationEmail } from '@/lib/email';
 
@@ -7,6 +7,13 @@ export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text();
     const headers = Object.fromEntries(req.headers.entries());
+
+    // Fail closed. Without a real secret every signature would validate
+    // against a placeholder, so a forged payment callback would be trusted.
+    if (!hasWebhookSecret()) {
+      console.error('❌ SAFEPAY_WEBHOOK_SECRET is not set — refusing to process webhooks');
+      return NextResponse.json({ error: 'Webhook verification is not configured' }, { status: 503 });
+    }
 
     const safepay = getSafepayClient();
     // 1. Verify Webhook Signature

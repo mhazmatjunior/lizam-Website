@@ -9,6 +9,7 @@ import { ChevronLeft, ShoppingBag, ShieldCheck, Truck, CreditCard, ArrowRight, L
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { BANK_ACCOUNTS, VERIFICATION_WINDOW } from "@/data/bank-details";
+import { deliveryFee, deliveryLabel, founderFeeForCity, FOUNDER_CITIES_LABEL } from "@/data/pricing";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -28,7 +29,11 @@ export default function CheckoutPage() {
     phone: "",
   });
 
-  const totalAmount = subtotal + (paymentMethod === 'cod_founder' ? 5000 : 0);
+  // Delivery depends on the payment method and, for founder delivery, the city.
+  // null means the founder does not cover that city, so the order is blocked.
+  const fee = deliveryFee(paymentMethod, formData.city);
+  const founderCityUnsupported = paymentMethod === 'cod_founder' && fee === null;
+  const totalAmount = subtotal + (fee ?? 0);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -382,8 +387,25 @@ export default function CheckoutPage() {
                       <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Premium delivery directly by the founder of RAANAE</p>
                     </div>
                   </div>
-                  <span className="text-[7px] font-black uppercase tracking-widest bg-gold text-black px-2 py-0.5 rounded font-black border border-gold">+ Rs 5,000</span>
+                  <span className="text-[7px] font-black uppercase tracking-widest bg-gold text-black px-2 py-0.5 rounded font-black border border-gold">{founderFeeForCity(formData.city) ? `+ Rs ${founderFeeForCity(formData.city)!.toLocaleString()}` : "By city"}</span>
                 </div>
+
+                {paymentMethod === 'cod_founder' && (
+                  <div className={`rounded-2xl border p-4 space-y-1 ${founderCityUnsupported ? 'border-rose-500/30 bg-rose-500/[0.04]' : 'border-[#e2bb61]/20 bg-[#e2bb61]/[0.03]'}`}>
+                    {founderCityUnsupported ? (
+                      <>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-rose-300">
+                          {formData.city ? `Founder delivery is not available in ${formData.city}` : 'Enter your city to see the founder delivery charge'}
+                        </p>
+                        <p className="text-[10px] text-white/45 leading-relaxed">Available cities: {FOUNDER_CITIES_LABEL}</p>
+                      </>
+                    ) : (
+                      <p className="text-[10px] text-white/50 leading-relaxed">
+                        Founder delivery to {formData.city} is Rs {(fee ?? 0).toLocaleString()}, paid in advance.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </section>
 
@@ -419,15 +441,18 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span>Rs {subtotal.toLocaleString()}</span>
                 </div>
-                {paymentMethod === 'cod_founder' && (
-                  <div className="flex justify-between text-[10px] uppercase tracking-widest text-[#e2bb61] font-bold">
-                    <span>Founder Delivery Fee</span>
-                    <span>Rs 5,000</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold">
-                  <span>Shipping</span>
-                  <span className="text-gold">FREE (PREMIUM)</span>
+                <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold gap-4">
+                  <span>Delivery</span>
+                  {fee === null ? (
+                    <span className="text-rose-300 text-right normal-case tracking-normal">Not available in {formData.city || 'that city'}</span>
+                  ) : fee === 0 ? (
+                    <span className="text-gold">FREE</span>
+                  ) : (
+                    <span className="text-[#e2bb61]">Rs {fee.toLocaleString()}</span>
+                  )}
+                </div>
+                <div className="text-[9px] uppercase tracking-wider text-white/25 font-bold">
+                  {deliveryLabel(paymentMethod)}
                 </div>
                 <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold">
                   <span>Taxes</span>
@@ -453,7 +478,7 @@ export default function CheckoutPage() {
 
               <button 
                 onClick={handlePlaceOrder}
-                disabled={isSubmitting || cart.length === 0}
+                disabled={isSubmitting || cart.length === 0 || founderCityUnsupported}
                 className="w-full btn-premium-gold py-5 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] mt-10 group shadow-[0_20px_40px_rgba(200, 164, 77,0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (

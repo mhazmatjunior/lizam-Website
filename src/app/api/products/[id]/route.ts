@@ -18,6 +18,8 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     if (body.image !== undefined) updateData.image = body.image;
     if (body.stock !== undefined) updateData.stock = body.stock;
     if (body.notes !== undefined) updateData.notes = body.notes;
+    if (body.characteristics !== undefined) updateData.characteristics = body.characteristics;
+    if (body.usps !== undefined) updateData.usps = body.usps;
 
     const { data: updatedProduct, error } = await supabaseAdmin
       .from('products')
@@ -39,7 +41,9 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       longDescription: updatedProduct.long_description,
       image: updatedProduct.image,
       stock: updatedProduct.stock,
-      notes: updatedProduct.notes
+      notes: updatedProduct.notes,
+      characteristics: updatedProduct.characteristics ?? undefined,
+      usps: updatedProduct.usps ?? undefined
     };
 
     return NextResponse.json({ success: true, product: mapped });

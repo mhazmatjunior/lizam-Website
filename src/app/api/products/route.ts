@@ -28,7 +28,9 @@ export async function GET() {
         long_description: p.longDescription,
         image: p.image,
         stock: p.stock,
-        notes: p.notes
+        notes: p.notes,
+        characteristics: p.characteristics ?? null,
+        usps: p.usps ?? null
       }));
 
       const { data: seededProducts, error: seedError } = await supabaseAdmin
@@ -52,7 +54,9 @@ export async function GET() {
         longDescription: p.long_description,
         image: p.image,
         stock: p.stock,
-        notes: p.notes
+        notes: p.notes,
+        characteristics: p.characteristics ?? undefined,
+        usps: p.usps ?? undefined
       }));
 
       return NextResponse.json({ products: mapped });
@@ -68,7 +72,9 @@ export async function GET() {
       longDescription: p.long_description,
       image: p.image,
       stock: p.stock,
-      notes: p.notes
+      notes: p.notes,
+      characteristics: p.characteristics ?? undefined,
+      usps: p.usps ?? undefined
     }));
 
     return NextResponse.json({ products: mappedProducts });
