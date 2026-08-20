@@ -18,6 +18,10 @@ import {
   ArrowRight
 } from "lucide-react";
 import { type Product } from "@/data/products";
+import {
+  BRAND_USPS, USP_EYEBROW, USP_HEADING, USP_INTRO,
+  CHARACTERISTICS_HEADING, DEFAULT_CHARACTERISTICS,
+} from "@/data/brand";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 
@@ -45,6 +49,10 @@ export default function ProductDetailPage() {
   }, [params.id, products, router, isLoading]);
 
   if (!product) return null;
+
+  // Fall back to the brand defaults so the section renders for every product.
+  // A product with its own characteristics overrides them.
+  const chars = product.characteristics ?? DEFAULT_CHARACTERISTICS;
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -242,9 +250,8 @@ export default function ProductDetailPage() {
           </div>
         </motion.div>
 
-        {/* Dynamic Scent Characteristics and USPs */}
-        {product.characteristics && (
-          <div className="border-t border-white/5 py-16 mt-20 space-y-20">
+        {/* Scent Characteristics — brand defaults unless the product overrides them */}
+        <div className="border-t border-white/5 py-16 mt-20 space-y-20">
             {/* Characteristics Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -252,55 +259,55 @@ export default function ProductDetailPage() {
               viewport={{ once: true }}
               className="space-y-8"
             >
-              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 text-center">Scent Characteristics</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 text-center">{CHARACTERISTICS_HEADING}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] space-y-3">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Intensity</span>
-                <p className="text-xl font-black text-white uppercase tracking-tight">{product.characteristics.intensity}</p>
+                <p className="text-xl font-black text-white uppercase tracking-tight">{chars.intensity}</p>
               </div>
               <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] flex flex-col justify-center space-y-3">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Scent Profile</span>
-                <p className="text-xs font-medium text-white/60 leading-relaxed max-w-[200px] mx-auto">{product.characteristics.profile}</p>
+                <p className="text-xs font-medium text-white/60 leading-relaxed max-w-[200px] mx-auto">{chars.profile}</p>
               </div>
               <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] space-y-3">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Longevity</span>
-                <p className="text-xl font-black text-white uppercase tracking-tight">{product.characteristics.longevity}</p>
+                <p className="text-xl font-black text-white uppercase tracking-tight">{chars.longevity}</p>
                 </div>
               </div>
             </motion.div>
-
-            {/* USP Section */}
-            {product.usps && (
-              <div className="space-y-12 pt-8">
-                <div className="text-center space-y-3">
-                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gold/60">Our USP</span>
-                  <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">What Makes Us Different?</h2>
-                  <p className="text-white/50 text-xs md:text-sm font-medium leading-relaxed max-w-2xl mx-auto pt-4">
-                    We believe luxury fragrances should be as gentle on your skin as they are memorable to your senses. Here&rsquo;s why our perfumes stand out:
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {product.usps.map((usp, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] hover:border-gold/20 hover:bg-white/[0.04] transition-all space-y-4"
-                    >
-                      <div className="w-10 h-10 rounded-2xl bg-gold/10 flex items-center justify-center text-gold text-sm font-black">
-                        {idx + 1}
-                      </div>
-                      <h4 className="text-md font-black text-white uppercase tracking-tight">{usp.title}</h4>
-                      <p className="text-white/40 text-[11px] leading-relaxed font-medium">{usp.description}</p>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
-        )}
+
+        {/* Brand USPs — shown for every product. A product may override
+            them by setting its own `usps`. Deliberately outside the
+            characteristics guard so it appears even without them. */}
+        <div className="border-t border-white/5 py-16 space-y-20">
+          <div className="space-y-12 pt-8">
+            <div className="text-center space-y-3">
+              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gold/60">{USP_EYEBROW}</span>
+              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">{USP_HEADING}</h2>
+              <p className="text-white/50 text-xs md:text-sm font-medium leading-relaxed max-w-2xl mx-auto pt-4">{USP_INTRO}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {(product.usps ?? BRAND_USPS).map((usp, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] hover:border-gold/20 hover:bg-white/[0.04] transition-all space-y-4"
+                >
+                  <div className="w-10 h-10 rounded-2xl bg-gold/10 flex items-center justify-center text-gold text-sm font-black">
+                    {idx + 1}
+                  </div>
+                  <h4 className="text-md font-black text-white uppercase tracking-tight">{usp.title}</h4>
+                  <p className="text-white/40 text-[11px] leading-relaxed font-medium">{usp.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Recommended Section - High Fidelity */}

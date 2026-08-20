@@ -6,7 +6,7 @@ import { type Product } from "@/data/products";
 interface ProductContextType {
   products: Product[];
   isLoading: boolean;
-  addProduct: (product: Omit<Product, "id">) => Promise<void>;
+  addProduct: (product: Omit<Product, "id"> & { id?: number }) => Promise<void>;
   deleteProduct: (id: number) => Promise<void>;
   decrementStock: (productId: number, quantity: number) => Promise<void>;
   updateStock: (productId: number, newStock: number) => Promise<void>;
@@ -40,7 +40,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     refreshProducts();
   }, []);
 
-  const addProduct = async (newProductData: Omit<Product, "id">) => {
+  const addProduct = async (newProductData: Omit<Product, "id"> & { id?: number }) => {
     try {
       const res = await fetch("/api/products", {
         method: "POST",

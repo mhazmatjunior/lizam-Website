@@ -178,20 +178,6 @@ export const PRODUCTS: Product[] = [
       intensity: "Parfum Intense",
       profile: "A captivating blend of Woody, Gourmand, Sweet, and Powdery accords",
       longevity: "Exceptional 15 to 20 Hours of lasting performance"
-    },
-    usps: [
-      {
-        title: "15 to 20 Hours Ultra-Long Lasting",
-        description: "Formulated at a high concentration to keep you smelling effortless all day and night."
-      },
-      {
-        title: "Clean & Safe Formulation",
-        description: "Crafted with zero harmful chemicals, ensuring a premium scent experience without compromise."
-      },
-      {
-        title: "Skin-Friendly (No Side Effects)",
-        description: "Carefully blended with non-irritating ingredients so you can wear your signature scent with complete confidence."
-      }
-    ]
+    }
   }
 ];

@@ -89,16 +89,34 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, price, category, description, longDescription, image, stock, notes } = body;
+    const {
+      id, name, price, category, description, longDescription,
+      image, stock, notes, characteristics, usps
+    } = body;
 
     if (!name || !price) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
+    }
+
+    // The products table uses explicit ids (7TH OCT is 71099) rather than an
+    // identity column, so an insert with no id would violate the primary key.
+    // Use the supplied id, otherwise take the next one after the current max.
+    let newId = Number(id);
+    if (!Number.isFinite(newId) || newId <= 0) {
+      const { data: highest } = await supabaseAdmin
+        .from('products')
+        .select('id')
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      newId = (highest?.id ?? 0) + 1;
     }
 
     const { data: newProduct, error } = await supabaseAdmin
       .from('products')
       .insert([
         {
+          id: newId,
           name,
           price,
           category: category || 'Signature Collection',
@@ -106,7 +124,9 @@ export async function POST(req: NextRequest) {
           long_description: longDescription || '',
           image: image || '/placeholder.png',
           stock: stock || 0,
-          notes: notes || { top: '', heart: '', base: '' }
+          notes: notes || { top: '', heart: '', base: '' },
+          characteristics: characteristics ?? null,
+          usps: usps ?? null
         }
       ])
       .select('*')
@@ -125,7 +145,9 @@ export async function POST(req: NextRequest) {
       longDescription: newProduct.long_description,
       image: newProduct.image,
       stock: newProduct.stock,
-      notes: newProduct.notes
+      notes: newProduct.notes,
+      characteristics: newProduct.characteristics ?? undefined,
+      usps: newProduct.usps ?? undefined
     };
 
     return NextResponse.json({ success: true, product: mapped });
