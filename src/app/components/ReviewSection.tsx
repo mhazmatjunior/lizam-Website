@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Star, Loader2, AlertCircle, CheckCircle, ImagePlus, X } from "lucide-react";
+import { Star, Loader2, AlertCircle, CheckCircle, ImagePlus, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Review {
   id: number;
@@ -63,6 +63,28 @@ export default function ReviewSection({ productId }: { productId: number }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  // Full-size photo viewer. Holds the whole photo list so arrows can step
+  // through one reviewer's images without closing.
+  const [lightbox, setLightbox] = useState<{ photos: string[]; index: number; author: string } | null>(null);
+
+  // Escape to close, arrows to move between photos.
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+      if (e.key === "ArrowRight") setLightbox((l) => (l ? { ...l, index: (l.index + 1) % l.photos.length } : l));
+      if (e.key === "ArrowLeft") setLightbox((l) => (l ? { ...l, index: (l.index - 1 + l.photos.length) % l.photos.length } : l));
+    };
+    window.addEventListener("keydown", onKey);
+    // Stop the page scrolling behind the overlay.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [lightbox]);
 
   const load = async () => {
     try {
@@ -302,9 +324,14 @@ export default function ReviewSection({ productId }: { productId: number }) {
                   {r.photos.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">
                       {r.photos.map((src, i) => (
-                        <a key={i} href={src} target="_blank" rel="noopener noreferrer" className="block w-20 h-20 rounded-xl overflow-hidden border border-white/10 hover:border-gold/30 transition-colors">
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setLightbox({ photos: r.photos, index: i, author: r.authorName })}
+                          className="block w-20 h-20 rounded-xl overflow-hidden border border-white/10 hover:border-gold/40 transition-colors cursor-zoom-in"
+                        >
                           <img src={src} alt="" className="w-full h-full object-cover" />
-                        </a>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -319,6 +346,58 @@ export default function ReviewSection({ productId }: { productId: number }) {
             )
           )}
         </>
+      )}
+
+      {/* Photo viewer. Clicking the backdrop closes; the image itself does not. */}
+      {lightbox && (
+        <div
+          onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-10"
+        >
+          <button
+            onClick={() => setLightbox(null)}
+            aria-label="Close"
+            className="absolute top-5 right-5 p-3 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-gold/40 transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="absolute top-7 left-6 text-[10px] uppercase tracking-[0.2em] font-black text-white/40">
+            {lightbox.author}
+            {lightbox.photos.length > 1 && (
+              <span className="text-white/25"> &nbsp;·&nbsp; {lightbox.index + 1} / {lightbox.photos.length}</span>
+            )}
+          </div>
+
+          {lightbox.photos.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setLightbox({ ...lightbox, index: (lightbox.index - 1 + lightbox.photos.length) % lightbox.photos.length }); }}
+                aria-label="Previous photo"
+                className="absolute left-3 md:left-6 p-3 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-gold hover:border-gold/40 transition-all"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setLightbox({ ...lightbox, index: (lightbox.index + 1) % lightbox.photos.length }); }}
+                aria-label="Next photo"
+                className="absolute right-3 md:right-6 p-3 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-gold hover:border-gold/40 transition-all"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+
+          <motion.img
+            key={lightbox.index}
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            src={lightbox.photos[lightbox.index]}
+            alt=""
+            className="max-w-full max-h-full object-contain rounded-2xl border border-white/10 shadow-2xl"
+          />
+        </div>
       )}
     </div>
   );

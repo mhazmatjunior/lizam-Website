@@ -10,6 +10,7 @@ import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { BANK_ACCOUNTS, VERIFICATION_WINDOW } from "@/data/bank-details";
 import { deliveryFee, deliveryLabel, founderFeeForCity, FOUNDER_CITIES_LABEL } from "@/data/pricing";
+import { PK_PROVINCES, citiesFor } from "@/data/pk-locations";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -34,6 +35,21 @@ export default function CheckoutPage() {
   const fee = deliveryFee(paymentMethod, formData.city);
   const founderCityUnsupported = paymentMethod === 'cod_founder' && fee === null;
   const totalAmount = subtotal + (fee ?? 0);
+
+  /**
+   * Changing province clears the city: the old one almost certainly is not in
+   * the new province's list, and a stale value would price delivery wrongly.
+   */
+  const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const province = e.target.value;
+    setFormData((prev) => ({ ...prev, state: province, city: "" }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.state;
+      delete next.city;
+      return next;
+    });
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -225,29 +241,41 @@ export default function CheckoutPage() {
                   />
                   {errors.address && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.address}</span>}
                 </div>
+                {/* Province before City: the city list depends on it. Both are
+                    pickers rather than free text because founder delivery is
+                    priced by city name, and a typo would break that lookup. */}
+                <div className="space-y-2">
+                  <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">Province</label>
+                  <select
+                    name="state"
+                    value={formData.state}
+                    onChange={handleProvinceChange}
+                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all appearance-none cursor-pointer ${errors.state ? 'border-red-500/50' : 'border-white/10'}`}
+                  >
+                    <option value="" className="bg-black">Select province...</option>
+                    {PK_PROVINCES.map((p) => (
+                      <option key={p.name} value={p.name} className="bg-black">{p.name}</option>
+                    ))}
+                  </select>
+                  {errors.state && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.state}</span>}
+                </div>
                 <div className="space-y-2">
                   <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">City</label>
-                  <input
-                    type="text"
+                  <select
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
-                    placeholder="CITY..."
-                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all ${errors.city ? 'border-red-500/50' : 'border-white/10'}`}
-                  />
+                    disabled={!formData.state}
+                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all appearance-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${errors.city ? 'border-red-500/50' : 'border-white/10'}`}
+                  >
+                    <option value="" className="bg-black">
+                      {formData.state ? 'Select city...' : 'Choose a province first'}
+                    </option>
+                    {citiesFor(formData.state).map((c) => (
+                      <option key={c} value={c} className="bg-black">{c}</option>
+                    ))}
+                  </select>
                   {errors.city && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.city}</span>}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">State / Province</label>
-                  <input
-                    type="text"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    placeholder="STATE..."
-                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all ${errors.state ? 'border-red-500/50' : 'border-white/10'}`}
-                  />
-                  {errors.state && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.state}</span>}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">ZIP / Postal Code</label>
