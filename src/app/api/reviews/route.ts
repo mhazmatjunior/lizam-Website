@@ -34,9 +34,15 @@ export async function GET(req: NextRequest) {
     const statusFilter = searchParams.get('status');
     const productId = searchParams.get('productId');
 
-    // Anything other than the public "approved for this product" view is an
-    // admin request: unapproved content must never be readable by visitors.
-    if (statusFilter && statusFilter !== 'approved') {
+    // Two distinct views, told apart by whether a product was named:
+    //
+    //   ?productId=71099        -> public: approved reviews for that product
+    //   ?status=pending|all|... -> admin: the moderation queue
+    //
+    // Keying off the status value alone was wrong: the admin "Published" tab
+    // sends status=approved, which fell through to the public branch and failed
+    // with "productId is required".
+    if (!productId) {
       if (!(await isAdminRequest())) {
         return NextResponse.json({ error: 'Not authorised' }, { status: 401 });
       }
@@ -46,15 +52,11 @@ export async function GET(req: NextRequest) {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (statusFilter !== 'all') q = q.eq('status', statusFilter);
+      if (statusFilter && statusFilter !== 'all') q = q.eq('status', statusFilter);
 
       const { data, error } = await q;
       if (error) throw error;
       return NextResponse.json({ reviews: (data || []).map(mapReview) });
-    }
-
-    if (!productId) {
-      return NextResponse.json({ error: 'productId is required' }, { status: 400 });
     }
 
     const { data, error } = await supabaseAdmin
