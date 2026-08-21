@@ -6,11 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
 import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  LogOut, 
-  Menu, 
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Star,
+  LogOut,
+  Menu,
   ArrowLeft
 } from "lucide-react";
 
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Inventory", href: "/admin/inventory", icon: Package },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { name: "Reviews", href: "/admin/reviews", icon: Star },
 ];
 
 export default function AdminLayout({

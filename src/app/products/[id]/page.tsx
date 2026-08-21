@@ -22,6 +22,7 @@ import {
   BRAND_USPS, USP_EYEBROW, USP_HEADING, USP_INTRO,
   CHARACTERISTICS_HEADING, DEFAULT_CHARACTERISTICS,
 } from "@/data/brand";
+import ReviewSection from "@/app/components/ReviewSection";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 
@@ -308,6 +309,9 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Customer reviews: ratings, photos, and the submission form. */}
+        <ReviewSection productId={product.id} />
       </div>
 
       {/* Recommended Section - High Fidelity */}
