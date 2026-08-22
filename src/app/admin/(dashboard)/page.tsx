@@ -312,7 +312,7 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-center gap-4 p-4 rounded-3xl bg-white/[0.02] border border-white/10 hover:border-gold/30 transition-all group">
               <div className="w-12 h-12 rounded-xl bg-white/[0.05] flex items-center justify-center p-2 relative">
-                <Image src="/product_2.png" alt="7th Oct" fill className="object-contain p-2" />
+                <Image src="/theme-hero.webp" alt="7th Oct" fill className="object-contain p-2" unoptimized />
               </div>
               <div className="flex-grow">
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-white/80">7th Oct</h4>

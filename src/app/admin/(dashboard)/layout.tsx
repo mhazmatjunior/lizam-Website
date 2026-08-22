@@ -32,19 +32,25 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const closeSidebarOnMobile = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-gold/30 flex">
       {/* Sidebar Overlay for Mobile */}
       <AnimatePresence>
-        {!isSidebarOpen && (
+        {isSidebarOpen && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsSidebarOpen(true)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-40 lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -52,14 +58,20 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside 
         className={`fixed lg:static inset-y-0 left-0 z-50 flex-shrink-0 transition-all duration-500 ease-in-out
-          ${isSidebarOpen ? 'w-72' : 'w-0 lg:w-72'} 
+          ${isSidebarOpen ? 'w-72 translate-x-0' : '-translate-x-full lg:translate-x-0 w-72 lg:w-72'} 
           bg-black/40 backdrop-blur-2xl border-r border-white/5 flex flex-col overflow-hidden`}
       >
         {/* Logo Section */}
-        <div className="h-24 flex items-center px-8 border-b border-white/5">
+        <div className="h-24 flex items-center justify-between px-8 border-b border-white/5">
           <span className="text-2xl font-black tracking-tighter">
             RAANAE
           </span>
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="p-2 text-white/40 hover:text-white lg:hidden"
+          >
+            ✕
+          </button>
         </div>
 
         {/* Navigation */}
@@ -70,6 +82,7 @@ export default function AdminLayout({
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={closeSidebarOnMobile}
                 className={`flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 group
                   ${isActive 
                     ? 'bg-gold/10 text-gold border border-gold/20' 
@@ -94,6 +107,7 @@ export default function AdminLayout({
         <div className="p-4 border-t border-white/5 space-y-1">
           <Link
             href="/"
+            onClick={closeSidebarOnMobile}
             className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-white/40 hover:text-gold hover:bg-gold/5 transition-all duration-300 group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-500" />
