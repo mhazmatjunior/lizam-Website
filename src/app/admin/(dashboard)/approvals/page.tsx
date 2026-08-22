@@ -319,7 +319,14 @@ export default function ApprovalsPage() {
               </button>
             </div>
             <div className="max-h-[75vh] overflow-auto flex items-center justify-center">
-              <img src={previewImage} alt="Payment Proof Fullscreen" className="max-h-[70vh] object-contain rounded-xl" />
+              <img 
+                src={previewImage} 
+                alt="Payment Proof Fullscreen" 
+                className="max-h-[70vh] object-contain rounded-xl"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
             </div>
           </div>
         </div>

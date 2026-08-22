@@ -62,10 +62,10 @@ export async function POST(req: NextRequest) {
       delete insertObj.payment_screenshot;
       delete insertObj.delivery_fee;
 
-      // Encode screenshot / sub-method metadata directly in product descriptor
+      // Encode screenshot / sub-method metadata directly in product descriptor without truncation
       let metaTag = `[method:${payment_method || 'safepay'}`;
       if (payment_sub_method) metaTag += `|sub:${payment_sub_method}`;
-      if (payment_screenshot) metaTag += `|ss:${encodeURIComponent(payment_screenshot.slice(0, 5000))}`; // truncation safe tag
+      if (payment_screenshot) metaTag += `|ss:${encodeURIComponent(payment_screenshot)}`;
       metaTag += `]`;
 
       insertObj.product = `${insertObj.product} ${metaTag}`;
