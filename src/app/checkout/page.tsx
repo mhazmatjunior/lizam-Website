@@ -96,11 +96,6 @@ export default function CheckoutPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload a valid image screenshot (JPG, PNG, WebP).");
-      return;
-    }
-
     setScreenshotFile(file);
     setIsUploading(true);
 

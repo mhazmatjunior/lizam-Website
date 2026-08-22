@@ -10,94 +10,64 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'Uploaded file must be an image' }, { status: 400 });
-    }
-
-    // Limit file size to 10MB
-    const MAX_BYTES = 10 * 1024 * 1024;
+    // Limit file size to 15MB
+    const MAX_BYTES = 15 * 1024 * 1024;
     if (file.size > MAX_BYTES) {
-      return NextResponse.json({ error: 'File size exceeds 10MB limit' }, { status: 400 });
+      return NextResponse.json({ error: 'File size exceeds 15MB limit' }, { status: 400 });
     }
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // List available Supabase Storage buckets
-    let targetBucket = 'payment-proofs';
-    try {
-      const { data: buckets } = await supabaseAdmin.storage.listBuckets();
-      if (buckets && buckets.length > 0) {
-        const hasProofs = buckets.some(b => b.name === 'payment-proofs');
-        const hasProductImages = buckets.some(b => b.name === 'product-images');
-        if (hasProofs) {
-          targetBucket = 'payment-proofs';
-        } else if (hasProductImages) {
-          targetBucket = 'product-images';
-        } else {
-          // Attempt to create payment-proofs bucket if none exist
-          await supabaseAdmin.storage.createBucket('payment-proofs', { public: true }).catch(() => {});
-          targetBucket = 'payment-proofs';
-        }
-      } else {
-        await supabaseAdmin.storage.createBucket('payment-proofs', { public: true }).catch(() => {});
-      }
-    } catch (bErr) {
-      console.warn('⚠️ Bucket check warning:', bErr);
-    }
+    // Determine correct content type & extension (supporting HEIC, PNG, JPG, WebP, PDF, etc.)
+    const fileExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const contentType = file.type || (fileExt === 'pdf' ? 'application/pdf' : `image/${fileExt}`);
 
-    const fileExt = file.name.split('.').pop() || 'jpg';
-    const fileName = `screenshot-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+    // Try uploading to Supabase Storage buckets
+    const bucketsToTry = ['payment-proofs', 'product-images'];
 
-    const { data: uploadData, error: uploadError } = await supabaseAdmin
-      .storage
-      .from(targetBucket)
-      .upload(fileName, buffer, {
-        contentType: file.type,
-        upsert: true,
-      });
+    for (const bucketName of bucketsToTry) {
+      try {
+        // Ensure bucket exists with public access
+        await supabaseAdmin.storage.createBucket(bucketName, { public: true }).catch(() => {});
 
-    if (uploadError) {
-      console.error('❌ Supabase Storage upload error:', uploadError.message);
-      // Try fallback to product-images if payment-proofs bucket failed
-      if (targetBucket !== 'product-images') {
-        const fallbackUpload = await supabaseAdmin
+        const fileName = `proof-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+
+        const { data: uploadData, error: uploadError } = await supabaseAdmin
           .storage
-          .from('product-images')
+          .from(bucketName)
           .upload(fileName, buffer, {
-            contentType: file.type,
+            contentType,
             upsert: true,
           });
 
-        if (!fallbackUpload.error && fallbackUpload.data) {
-          const { data: fallbackUrlData } = supabaseAdmin
+        if (!uploadError && uploadData) {
+          const { data: publicUrlData } = supabaseAdmin
             .storage
-            .from('product-images')
-            .getPublicUrl(fallbackUpload.data.path);
+            .from(bucketName)
+            .getPublicUrl(uploadData.path);
 
-          if (fallbackUrlData?.publicUrl) {
-            console.log('✅ Payment screenshot saved to product-images fallback bucket:', fallbackUrlData.publicUrl);
-            return NextResponse.json({ success: true, url: fallbackUrlData.publicUrl });
+          if (publicUrlData?.publicUrl) {
+            console.log(`✅ Screenshot uploaded to Supabase Storage (${bucketName}):`, publicUrlData.publicUrl);
+            return NextResponse.json({ success: true, url: publicUrlData.publicUrl });
           }
+        } else {
+          console.warn(`⚠️ Upload to ${bucketName} failed:`, uploadError?.message);
         }
+      } catch (bErr: any) {
+        console.warn(`⚠️ Bucket ${bucketName} exception:`, bErr.message);
       }
-      return NextResponse.json({ error: `Storage upload failed: ${uploadError.message}` }, { status: 500 });
     }
 
-    const { data: publicUrlData } = supabaseAdmin
-      .storage
-      .from(targetBucket)
-      .getPublicUrl(uploadData.path);
+    // Safe Fallback: Generate clean Data URI for any file format
+    const base64Data = buffer.toString('base64');
+    const dataUri = `data:${contentType};base64,${base64Data}`;
 
-    if (!publicUrlData?.publicUrl) {
-      return NextResponse.json({ error: 'Could not obtain public image URL' }, { status: 500 });
-    }
-
-    console.log('✅ Payment screenshot uploaded successfully to Supabase Storage:', publicUrlData.publicUrl);
-    return NextResponse.json({ success: true, url: publicUrlData.publicUrl });
+    console.log(`✅ File converted to Data URI fallback (${(file.size / 1024).toFixed(1)} KB)`);
+    return NextResponse.json({ success: true, url: dataUri });
 
   } catch (error: any) {
-    console.error('❌ Upload API Error:', error.message);
+    console.error('❌ Universal Upload API Error:', error.message);
     return NextResponse.json({ error: error.message || 'File upload failed' }, { status: 500 });
   }
 }

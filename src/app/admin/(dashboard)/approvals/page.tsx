@@ -244,12 +244,22 @@ export default function ApprovalsPage() {
                         <FileText className="w-4 h-4" /> Uploaded Proof Screenshot
                       </span>
                       {order.paymentScreenshot && (
-                        <button 
-                          onClick={() => setPreviewImage(order.paymentScreenshot || null)}
-                          className="text-[9px] font-bold text-white/40 hover:text-gold flex items-center gap-1 uppercase"
-                        >
-                          Enlarge Image <ExternalLink className="w-3 h-3" />
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => setPreviewImage(order.paymentScreenshot || null)}
+                            className="text-[9px] font-bold text-white/40 hover:text-gold flex items-center gap-1 uppercase"
+                          >
+                            Enlarge <Eye className="w-3 h-3" />
+                          </button>
+                          <a 
+                            href={order.paymentScreenshot} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[9px] font-bold text-gold/80 hover:text-gold flex items-center gap-1 uppercase bg-gold/10 px-2 py-1 rounded border border-gold/20"
+                          >
+                            Open Direct <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
                       )}
                     </div>
 
@@ -322,12 +332,22 @@ export default function ApprovalsPage() {
               <h3 className="text-sm font-black uppercase text-gold tracking-widest flex items-center gap-2">
                 <Sparkles className="w-4 h-4" /> Full Resolution Payment Screenshot Proof
               </h3>
-              <button 
-                onClick={() => setPreviewImage(null)}
-                className="p-2 bg-white/5 text-white/40 hover:text-white rounded-xl"
-              >
-                Close (ESC)
-              </button>
+              <div className="flex items-center gap-3">
+                <a 
+                  href={previewImage} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-gold/10 hover:bg-gold/20 border border-gold/30 text-gold text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center gap-1.5 transition-all"
+                >
+                  Open Original File <ExternalLink className="w-3 h-3" />
+                </a>
+                <button 
+                  onClick={() => setPreviewImage(null)}
+                  className="p-2 bg-white/5 text-white/40 hover:text-white rounded-xl"
+                >
+                  Close (ESC)
+                </button>
+              </div>
             </div>
             <div className="max-h-[75vh] overflow-auto flex items-center justify-center">
               <img 
