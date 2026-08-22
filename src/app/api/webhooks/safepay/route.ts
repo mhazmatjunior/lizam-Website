@@ -51,19 +51,20 @@ export async function POST(req: NextRequest) {
          console.error(`❌ Webhook Order Update Error for ${orderId}:`, updateError.message);
        } else if (order) {
          console.log(`🔄 Database Status updated to PAID for order: ${orderId}`);
-         // Trigger transactional email
-         sendOrderConfirmationEmail({
-           orderId: order.order_id,
-           name: order.name,
-           email: order.email,
-           phone: order.phone,
-           address: order.address,
-           product: order.product,
-           amount: order.amount,
-           paymentMethod: order.payment_method || 'safepay'
-         }).catch(err => {
+         try {
+           await sendOrderConfirmationEmail({
+             orderId: order.order_id,
+             name: order.name,
+             email: order.email,
+             phone: order.phone,
+             address: order.address,
+             product: order.product,
+             amount: order.amount,
+             paymentMethod: order.payment_method || 'safepay'
+           });
+         } catch (err: any) {
            console.error('❌ Failed to send online order confirmation email:', err.message);
-         });
+         }
        }
     }
 

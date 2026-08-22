@@ -92,11 +92,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    console.log(`✅ New Order Saved in Supabase: ${orderId} - ${name} (${email}) [${initialStatus}]`);
-
-    // If order is submitted as unverified or cashondelivery, send confirmation email
-    if (initialStatus === 'unverified' || payment_method?.startsWith('cod_')) {
-      sendOrderConfirmationEmail({
+    // Send order confirmation email for new order
+    try {
+      await sendOrderConfirmationEmail({
         orderId,
         name,
         email,
@@ -104,10 +102,10 @@ export async function POST(req: NextRequest) {
         address,
         product: product || '7TH OCT (Pre-Order)',
         amount: amount || 150,
-        paymentMethod: payment_method,
-      }).catch(err => {
-        console.error('❌ Failed to send order confirmation email:', err.message);
+        paymentMethod: payment_method || 'safepay',
       });
+    } catch (err: any) {
+      console.error('❌ Failed to send order confirmation email:', err.message);
     }
 
     return NextResponse.json({ success: true, orderId });
@@ -156,14 +154,14 @@ export async function PATCH(req: NextRequest) {
         paymentMethod: updatedOrder.payment_method || 'safepay',
       };
 
-      if (status === 'paid') {
-        sendPaymentVerifiedEmail(emailPayload).catch(err => {
-          console.error('❌ Failed to send payment verified email:', err.message);
-        });
-      } else if (status === 'shipped') {
-        sendOrderShippedEmail(emailPayload).catch(err => {
-          console.error('❌ Failed to send order shipped email:', err.message);
-        });
+      try {
+        if (status === 'paid') {
+          await sendPaymentVerifiedEmail(emailPayload);
+        } else if (status === 'shipped') {
+          await sendOrderShippedEmail(emailPayload);
+        }
+      } catch (eErr: any) {
+        console.error(`❌ Status email sending error for status ${status}:`, eErr.message);
       }
     }
 
