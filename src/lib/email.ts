@@ -12,10 +12,10 @@ interface OrderEmailData {
 }
 
 function getTransporter() {
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = parseInt(process.env.SMTP_PORT || '465');
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPassword = process.env.SMTP_PASSWORD;
+  const smtpHost = process.env.SMTP_HOST || 'smtp.resend.com';
+  const smtpPort = parseInt(process.env.SMTP_PORT || '587');
+  const smtpUser = process.env.SMTP_USER || 'resend';
+  const smtpPassword = process.env.SMTP_PASSWORD || process.env.RESEND_API_KEY;
 
   const isConfigured = Boolean(smtpHost && smtpUser && smtpPassword);
 
@@ -43,10 +43,64 @@ function getMethodLabel(paymentMethod: string) {
   return 'Online Card Payment (Safepay)';
 }
 
+// BULLETPROOF DUAL SENDER ENGINE (Resend HTTP API + Nodemailer SMTP Fallback)
+async function sendMailHelper(to: string, subject: string, html: string) {
+  const apiKey = process.env.RESEND_API_KEY || process.env.SMTP_PASSWORD;
+  const fromEmail = getFromEmail();
+
+  // 1. Try Resend HTTP API directly first (bypasses serverless port blocks, 100% reliable on Vercel)
+  if (apiKey && apiKey.trim().startsWith('re_')) {
+    try {
+      console.log(`✉️ Sending email via Resend HTTP API to ${to}...`);
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey.trim()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [to],
+          subject,
+          html,
+        }),
+      });
+
+      const resData = await res.json();
+      if (res.ok) {
+        console.log(`✅ Resend HTTP API email delivered successfully:`, resData.id);
+        return { success: true, messageId: resData.id };
+      }
+      console.warn(`⚠️ Resend HTTP API returned status ${res.status}:`, JSON.stringify(resData));
+    } catch (httpErr: any) {
+      console.error('⚠️ Resend HTTP API fetch failed, trying Nodemailer SMTP:', httpErr.message);
+    }
+  }
+
+  // 2. Fallback to Nodemailer SMTP
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.log(`\n--- ✉️ [MOCK EMAIL LOGGER] To: ${to} | Subject: ${subject} ---`);
+    return { success: true, mock: true };
+  }
+
+  try {
+    const info = await transporter.sendMail({
+      from: fromEmail,
+      to,
+      subject,
+      html,
+    });
+    console.log(`✉️ Nodemailer SMTP Email sent successfully: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error: any) {
+    console.error('❌ Nodemailer SMTP Send Error:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 // 1. ORDER CONFIRMATION EMAIL (ON ORDER PLACED)
 export async function sendOrderConfirmationEmail(order: OrderEmailData) {
-  const transporter = getTransporter();
-  const fromEmail = getFromEmail();
   const methodLabel = getMethodLabel(order.paymentMethod);
 
   const htmlContent = `
@@ -107,31 +161,11 @@ export async function sendOrderConfirmationEmail(order: OrderEmailData) {
     </html>
   `;
 
-  if (!transporter) {
-    console.log(`\n--- ✉️ [MOCK EMAIL CONFIRMATION] To: ${order.email} (Order ID: ${order.orderId}) ---`);
-    return { success: true, mock: true };
-  }
-
-  try {
-    const info = await transporter.sendMail({
-      from: fromEmail,
-      to: order.email,
-      subject: `RAANAE Order Confirmation - ${order.orderId}`,
-      html: htmlContent,
-    });
-    console.log(`✉️ Order Confirmation Email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error: any) {
-    console.error('❌ Nodemailer Send Error:', error.message);
-    return { success: false, error: error.message };
-  }
+  return sendMailHelper(order.email, `RAANAE Order Confirmation - ${order.orderId}`, htmlContent);
 }
 
 // 2. PAYMENT VERIFIED EMAIL (ON ADMIN VERIFY)
 export async function sendPaymentVerifiedEmail(order: OrderEmailData) {
-  const transporter = getTransporter();
-  const fromEmail = getFromEmail();
-
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -173,31 +207,11 @@ export async function sendPaymentVerifiedEmail(order: OrderEmailData) {
     </html>
   `;
 
-  if (!transporter) {
-    console.log(`\n--- ✉️ [MOCK EMAIL PAYMENT VERIFIED] To: ${order.email} (Order ID: ${order.orderId}) ---`);
-    return { success: true, mock: true };
-  }
-
-  try {
-    const info = await transporter.sendMail({
-      from: fromEmail,
-      to: order.email,
-      subject: `Payment Verified - Order ${order.orderId} Confirmed!`,
-      html: htmlContent,
-    });
-    console.log(`✉️ Payment Verified Email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error: any) {
-    console.error('❌ Nodemailer Send Error:', error.message);
-    return { success: false, error: error.message };
-  }
+  return sendMailHelper(order.email, `Payment Verified - Order ${order.orderId} Confirmed!`, htmlContent);
 }
 
 // 3. ORDER SHIPPED EMAIL (ON ADMIN MARK SHIPPED)
 export async function sendOrderShippedEmail(order: OrderEmailData) {
-  const transporter = getTransporter();
-  const fromEmail = getFromEmail();
-
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -239,22 +253,5 @@ export async function sendOrderShippedEmail(order: OrderEmailData) {
     </html>
   `;
 
-  if (!transporter) {
-    console.log(`\n--- ✉️ [MOCK EMAIL ORDER SHIPPED] To: ${order.email} (Order ID: ${order.orderId}) ---`);
-    return { success: true, mock: true };
-  }
-
-  try {
-    const info = await transporter.sendMail({
-      from: fromEmail,
-      to: order.email,
-      subject: `Order Dispatched - Your RAANAE Order ${order.orderId} is On Its Way!`,
-      html: htmlContent,
-    });
-    console.log(`✉️ Order Shipped Email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error: any) {
-    console.error('❌ Nodemailer Send Error:', error.message);
-    return { success: false, error: error.message };
-  }
+  return sendMailHelper(order.email, `Order Dispatched - Your RAANAE Order ${order.orderId} is On Its Way!`, htmlContent);
 }
