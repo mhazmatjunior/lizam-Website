@@ -287,6 +287,22 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []);
 
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    orderId: string;
+    newStatus: string;
+  } | null>(null);
+
+  const promptStatusChange = (orderId: string, newStatus: string) => {
+    setPendingStatusChange({ orderId, newStatus });
+  };
+
+  const confirmStatusChange = async () => {
+    if (!pendingStatusChange) return;
+    const { orderId, newStatus } = pendingStatusChange;
+    setPendingStatusChange(null);
+    await updateOrderStatus(orderId, newStatus);
+  };
+
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
     try {
@@ -310,8 +326,7 @@ export default function AdminOrdersPage() {
   };
 
   const handleVerifyPayment = async (orderId: string) => {
-    await updateOrderStatus(orderId, 'paid');
-    setSelectedOrder(null);
+    promptStatusChange(orderId, 'paid');
   };
 
   // Split orders into Active vs History
@@ -477,7 +492,7 @@ export default function AdminOrdersPage() {
                         <td className="px-6 py-5">
                           <StatusDropdown 
                             currentStatus={order.status} 
-                            onUpdate={(newStatus) => updateOrderStatus(order.orderId, newStatus)}
+                            onUpdate={(newStatus) => promptStatusChange(order.orderId, newStatus)}
                             isLoading={updatingId === order.orderId}
                           />
                         </td>
@@ -600,6 +615,54 @@ export default function AdminOrdersPage() {
           onClose={() => setSelectedOrder(null)} 
           onVerifyPayment={handleVerifyPayment}
         />
+      )}
+
+      {/* Admin Status Change Confirmation Modal */}
+      {pendingStatusChange && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPendingStatusChange(null)}
+            className="fixed inset-0 bg-black/90 backdrop-blur-md"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="relative w-full max-w-md bg-[#0a0a0a] border border-gold/30 rounded-[32px] p-8 shadow-2xl space-y-6 z-10 text-center"
+          >
+            <div className="w-14 h-14 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-gold mx-auto">
+              <AlertTriangle className="w-7 h-7 animate-bounce" />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-black uppercase tracking-tight text-white">Confirm Status Change</h3>
+              <p className="text-[11px] text-white/50 leading-relaxed font-medium">
+                Are you sure you want to update order <span className="text-gold font-mono font-bold">{pendingStatusChange.orderId}</span> status to <span className="text-gold font-black uppercase">{pendingStatusChange.newStatus}</span>?
+              </p>
+              <p className="text-[9px] text-white/30 uppercase tracking-widest pt-2">
+                💡 This action will update the database and trigger an automated email notification to the customer.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={confirmStatusChange}
+                className="flex-1 py-4 bg-gold hover:bg-gold-light text-black font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_0_20px_rgba(226,187,97,0.3)]"
+              >
+                Confirm & Apply
+              </button>
+              <button
+                onClick={() => setPendingStatusChange(null)}
+                className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );

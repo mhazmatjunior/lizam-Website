@@ -62,6 +62,15 @@ export default function ApprovalsPage() {
     fetchOrders();
   }, []);
 
+  const [confirmVerifyOrderId, setConfirmVerifyOrderId] = useState<string | null>(null);
+
+  const confirmVerifyPayment = async () => {
+    if (!confirmVerifyOrderId) return;
+    const targetId = confirmVerifyOrderId;
+    setConfirmVerifyOrderId(null);
+    await handleVerifyPayment(targetId);
+  };
+
   const handleVerifyPayment = async (orderId: string) => {
     setVerifyingId(orderId);
     try {
@@ -273,7 +282,7 @@ export default function ApprovalsPage() {
                   </div>
 
                   <button
-                    onClick={() => handleVerifyPayment(order.orderId)}
+                    onClick={() => setConfirmVerifyOrderId(order.orderId)}
                     disabled={verifyingId === order.orderId}
                     className="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_10px_30px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2 disabled:opacity-50"
                   >
@@ -313,6 +322,54 @@ export default function ApprovalsPage() {
               <img src={previewImage} alt="Payment Proof Fullscreen" className="max-h-[70vh] object-contain rounded-xl" />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Payment Verification Confirmation Modal */}
+      {confirmVerifyOrderId && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setConfirmVerifyOrderId(null)}
+            className="fixed inset-0 bg-black/90 backdrop-blur-md"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="relative w-full max-w-md bg-[#0a0a0a] border border-emerald-500/30 rounded-[32px] p-8 shadow-2xl space-y-6 z-10 text-center"
+          >
+            <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto">
+              <CheckCircle className="w-7 h-7" />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-black uppercase tracking-tight text-white">Confirm Payment Verification</h3>
+              <p className="text-[11px] text-white/60 leading-relaxed font-medium">
+                Are you sure you want to verify and approve payment for order <span className="text-emerald-400 font-mono font-bold">{confirmVerifyOrderId}</span>?
+              </p>
+              <p className="text-[9px] text-white/30 uppercase tracking-widest pt-2">
+                💡 This will mark the order as PAID in database and send a Payment Verified confirmation email to the customer.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={confirmVerifyPayment}
+                className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+              >
+                Verify & Approve
+              </button>
+              <button
+                onClick={() => setConfirmVerifyOrderId(null)}
+                className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>

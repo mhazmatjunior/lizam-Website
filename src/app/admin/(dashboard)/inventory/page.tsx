@@ -392,7 +392,7 @@ export default function InventoryPage() {
                   </div>
 
                   <div className="space-y-4 pt-2 border-t border-white/5">
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gold/60 pt-5">Fragrance Profile &amp; Notes</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white pt-5 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-gold inline-block" /> Fragrance Profile &amp; Notes</p>
                     <Field label="Top Notes">
                       <input type="text" value={form.noteTop} onChange={(e) => set("noteTop", e.target.value)} className={inputCls} placeholder="Crisp Apple, Rich Davana" />
                     </Field>

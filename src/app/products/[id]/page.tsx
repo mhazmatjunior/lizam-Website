@@ -168,7 +168,7 @@ export default function ProductDetailPage() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="space-y-6"
             >
-              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Fragrance Profile &amp; Notes</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Fragrance Profile &amp; Notes</h3>
               <div className="grid grid-cols-3 gap-4">
                 {[
                   { id: "top", label: "Top Notes", icon: Sparkles, color: "text-blue-400" },
@@ -183,8 +183,8 @@ export default function ProductDetailPage() {
                         ? 'bg-white/[0.05] border-gold/30 translate-y-[-4px]' 
                         : 'bg-white/[0.02] border-white/5 hover:border-white/10'}`}
                   >
-                    <note.icon className={`w-4 h-4 transition-transform duration-500 group-hover/note:scale-110 ${activeNote === note.id ? 'text-gold' : 'text-white/20'}`} />
-                    <span className="text-[7px] font-black uppercase tracking-widest text-center">{note.label}</span>
+                    <note.icon className={`w-4 h-4 transition-transform duration-500 group-hover/note:scale-110 ${activeNote === note.id ? 'text-gold' : 'text-white/60'}`} />
+                    <span className="text-[7px] font-black uppercase tracking-widest text-center text-white/80">{note.label}</span>
                   </button>
                 ))}
               </div>
