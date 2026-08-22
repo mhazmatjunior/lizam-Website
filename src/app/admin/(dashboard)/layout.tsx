@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   Star,
   ShieldCheck,
+  Calculator,
   LogOut,
   Menu,
   ArrowLeft
@@ -18,9 +19,10 @@ import {
 
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Inventory", href: "/admin/inventory", icon: Package },
+  { name: "Audit", href: "/admin/audit", icon: Calculator },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Approvals", href: "/admin/approvals", icon: ShieldCheck },
+  { name: "Inventory", href: "/admin/inventory", icon: Package },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
 ];
 

@@ -165,46 +165,37 @@ export default function CheckoutPage() {
       const calculatedStatus = subMethod === 'manual' ? 'unverified' : (paymentMethod === 'cod' ? 'cashondelivery' : 'pending');
       const backendPaymentMethod = paymentMethod === 'founder' ? 'cod_founder' : (paymentMethod === 'cod' ? 'cod_standard' : 'safepay');
 
-      // 1. Create order in Database (Supabase)
-      const orderRes = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          address: fullAddress,
-          product: productSummary,
-          amount: totalAmount,
-          currency: 'PKR',
-          payment_method: backendPaymentMethod,
-          payment_sub_method: subMethod === 'manual' ? manualAccountType : subMethod,
-          payment_screenshot: screenshotUrl || null,
-          delivery_fee: codDeliveryFee + founderDeliveryFee,
-          status: calculatedStatus
-        }),
-      });
+      const tempOrderId = `ORD-${Date.now()}`;
 
-      const orderData = await orderRes.json();
-      if (!orderData.success) throw new Error(orderData.error || 'Failed to save order');
+      const orderPayload = {
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        address: fullAddress,
+        product: productSummary,
+        amount: totalAmount,
+        currency: 'PKR',
+        payment_method: backendPaymentMethod,
+        payment_sub_method: subMethod === 'manual' ? manualAccountType : subMethod,
+        payment_screenshot: screenshotUrl || null,
+        delivery_fee: codDeliveryFee + founderDeliveryFee,
+        status: calculatedStatus
+      };
 
-      const orderId = orderData.orderId;
+      // If choosing Safepay online payment, store pending order details locally and redirect to Safepay portal.
+      // Order will ONLY be inserted into DB upon successful payment return.
+      if (paymentMethod === 'online' && subMethod === 'safepay') {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(`pending_safepay_order_${tempOrderId}`, JSON.stringify(orderPayload));
+        }
 
-      // 2. Decrement stock in database for each item in cart
-      cart.forEach(item => {
-        decrementStock(item.id, item.quantity);
-      });
-
-      // 3. Conditional routing based on payment method
-      if (subMethod === 'safepay') {
-        // Create Safepay checkout session
         const checkoutRes = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             amount: totalAmount,
             currency: 'PKR',
-            orderId,
+            orderId: tempOrderId,
           }),
         });
 
@@ -213,11 +204,29 @@ export default function CheckoutPage() {
 
         clearCart();
         window.location.href = checkoutData.url;
-      } else {
-        // For Manual Bank Transfer / EasyPaisa / JazzCash
-        clearCart();
-        router.push(`/checkout/success/${orderId}`);
+        return;
       }
+
+      // For Manual Bank Transfer, EasyPaisa, JazzCash, and COD:
+      // Create order in Database (Supabase) now that user has explicitly submitted proof/confirmation
+      const orderRes = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderPayload),
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderData.success) throw new Error(orderData.error || 'Failed to save order');
+
+      const orderId = orderData.orderId;
+
+      // Decrement stock in database
+      cart.forEach(item => {
+        decrementStock(item.id, item.quantity);
+      });
+
+      clearCart();
+      router.push(`/checkout/success/${orderId}`);
     } catch (err: any) {
       console.error('❌ Checkout placement failed:', err.message);
       alert(`Checkout failed: ${err.message}`);

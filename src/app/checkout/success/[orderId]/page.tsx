@@ -34,18 +34,32 @@ export default function SuccessPage({ params }: { params: Promise<{ orderId: str
 
     (async () => {
       try {
+        // If coming from a successful Safepay online payment redirect, save order to DB now
+        const pendingSafepayRaw = typeof window !== 'undefined' ? sessionStorage.getItem(`pending_safepay_order_${orderId}`) : null;
+        if (pendingSafepayRaw) {
+          try {
+            const pendingPayload = JSON.parse(pendingSafepayRaw);
+            pendingPayload.status = 'paid';
+            pendingPayload.order_id = orderId;
+
+            const saveRes = await fetch('/api/orders', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(pendingPayload),
+            });
+            const saveData = await saveRes.json();
+            if (saveData.success) {
+              sessionStorage.removeItem(`pending_safepay_order_${orderId}`);
+            }
+          } catch (pErr) {
+            console.error('Failed to parse/save pending Safepay order:', pErr);
+          }
+        }
+
         const res = await fetch(`/api/orders/${orderId}`);
         const data = await res.json();
         const found: OrderState | undefined = data.order;
         setOrder(found ?? null);
-
-        // Nothing is marked paid here on purpose.
-        //
-        // Reaching this page only means the browser was redirected to it — the
-        // customer may have abandoned the payment, or typed the URL. Payment is
-        // confirmed solely by the Safepay webhook, which verifies a signature
-        // server-side. Marking 'paid' on page load produced orders that claimed
-        // to be paid when no money had arrived.
       } catch (err) {
         console.error('Failed to load order:', err);
       } finally {
