@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       tracker: null,
       payment_method: payment_method || 'safepay',
       payment_sub_method: payment_sub_method || null,
+      payment_proof_url: payment_screenshot || null,
       payment_screenshot: payment_screenshot || null,
       delivery_fee: delivery_fee || 0
     };
@@ -190,7 +191,7 @@ export async function GET() {
     const mappedOrders = (orders || []).map((o: any) => {
       let payMethod = o.payment_method || 'safepay';
       let paySubMethod = o.payment_sub_method || '';
-      let payScreenshot = o.payment_screenshot || '';
+      let payScreenshot = o.payment_proof_url || o.payment_screenshot || '';
       let prodName = o.product || '';
 
       // Robust Metadata Parser supporting both extended columns & embedded product tags

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
+import { FOUNDER_DELIVERY_TIERS, getFounderDeliveryInfo } from "@/data/founder-cities";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -70,8 +71,9 @@ export default function CheckoutPage() {
   }, []);
 
   // Calculation Logic
+  const founderInfo = getFounderDeliveryInfo(formData.city);
   const codDeliveryFee = paymentMethod === 'cod' ? standardDeliveryFee : 0;
-  const founderDeliveryFee = paymentMethod === 'founder' ? 5000 : 0;
+  const founderDeliveryFee = paymentMethod === 'founder' ? (founderInfo ? founderInfo.price : 4000) : 0;
   const totalAmount = subtotal + codDeliveryFee + founderDeliveryFee;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -90,6 +92,53 @@ export default function CheckoutPage() {
     navigator.clipboard.writeText(text);
     setCopiedText(label);
     setTimeout(() => setCopiedText(null), 2000);
+  };
+
+  const compressImageFile = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const rawUrl = event.target?.result as string;
+        if (!file.type.startsWith('image/')) {
+          return resolve(rawUrl);
+        }
+        const img = typeof window !== 'undefined' ? new window.Image() : document.createElement('img');
+        img.src = rawUrl;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.75));
+          } else {
+            resolve(rawUrl);
+          }
+        };
+        img.onerror = () => resolve(rawUrl);
+      };
+      reader.onerror = () => resolve('');
+    });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,9 +182,10 @@ export default function CheckoutPage() {
 
     // City validation for Founder Delivery
     if (paymentMethod === 'founder') {
-      const normalizedCity = formData.city.toLowerCase().trim();
-      if (normalizedCity !== 'lahore' && normalizedCity !== 'lhr') {
-        newErrors.city = "Founder Delivery is currently only available in Lahore.";
+      if (!formData.city.trim()) {
+        newErrors.city = "Please enter or select a supported city for Hand Delivery by Founder.";
+      } else if (!founderInfo) {
+        newErrors.city = "Hand Delivered By Founder is available only in select cities (Tier 1: Lahore, Gujranwala, Sialkot, Gujrat, Jhelum, Faisalabad | Tier 2: Islamabad, Rawalpindi | Tier 3: Multan, Bahawalpur | Tier 4: Karachi, Rahim Yar Khan).";
       }
     }
 
@@ -414,17 +464,19 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <h4 className="text-xs font-black uppercase tracking-widest text-gold flex items-center gap-2">
-                        Founder Delivery <Crown className="w-3.5 h-3.5 text-gold" />
+                        Hand Delivered By The Founder <Crown className="w-3.5 h-3.5 text-gold" />
                       </h4>
-                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Exclusive hand-delivery by RAANAE Founder (Lahore Only)</p>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Exclusive Hand-Delivery by Founder in Select Major Cities</p>
                     </div>
                   </div>
-                  <span className="text-[7px] font-black uppercase tracking-widest bg-gold text-black px-2 py-0.5 rounded font-black border border-gold">+ Rs 5,000</span>
+                  <span className="text-[7px] font-black uppercase tracking-widest bg-gold text-black px-2 py-0.5 rounded font-black border border-gold">
+                    {founderInfo ? `+ ${founderInfo.priceFormatted}` : '+ From Rs 4,000'}
+                  </span>
                 </div>
 
               </div>
 
-              {/* COD Free Shipping Alert Banner */}
+              {/* COD Alert Banner */}
               {paymentMethod === 'cod' && (
                 <div className="p-4 rounded-xl bg-gold/10 border border-gold/30 flex items-center gap-3 text-[10px] text-gold font-bold uppercase tracking-wider">
                   <Sparkles className="w-4 h-4 shrink-0" />
@@ -432,11 +484,57 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {/* Founder Delivery City Warning */}
-              {paymentMethod === 'founder' && formData.city && formData.city.toLowerCase().trim() !== 'lahore' && formData.city.toLowerCase().trim() !== 'lhr' && (
-                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-3 text-[10px] text-red-400 font-bold uppercase tracking-wider">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>Founder Delivery is not yet available in your city ({formData.city}). Available in Lahore only.</span>
+              {/* Founder Delivery Interactive City Selector & Pricing Tier Breakdown */}
+              {paymentMethod === 'founder' && (
+                <div className="p-6 rounded-2xl bg-white/[0.02] border border-gold/30 space-y-4">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <span className="text-[11px] font-black text-gold uppercase tracking-widest flex items-center gap-2">
+                      <Crown className="w-4 h-4" /> Select Your City For Founder Delivery
+                    </span>
+                    {founderInfo && (
+                      <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                        Matched: {founderInfo.matchedCity} ({founderInfo.priceFormatted})
+                      </span>
+                    )}
+                  </div>
+
+                  {/* City Tiers Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    {FOUNDER_DELIVERY_TIERS.map((tierObj) => (
+                      <div key={tierObj.tier} className="bg-black/40 border border-white/5 rounded-xl p-3 space-y-2">
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-wider text-gold">
+                          <span>Tier {tierObj.tier} Cities</span>
+                          <span className="bg-gold/10 px-2 py-0.5 rounded text-gold border border-gold/20">{tierObj.priceFormatted}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {tierObj.cities.map((city) => {
+                            const isSelected = formData.city.toLowerCase().trim().includes(city.toLowerCase());
+                            return (
+                              <button
+                                type="button"
+                                key={city}
+                                onClick={() => setFormData((prev) => ({ ...prev, city }))}
+                                className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all
+                                  ${isSelected 
+                                    ? 'bg-gold text-black shadow-lg shadow-gold/20' 
+                                    : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'}`}
+                              >
+                                {city}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Warning if Unsupported City Entered */}
+                  {formData.city.trim() && !founderInfo && (
+                    <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-2.5 text-[10px] text-red-400 font-bold uppercase tracking-wider">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>Hand Delivered By The Founder is not yet available in "{formData.city}". Please select a supported city above or switch to standard delivery.</span>
+                    </div>
+                  )}
                 </div>
               )}
             </section>
@@ -657,8 +755,8 @@ export default function CheckoutPage() {
 
                 {paymentMethod === 'founder' && (
                   <div className="flex justify-between text-[10px] uppercase tracking-widest text-[#e2bb61] font-bold">
-                    <span>Founder Delivery Fee</span>
-                    <span>Rs 5,000</span>
+                    <span>Founder Delivery ({founderInfo ? founderInfo.matchedCity : 'Select City'})</span>
+                    <span>{founderInfo ? founderInfo.priceFormatted : 'Rs 4,000'}</span>
                   </div>
                 )}
 
