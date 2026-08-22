@@ -262,6 +262,17 @@ export default function ApprovalsPage() {
                           src={order.paymentScreenshot} 
                           alt="Payment Proof" 
                           className="max-h-60 object-contain rounded-lg group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              const fallback = document.createElement('div');
+                              fallback.className = 'text-center p-4 text-amber-300/80 text-[9px] uppercase font-black tracking-widest';
+                              fallback.innerHTML = '⚠️ Legacy screenshot truncated on previous build';
+                              parent.appendChild(fallback);
+                            }
+                          }}
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white text-xs font-bold uppercase">
                           <Eye className="w-4 h-4 text-gold" /> Click to Inspect

@@ -223,11 +223,22 @@ const OrderDetailsModal = ({
                 Full Screen <ExternalLink className="w-3 h-3" />
               </a>
             </div>
-            <div className="relative w-full max-h-80 bg-black/60 rounded-xl border border-white/10 overflow-hidden flex items-center justify-center p-2">
+            <div className="relative w-full min-h-40 max-h-80 bg-black/60 rounded-xl border border-white/10 overflow-hidden flex items-center justify-center p-2">
               <img 
                 src={order.paymentScreenshot} 
                 alt="Payment Proof" 
-                className="max-h-72 object-contain rounded-lg shadow-lg" 
+                className="max-h-72 object-contain rounded-lg shadow-lg"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    const fallback = document.createElement('div');
+                    fallback.className = 'text-center p-6 text-amber-300/80 text-[10px] uppercase font-black tracking-widest space-y-1';
+                    fallback.innerHTML = '<span>⚠️ Legacy screenshot string was truncated on previous build.</span><br/><span class="text-[8px] text-white/40 font-medium">New orders upload in 100% full resolution.</span>';
+                    parent.appendChild(fallback);
+                  }
+                }}
               />
             </div>
           </div>
