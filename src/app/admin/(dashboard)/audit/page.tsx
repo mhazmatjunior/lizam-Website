@@ -179,23 +179,23 @@ export default function AuditPage() {
     });
 
     const summaryRow = [
-      `"*** GRAND TOTALS ***"`,
+      `"GRAND TOTALS"`,
       `""`,
       `""`,
       `""`,
       `""`,
       `""`,
       `""`,
-      `"TOTAL BOTTLES: ${totalBottlesSold}"`,
+      totalBottlesSold,
       `""`,
       `""`,
-      `"TOTAL REVENUE: Rs ${totalGrossRevenue.toLocaleString()}"`,
-      `"TOTAL BOTTLE COST: Rs ${totalBottleCost.toLocaleString()}"`,
-      `"TOTAL DELIVERY COST: Rs ${totalDeliveryExpenses.toLocaleString()}"`,
-      `"TOTAL NET PROFIT: Rs ${totalNetProfit.toLocaleString()}"`,
-      `"TOTAL 50% SHARE: Rs ${profit50Percent.toLocaleString()}"`,
-      `"TOTAL 30% SHARE: Rs ${profit30Percent.toLocaleString()}"`,
-      `"TOTAL 20% SHARE: Rs ${profit20Percent.toLocaleString()}"`
+      totalGrossRevenue,
+      totalBottleCost,
+      totalDeliveryExpenses,
+      totalNetProfit,
+      profit50Percent,
+      profit30Percent,
+      profit20Percent
     ].join(",");
 
     const csvContent = "\uFEFF" + [headers.join(","), ...rows, summaryRow].join("\n");
