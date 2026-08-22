@@ -151,8 +151,10 @@ export default function AdminDashboard() {
     fetchOrders();
   }, []);
 
-  // Logic Refinement: Calculate real metrics
-  const totalRevenue = orders.reduce((acc, order) => acc + (order.amount || 0), 0);
+  // Logic Refinement: Calculate real metrics (Revenue strictly calculated from Delivered orders)
+  const totalRevenue = orders
+    .filter(o => o.status === 'delivered')
+    .reduce((acc, order) => acc + (order.amount || 0), 0);
   const activeOrdersCount = orders.filter(o => o.status !== "cancelled").length;
   const totalCustomersCount = new Set(orders.map(o => o.email)).size;
 
