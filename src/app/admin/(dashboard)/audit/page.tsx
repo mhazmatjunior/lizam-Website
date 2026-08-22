@@ -179,23 +179,23 @@ export default function AuditPage() {
     });
 
     const summaryRow = [
-      `"GRAND TOTALS"`,
+      `"*** GRAND TOTALS ***"`,
       `""`,
       `""`,
       `""`,
       `""`,
       `""`,
       `""`,
-      totalBottlesSold,
+      `"TOTAL BOTTLES: ${totalBottlesSold}"`,
       `""`,
       `""`,
-      totalGrossRevenue,
-      totalBottleCost,
-      totalDeliveryExpenses,
-      totalNetProfit,
-      profit50Percent,
-      profit30Percent,
-      profit20Percent
+      `"TOTAL REVENUE: Rs ${totalGrossRevenue.toLocaleString()}"`,
+      `"TOTAL BOTTLE COST: Rs ${totalBottleCost.toLocaleString()}"`,
+      `"TOTAL DELIVERY COST: Rs ${totalDeliveryExpenses.toLocaleString()}"`,
+      `"TOTAL NET PROFIT: Rs ${totalNetProfit.toLocaleString()}"`,
+      `"TOTAL 50% SHARE: Rs ${profit50Percent.toLocaleString()}"`,
+      `"TOTAL 30% SHARE: Rs ${profit30Percent.toLocaleString()}"`,
+      `"TOTAL 20% SHARE: Rs ${profit20Percent.toLocaleString()}"`
     ].join(",");
 
     const csvContent = "\uFEFF" + [headers.join(","), ...rows, summaryRow].join("\n");
@@ -435,23 +435,6 @@ export default function AuditPage() {
                   </tr>
                 ))}
               </tbody>
-
-              {/* Table Footer with Bold Summary Grand Totals */}
-              {itemizedLedger.length > 0 && (
-                <tfoot className="border-t-2 border-gold/50 bg-gradient-to-r from-gold/15 via-gold/5 to-gold/15 font-black">
-                  <tr className="font-black text-xs uppercase tracking-widest text-white">
-                    <td colSpan={3} className="px-5 py-5 text-gold font-black text-xs tracking-[0.2em]">★ GRAND TOTALS</td>
-                    <td className="px-5 py-5 text-white font-black text-xs">{totalBottlesSold}</td>
-                    <td className="px-5 py-5 text-white font-black text-xs">Rs {totalGrossRevenue.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-rose-400 font-black text-xs">Rs {totalBottleCost.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-cyan-400 font-black text-xs">Rs {totalDeliveryExpenses.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-emerald-400 font-black text-sm">Rs {totalNetProfit.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-gold font-black text-xs">Rs {profit50Percent.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-blue-400 font-black text-xs">Rs {profit30Percent.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-right text-purple-400 font-black text-xs">Rs {profit20Percent.toLocaleString()}</td>
-                  </tr>
-                </tfoot>
-              )}
             </table>
           </div>
         </div>
