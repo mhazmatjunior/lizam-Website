@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Edit2, Package, X, CheckCircle, Plus, AlertCircle, Trash2 } from "lucide-react";
+import { Search, Edit2, Package, X, CheckCircle, Plus, AlertCircle, Trash2, Truck, DollarSign } from "lucide-react";
 import { useProducts } from "@/context/ProductContext";
 import { type Product } from "@/data/products";
 
@@ -70,10 +70,48 @@ export default function InventoryPage() {
   const [form, setForm] = useState<FormState>(BLANK);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Two-step delete: the first click only arms it, so a stray click on a live
-  // store cannot remove a product.
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Global Delivery Fee Modal State
+  const [globalDeliveryFee, setGlobalDeliveryFee] = useState<number>(250);
+  const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
+  const [newDeliveryFeeInput, setNewDeliveryFeeInput] = useState<string>("250");
+  const [isSavingFee, setIsSavingFee] = useState(false);
+
+  React.useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings?.deliveryFee !== undefined) {
+          setGlobalDeliveryFee(data.settings.deliveryFee);
+          setNewDeliveryFeeInput(String(data.settings.deliveryFee));
+        }
+      })
+      .catch((err) => console.error("Failed to load global delivery fee:", err));
+  }, []);
+
+  const handleSaveDeliveryFee = async () => {
+    const feeNum = parseInt(newDeliveryFeeInput, 10);
+    if (isNaN(feeNum) || feeNum < 0) return;
+    setIsSavingFee(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deliveryFee: feeNum }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setGlobalDeliveryFee(feeNum);
+        setIsDeliveryModalOpen(false);
+      }
+    } catch (err) {
+      console.error("Failed to save global delivery fee:", err);
+    } finally {
+      setIsSavingFee(false);
+    }
+  };
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -175,12 +213,24 @@ export default function InventoryPage() {
             className="bg-transparent border-none outline-none text-[11px] font-medium placeholder:text-white/10 w-full text-white"
           />
         </div>
-        <button
-          onClick={openAdd}
-          className="w-full lg:w-auto px-7 py-3.5 rounded-2xl btn-premium-gold text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2"
-        >
-          <Plus className="w-4 h-4" /> New Product
-        </button>
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <button
+            onClick={() => {
+              setNewDeliveryFeeInput(String(globalDeliveryFee));
+              setIsDeliveryModalOpen(true);
+            }}
+            className="w-full lg:w-auto px-6 py-3.5 rounded-2xl bg-white/5 hover:bg-gold/10 border border-white/10 hover:border-gold/30 text-white/80 hover:text-gold text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all shadow-lg"
+          >
+            <Truck className="w-4 h-4 text-gold" />
+            Delivery Charges (Rs {globalDeliveryFee})
+          </button>
+          <button
+            onClick={openAdd}
+            className="w-full lg:w-auto px-7 py-3.5 rounded-2xl btn-premium-gold text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 shrink-0"
+          >
+            <Plus className="w-4 h-4 text-black" /> New Product
+          </button>
+        </div>
       </div>
 
       <div className="bg-white/[0.02] border border-white/5 rounded-[40px] overflow-hidden">
@@ -429,6 +479,81 @@ export default function InventoryPage() {
                     </div>
                   )}
                 </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Global Delivery Charges Modal */}
+        {isDeliveryModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsDeliveryModalOpen(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-[#0c0c0c] border border-gold/30 rounded-[32px] p-8 shadow-2xl space-y-6 z-10"
+            >
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold">
+                    <Truck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black uppercase tracking-tight text-white">Global Delivery Fee</h3>
+                    <p className="text-[9px] text-white/40 uppercase tracking-widest">Applies to all products across store</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsDeliveryModalOpen(false)}
+                  className="p-2 text-white/40 hover:text-white bg-white/5 rounded-xl transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block mb-2">
+                    Standard Delivery Fee (PKR)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3.5 text-xs font-bold text-gold">Rs</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newDeliveryFeeInput}
+                      onChange={(e) => setNewDeliveryFeeInput(e.target.value)}
+                      placeholder="e.g. 250"
+                      className="w-full bg-white/[0.03] border border-white/10 focus:border-gold/50 rounded-2xl pl-12 pr-4 py-3.5 text-sm text-white font-bold outline-none"
+                    />
+                  </div>
+                </div>
+                <p className="text-[9px] text-white/30 leading-relaxed">
+                  💡 Updating this amount will instantly change the standard delivery fee charged during checkout for all products across the website.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={handleSaveDeliveryFee}
+                  disabled={isSavingFee}
+                  className="flex-1 py-4 bg-gold hover:bg-gold-light text-black font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_0_20px_rgba(226,187,97,0.3)] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isSavingFee ? "Saving..." : "Save Global Delivery Fee"}
+                </button>
+                <button
+                  onClick={() => setIsDeliveryModalOpen(false)}
+                  className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all"
+                >
+                  Cancel
+                </button>
               </div>
             </motion.div>
           </div>

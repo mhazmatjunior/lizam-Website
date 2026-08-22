@@ -535,6 +535,7 @@ export default function AdminOrdersPage() {
                 <tr className="border-b border-white/5 bg-white/[0.01]">
                   <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Order ID</th>
                   <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Customer</th>
+                  <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Payment Mode</th>
                   <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Total Value</th>
                   <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Final Status</th>
                   <th className="px-6 py-5 text-right text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Details</th>
@@ -543,7 +544,7 @@ export default function AdminOrdersPage() {
               <tbody className="divide-y divide-white/[0.02]">
                 {historyOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-white/20">No order history records found.</td>
+                    <td colSpan={6} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-white/20">No order history records found.</td>
                   </tr>
                 ) : historyOrders.map((order) => {
                   const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.delivered;
@@ -556,6 +557,16 @@ export default function AdminOrdersPage() {
                       <td className="px-6 py-5">
                         <p className="text-[11px] font-bold uppercase tracking-widest text-white/80">{order.name}</p>
                         <p className="text-[9px] text-white/20">{order.email}</p>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-black uppercase tracking-widest text-white/60 bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                            {order.paymentMethod === 'cod_founder' ? 'Founder Delivery' : order.paymentMethod === 'cod_standard' ? 'COD' : 'Online'}
+                          </span>
+                          {order.paymentScreenshot && (
+                            <span className="block text-[7px] text-gold font-bold uppercase tracking-widest">★ SS Uploaded</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-5">
                         <p className="text-[11px] font-black text-gold">Rs {order.amount.toLocaleString()}</p>

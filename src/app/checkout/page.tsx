@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -56,8 +56,21 @@ export default function CheckoutPage() {
     phone: "",
   });
 
+  const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(250);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings?.deliveryFee !== undefined) {
+          setStandardDeliveryFee(data.settings.deliveryFee);
+        }
+      })
+      .catch((err) => console.error("Failed to load delivery fee:", err));
+  }, []);
+
   // Calculation Logic
-  const codDeliveryFee = paymentMethod === 'cod' ? 250 : 0;
+  const codDeliveryFee = paymentMethod === 'cod' ? standardDeliveryFee : 0;
   const founderDeliveryFee = paymentMethod === 'founder' ? 5000 : 0;
   const totalAmount = subtotal + codDeliveryFee + founderDeliveryFee;
 
@@ -380,10 +393,10 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <h4 className="text-xs font-black uppercase tracking-widest text-white">Cash on Delivery</h4>
-                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Pay product amount on doorstep (+ Rs 250 Delivery fee paid online upfront)</p>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Pay product amount on doorstep (+ Rs {standardDeliveryFee} Delivery fee paid online upfront)</p>
                     </div>
                   </div>
-                  <span className="text-[7px] font-black uppercase tracking-widest bg-white/10 text-white/60 px-2 py-0.5 rounded border border-white/10">+ Rs 250 Delivery</span>
+                  <span className="text-[7px] font-black uppercase tracking-widest bg-white/10 text-white/60 px-2 py-0.5 rounded border border-white/10">+ Rs {standardDeliveryFee} Delivery</span>
                 </div>
 
                 {/* Option 3: Founder Delivery */}
