@@ -15,7 +15,10 @@ import {
   Wind,
   ShieldCheck,
   Truck,
-  ArrowRight
+  ArrowRight,
+  Info,
+  Star,
+  ChevronDown
 } from "lucide-react";
 import { type Product } from "@/data/products";
 import {
@@ -36,6 +39,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [activeNote, setActiveNote] = useState<"top" | "heart" | "base">("top");
   const [activeImage, setActiveImage] = useState(0);
+  const [activeTab, setActiveTab] = useState<"details" | "reviews">("details");
 
   useEffect(() => {
     // Wait for the catalogue to arrive; redirecting while it is still empty
@@ -60,6 +64,22 @@ export default function ProductDetailPage() {
   // Client-supplied product page images. Falls back to the product's own image
   // so a product without gallery shots still shows something.
   const gallery = PRODUCT_GALLERY.length ? PRODUCT_GALLERY : [product.image];
+
+  /**
+   * Switch the panel below, then bring it into view. Offset by the sticky
+   * header so the heading is not hidden underneath it on arrival.
+   */
+  const selectTab = (tab: "details" | "reviews") => {
+    setActiveTab(tab);
+    // Wait a frame so the new panel is in the DOM before measuring it.
+    requestAnimationFrame(() => {
+      const el = document.getElementById("product-panel");
+      if (!el) return;
+      const HEADER_OFFSET = 90;
+      const top = el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
+      window.scrollTo({ top, behavior: "smooth" });
+    });
+  };
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -259,6 +279,35 @@ export default function ProductDetailPage() {
             </button>
           </div>
 
+          {/* Tabs for the content below. Details is shown by default; picking a
+              tab swaps the panel rather than scrolling past both. */}
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => selectTab("details")}
+              aria-pressed={activeTab === "details"}
+              className={`h-14 rounded-2xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${
+                activeTab === "details"
+                  ? "border-gold/40 bg-gold/10 text-gold"
+                  : "border-white/10 bg-white/[0.02] text-white/60 hover:text-white hover:border-white/20"
+              }`}
+            >
+              <Info className="w-3.5 h-3.5" />
+              Show Details
+            </button>
+            <button
+              onClick={() => selectTab("reviews")}
+              aria-pressed={activeTab === "reviews"}
+              className={`h-14 rounded-2xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${
+                activeTab === "reviews"
+                  ? "border-gold/40 bg-gold/10 text-gold"
+                  : "border-white/10 bg-white/[0.02] text-white/60 hover:text-white hover:border-white/20"
+              }`}
+            >
+              <Star className="w-3.5 h-3.5" />
+              Reviews
+            </button>
+          </div>
+
           {/* Trust Indicators */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center justify-center gap-3 text-[9px] uppercase tracking-widest font-bold text-white/30">
@@ -272,8 +321,13 @@ export default function ProductDetailPage() {
           </div>
         </motion.div>
 
-        {/* Scent Characteristics — brand defaults unless the product overrides them */}
-        <div className="border-t border-white/5 py-16 mt-20 space-y-20">
+        {/* Panel controlled by the tabs above. Only one of Details / Reviews
+            renders at a time. */}
+        <div id="product-panel" className="scroll-mt-24" />
+
+        {activeTab === "details" && (
+        <>
+        <div id="product-details" className="border-t border-white/5 py-16 mt-20 space-y-20 scroll-mt-24">
             {/* Characteristics Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -330,9 +384,15 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+        </>
+        )}
 
         {/* Customer reviews: ratings, photos, and the submission form. */}
-        <ReviewSection productId={product.id} />
+        {activeTab === "reviews" && (
+          <div id="product-reviews" className="scroll-mt-24">
+            <ReviewSection productId={product.id} />
+          </div>
+        )}
       </div>
 
       {/* Recommended Section - High Fidelity */}
