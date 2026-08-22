@@ -149,8 +149,7 @@ export default function AuditPage() {
       "Net Profit (PKR)",
       "50% Share (Reinvestment)",
       "30% Share (Operations)",
-      "20% Share (Founder Equity)",
-      "Cumulative Net Profit Till Date (PKR)"
+      "20% Share (Founder Equity)"
     ];
 
     const rows = itemizedLedger.map((row) => {
@@ -175,12 +174,10 @@ export default function AuditPage() {
         row.orderNetProfit,
         row.profit50,
         row.profit30,
-        row.profit20,
-        row.cumulativeProfitTillNow
+        row.profit20
       ].join(",");
     });
 
-    // Append Summary Totals Row at the bottom of the CSV
     const summaryRow = [
       `"GRAND TOTALS"`,
       `""`,
@@ -198,8 +195,7 @@ export default function AuditPage() {
       totalNetProfit,
       profit50Percent,
       profit30Percent,
-      profit20Percent,
-      totalNetProfit
+      profit20Percent
     ].join(",");
 
     const csvContent = "\uFEFF" + [headers.join(","), ...rows, summaryRow].join("\n");
@@ -407,14 +403,13 @@ export default function AuditPage() {
                   <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400">Net Profit</th>
                   <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-gold">50% Share</th>
                   <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-blue-400">30% Share</th>
-                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-purple-400">20% Share</th>
-                  <th className="px-5 py-5 text-right text-[9px] font-black uppercase tracking-[0.2em] text-gold font-bold">Cumulative Profit</th>
+                  <th className="px-5 py-5 text-right text-[9px] font-black uppercase tracking-[0.2em] text-purple-400">20% Share</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.02]">
                 {itemizedLedger.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-white/20">
+                    <td colSpan={11} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-white/20">
                       No order records match the selected audit criteria.
                     </td>
                   </tr>
@@ -436,10 +431,7 @@ export default function AuditPage() {
                     </td>
                     <td className="px-5 py-5 text-[11px] font-bold text-gold">Rs {row.profit50.toLocaleString()}</td>
                     <td className="px-5 py-5 text-[11px] font-bold text-blue-400">Rs {row.profit30.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-[11px] font-bold text-purple-400">Rs {row.profit20.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-right font-black text-gold text-xs">
-                      Rs {row.cumulativeProfitTillNow.toLocaleString()}
-                    </td>
+                    <td className="px-5 py-5 text-right font-bold text-purple-400 text-[11px]">Rs {row.profit20.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -453,11 +445,10 @@ export default function AuditPage() {
                     <td className="px-5 py-5 text-white">Rs {totalGrossRevenue.toLocaleString()}</td>
                     <td className="px-5 py-5 text-rose-400">Rs {totalBottleCost.toLocaleString()}</td>
                     <td className="px-5 py-5 text-cyan-400">Rs {totalDeliveryExpenses.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-emerald-400">Rs {totalNetProfit.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-emerald-400 font-black text-xs">Rs {totalNetProfit.toLocaleString()}</td>
                     <td className="px-5 py-5 text-gold">Rs {profit50Percent.toLocaleString()}</td>
                     <td className="px-5 py-5 text-blue-400">Rs {profit30Percent.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-purple-400">Rs {profit20Percent.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-right text-gold text-sm font-black">Rs {totalNetProfit.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-right text-purple-400 font-black">Rs {profit20Percent.toLocaleString()}</td>
                   </tr>
                 </tfoot>
               )}
