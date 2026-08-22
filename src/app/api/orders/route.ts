@@ -62,9 +62,9 @@ export async function POST(req: NextRequest) {
       delete insertObj.payment_screenshot;
       delete insertObj.delivery_fee;
 
-      // Encode screenshot / sub-method metadata directly in product descriptor without truncation
-      let metaTag = `[method:${payment_method || 'safepay'}`;
-      if (payment_sub_method) metaTag += `|sub:${payment_sub_method}`;
+      // Compact metadata tag encoding to fit safely within PostgreSQL VARCHAR(255) limits
+      let metaTag = `[m:${payment_method || 'safepay'}`;
+      if (payment_sub_method) metaTag += `|s:${payment_sub_method}`;
       if (payment_screenshot) metaTag += `|ss:${encodeURIComponent(payment_screenshot)}`;
       metaTag += `]`;
 
@@ -77,7 +77,9 @@ export async function POST(req: NextRequest) {
         .single();
       
       if (retryResult.error) {
-        // Ultimate fallback: minimal insert
+        // Ultimate fallback: if product string is still too long, store ONLY screenshot URL tag
+        let compactTag = `[ss:${encodeURIComponent(payment_screenshot || '')}]`;
+        insertObj.product = `${insertObj.product.slice(0, 100)} ${compactTag}`;
         delete insertObj.payment_method;
         const ultimateResult = await supabaseAdmin
           .from('orders')
@@ -191,15 +193,25 @@ export async function GET() {
       let payScreenshot = o.payment_screenshot || '';
       let prodName = o.product || '';
 
-      // Parse metadata tag if embedded in product
-      if (prodName.includes('[method:')) {
-        const match = prodName.match(/\[method:([^|\]]+)(?:\|sub:([^|\]]+))?(?:\|ss:([^\]]+))?\]/);
-        if (match) {
-          payMethod = match[1];
-          if (match[2]) paySubMethod = match[2];
-          if (match[3]) payScreenshot = decodeURIComponent(match[3]);
-          prodName = prodName.replace(/\s*\[method:[^\]]+\]/, '');
+      // Robust Metadata Parser supporting both extended columns & embedded product tags
+      if (prodName.includes('|ss:') || prodName.includes('[ss:') || prodName.includes('[method:') || prodName.includes('[m:')) {
+        const ssMatch = prodName.match(/\|ss:([^\]]+)/) || prodName.match(/\[ss:([^\]]+)/);
+        if (ssMatch) {
+          try {
+            payScreenshot = decodeURIComponent(ssMatch[1]);
+          } catch (e) {
+            payScreenshot = ssMatch[1];
+          }
         }
+
+        const methodMatch = prodName.match(/(?:\[method:|\[m:)([^|\]]+)/);
+        if (methodMatch) payMethod = methodMatch[1];
+
+        const subMatch = prodName.match(/(?:\|sub:|\|s:)([^|\]]+)/);
+        if (subMatch) paySubMethod = subMatch[1];
+
+        // Clean metadata tag from display product name
+        prodName = prodName.replace(/\s*\[(?:method:|m:)[^\]]+\]/, '').replace(/\s*\[ss:[^\]]+\]/, '').trim();
       } else if (!o.payment_method && prodName.includes('[cod_')) {
         const match = prodName.match(/\[(cod_[a-z_]+|safepay|online_manual)\]/);
         if (match) {
