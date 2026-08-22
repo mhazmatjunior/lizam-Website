@@ -60,78 +60,6 @@ export default function AuditPage() {
     fetchOrders();
   }, []);
 
-  const handleExportExcel = () => {
-    if (orders.length === 0) return;
-
-    const headers = [
-      "Order ID",
-      "Date & Time",
-      "Client Name",
-      "Email Address",
-      "Phone Number",
-      "Shipping Address",
-      "Products Ordered",
-      "Bottles Sold",
-      "Payment Method",
-      "Payment Sub-Method",
-      "Order Status",
-      "Gross Revenue (PKR)",
-      "Bottle Cost (PKR)",
-      "Delivery Cost (PKR)",
-      "Total Expense (PKR)",
-      "Net Profit (PKR)"
-    ];
-
-    const rows = orders.map((o) => {
-      let bottleQty = 1;
-      const qtyMatch = o.product.match(/x(\d+)/i);
-      if (qtyMatch) {
-        bottleQty = parseInt(qtyMatch[1], 10);
-      }
-
-      const bottleCost = bottleQty * BOTTLE_UNIT_COST;
-      const deliveryExpense = o.deliveryFee || (o.paymentMethod === "cod_standard" ? 250 : o.paymentMethod === "cod_founder" ? 5000 : 0);
-      const orderExpense = bottleCost + deliveryExpense;
-      const orderNetProfit = o.amount - orderExpense;
-
-      const formattedDate = new Date(o.createdAt).toLocaleString();
-      const methodLabel = o.paymentMethod === "cod_founder" ? "Founder Delivery" : o.paymentMethod === "cod_standard" ? "Cash on Delivery" : "Online Payment";
-
-      const escapeCSV = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
-
-      return [
-        escapeCSV(o.orderId),
-        escapeCSV(formattedDate),
-        escapeCSV(o.name),
-        escapeCSV(o.email),
-        escapeCSV(o.phone),
-        escapeCSV(o.address),
-        escapeCSV(o.product),
-        bottleQty,
-        escapeCSV(methodLabel),
-        escapeCSV(o.paymentSubMethod || "N/A"),
-        escapeCSV(o.status),
-        o.amount,
-        bottleCost,
-        deliveryExpense,
-        orderExpense,
-        orderNetProfit
-      ].join(",");
-    });
-
-    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement("a");
-    link.href = url;
-    const dateStr = new Date().toISOString().split("T")[0];
-    link.setAttribute("download", `RAANAE_Lifetime_Audit_Report_${dateStr}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   // Filter delivered/completed orders by payment method
   const filteredOrders = orders.filter((o) => {
     const isDelivered = o.status === "delivered" || o.status === "paid" || o.status === "cashondelivery" || o.status === "shipped";
@@ -149,11 +77,12 @@ export default function AuditPage() {
     return true;
   });
 
-  // Calculate Financial Audit Metrics
+  // Calculate Financial Audit Metrics with Running Cumulative Totals
   let totalGrossRevenue = 0;
   let totalBottlesSold = 0;
   let totalBottleCost = 0;
   let totalDeliveryExpenses = 0;
+  let runningCumulativeProfit = 0;
 
   const itemizedLedger = filteredOrders.map((o) => {
     // Parse quantity of bottles from product string (e.g. x1, x2, x3)
@@ -172,6 +101,11 @@ export default function AuditPage() {
     totalBottlesSold += bottleQty;
     totalBottleCost += bottleCost;
     totalDeliveryExpenses += deliveryExpense;
+    runningCumulativeProfit += orderNetProfit;
+
+    const profit50 = Math.round(orderNetProfit * 0.5);
+    const profit30 = Math.round(orderNetProfit * 0.3);
+    const profit20 = Math.round(orderNetProfit * 0.2);
 
     return {
       ...o,
@@ -180,6 +114,10 @@ export default function AuditPage() {
       deliveryExpense,
       orderExpense,
       orderNetProfit,
+      profit50,
+      profit30,
+      profit20,
+      cumulativeProfitTillNow: runningCumulativeProfit,
     };
   });
 
@@ -190,6 +128,92 @@ export default function AuditPage() {
   const profit50Percent = Math.round(totalNetProfit * 0.5);
   const profit30Percent = Math.round(totalNetProfit * 0.3);
   const profit20Percent = Math.round(totalNetProfit * 0.2);
+
+  const handleExportExcel = () => {
+    if (itemizedLedger.length === 0) return;
+
+    const headers = [
+      "Order ID",
+      "Date & Time",
+      "Client Name",
+      "Email Address",
+      "Phone Number",
+      "Shipping Address",
+      "Products Ordered",
+      "Bottles Sold",
+      "Payment Method",
+      "Order Status",
+      "Gross Revenue (PKR)",
+      "Bottle Cost (PKR)",
+      "Delivery Cost (PKR)",
+      "Net Profit (PKR)",
+      "50% Share (Reinvestment)",
+      "30% Share (Operations)",
+      "20% Share (Founder Equity)",
+      "Cumulative Net Profit Till Date (PKR)"
+    ];
+
+    const rows = itemizedLedger.map((row) => {
+      const formattedDate = new Date(row.createdAt).toLocaleString();
+      const methodLabel = row.paymentMethod === "cod_founder" ? "Founder Delivery" : row.paymentMethod === "cod_standard" ? "Cash on Delivery" : "Online Payment";
+      const escapeCSV = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
+
+      return [
+        escapeCSV(row.orderId),
+        escapeCSV(formattedDate),
+        escapeCSV(row.name),
+        escapeCSV(row.email),
+        escapeCSV(row.phone),
+        escapeCSV(row.address),
+        escapeCSV(row.product),
+        row.bottleQty,
+        escapeCSV(methodLabel),
+        escapeCSV(row.status),
+        row.amount,
+        row.bottleCost,
+        row.deliveryExpense,
+        row.orderNetProfit,
+        row.profit50,
+        row.profit30,
+        row.profit20,
+        row.cumulativeProfitTillNow
+      ].join(",");
+    });
+
+    // Append Summary Totals Row at the bottom of the CSV
+    const summaryRow = [
+      `"GRAND TOTALS"`,
+      `""`,
+      `""`,
+      `""`,
+      `""`,
+      `""`,
+      `""`,
+      totalBottlesSold,
+      `""`,
+      `""`,
+      totalGrossRevenue,
+      totalBottleCost,
+      totalDeliveryExpenses,
+      totalNetProfit,
+      profit50Percent,
+      profit30Percent,
+      profit20Percent,
+      totalNetProfit
+    ].join(",");
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows, summaryRow].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.href = url;
+    const dateStr = new Date().toISOString().split("T")[0];
+    link.setAttribute("download", `RAANAE_Financial_Audit_Ledger_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-10 pb-16">
@@ -203,7 +227,7 @@ export default function AuditPage() {
             <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Finance & Audit Dashboard</h1>
           </div>
           <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-2 ml-13">
-            Real-time COGS, Logistics Cost, Net Profit & Percentage Allocation Engine
+            Real-time COGS, Logistics Cost, Net Profit & Cumulative Allocation Engine
           </p>
         </div>
 
@@ -359,10 +383,10 @@ export default function AuditPage() {
         </div>
       </section>
 
-      {/* ITEMIZED AUDIT LEDGER TABLE */}
+      {/* ITEMIZED AUDIT LEDGER TABLE WITH CUMULATIVE SUMS */}
       <section className="space-y-6 pt-4">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <h2 className="text-2xl font-black uppercase tracking-tight">Itemized Transaction Audit Ledger</h2>
+          <h2 className="text-2xl font-black uppercase tracking-tight">Itemized Transaction Audit & Cumulative Ledger</h2>
           <span className="text-[10px] font-black bg-white/5 text-white/40 px-3 py-1 rounded-full">
             {itemizedLedger.length} Audited Orders
           </span>
@@ -373,42 +397,70 @@ export default function AuditPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.01]">
-                  <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Order ID</th>
-                  <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Client</th>
-                  <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Method</th>
-                  <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Qty</th>
-                  <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Gross Revenue</th>
-                  <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Bottle Cost</th>
-                  <th className="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Delivery Cost</th>
-                  <th className="px-6 py-5 text-right text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Net Profit</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Order ID</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Client</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Method</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Qty</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Gross Revenue</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Bottle Cost</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Delivery</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400">Net Profit</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-gold">50% Share</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-blue-400">30% Share</th>
+                  <th className="px-5 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-purple-400">20% Share</th>
+                  <th className="px-5 py-5 text-right text-[9px] font-black uppercase tracking-[0.2em] text-gold font-bold">Cumulative Profit</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.02]">
                 {itemizedLedger.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-white/20">
+                    <td colSpan={12} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-white/20">
                       No order records match the selected audit criteria.
                     </td>
                   </tr>
                 ) : itemizedLedger.map((row) => (
                   <tr key={row.orderId} className="hover:bg-white/[0.01] transition-all">
-                    <td className="px-6 py-5 font-mono text-[11px] text-gold font-bold">{row.orderId}</td>
-                    <td className="px-6 py-5 text-[11px] font-bold text-white/90">{row.name}</td>
-                    <td className="px-6 py-5">
+                    <td className="px-5 py-5 font-mono text-[11px] text-gold font-bold">{row.orderId}</td>
+                    <td className="px-5 py-5 text-[11px] font-bold text-white/90">{row.name}</td>
+                    <td className="px-5 py-5">
                       <span className="text-[8px] font-black uppercase tracking-widest bg-white/5 text-white/60 px-2 py-0.5 rounded border border-white/10">
                         {row.paymentMethod === "cod_founder" ? "Founder Delivery" : row.paymentMethod === "cod_standard" ? "COD" : "Online"}
                       </span>
                     </td>
-                    <td className="px-6 py-5 text-[11px] font-bold text-white/70">{row.bottleQty}</td>
-                    <td className="px-6 py-5 text-[11px] font-black text-white">Rs {row.amount.toLocaleString()}</td>
-                    <td className="px-6 py-5 text-[11px] font-bold text-rose-400">Rs {row.bottleCost.toLocaleString()}</td>
-                    <td className="px-6 py-5 text-[11px] font-bold text-cyan-400">Rs {row.deliveryExpense.toLocaleString()}</td>
-                    <td className="px-6 py-5 text-right font-black text-emerald-400 text-xs">
+                    <td className="px-5 py-5 text-[11px] font-bold text-white/70">{row.bottleQty}</td>
+                    <td className="px-5 py-5 text-[11px] font-black text-white">Rs {row.amount.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-[11px] font-bold text-rose-400">Rs {row.bottleCost.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-[11px] font-bold text-cyan-400">Rs {row.deliveryExpense.toLocaleString()}</td>
+                    <td className="px-5 py-5 font-black text-emerald-400 text-xs">
                       + Rs {row.orderNetProfit.toLocaleString()}
+                    </td>
+                    <td className="px-5 py-5 text-[11px] font-bold text-gold">Rs {row.profit50.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-[11px] font-bold text-blue-400">Rs {row.profit30.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-[11px] font-bold text-purple-400">Rs {row.profit20.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-right font-black text-gold text-xs">
+                      Rs {row.cumulativeProfitTillNow.toLocaleString()}
                     </td>
                   </tr>
                 ))}
               </tbody>
+
+              {/* Table Footer with Summary Grand Totals */}
+              {itemizedLedger.length > 0 && (
+                <tfoot className="border-t-2 border-gold/30 bg-gold/5">
+                  <tr className="font-black text-[11px] uppercase tracking-wider">
+                    <td colSpan={3} className="px-5 py-5 text-gold font-black">GRAND TOTALS</td>
+                    <td className="px-5 py-5 text-white">{totalBottlesSold}</td>
+                    <td className="px-5 py-5 text-white">Rs {totalGrossRevenue.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-rose-400">Rs {totalBottleCost.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-cyan-400">Rs {totalDeliveryExpenses.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-emerald-400">Rs {totalNetProfit.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-gold">Rs {profit50Percent.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-blue-400">Rs {profit30Percent.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-purple-400">Rs {profit20Percent.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-right text-gold text-sm font-black">Rs {totalNetProfit.toLocaleString()}</td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         </div>
