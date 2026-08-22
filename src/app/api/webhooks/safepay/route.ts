@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSafepayClient, hasWebhookSecret } from '@/lib/safepay';
 import { supabaseAdmin } from '@/lib/supabase';
-import { sendOrderConfirmationEmail } from '@/lib/email';
+import { sendPaymentVerifiedEmail } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
        } else if (order) {
          console.log(`🔄 Database Status updated to PAID for order: ${orderId}`);
          // Trigger transactional email
-         sendOrderConfirmationEmail({
+         sendPaymentVerifiedEmail({
            orderId: order.order_id,
            name: order.name,
            email: order.email,
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
            amount: order.amount,
            paymentMethod: order.payment_method || 'safepay'
          }).catch(err => {
-           console.error('❌ Failed to send online order confirmation email:', err.message);
+           console.error('❌ Failed to send online payment verified email:', err.message);
          });
        }
     }

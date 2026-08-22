@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { sendOrderConfirmationEmail } from '@/lib/email';
+import { sendOrderPlacedEmail, sendPaymentVerifiedEmail, sendOrderShippedEmail } from '@/lib/email';
 
 // POST - Create a new order in Supabase
 export async function POST(req: NextRequest) {
@@ -90,21 +90,20 @@ export async function POST(req: NextRequest) {
 
     console.log(`✅ New Order Saved in Supabase: ${orderId} - ${name} (${email}) [${initialStatus}]`);
 
-    // If order is submitted as unverified or cashondelivery, send confirmation email
-    if (initialStatus === 'unverified' || payment_method?.startsWith('cod_')) {
-      sendOrderConfirmationEmail({
-        orderId,
-        name,
-        email,
-        phone,
-        address,
-        product: product || '7TH OCT (Pre-Order)',
-        amount: amount || 150,
-        paymentMethod: payment_method,
-      }).catch(err => {
-        console.error('❌ Failed to send order confirmation email:', err.message);
-      });
-    }
+    // Automatically trigger Order Placement Email
+    sendOrderPlacedEmail({
+      orderId,
+      name,
+      email,
+      phone,
+      address,
+      product: product || '7TH OCT (Pre-Order)',
+      amount: amount || 150,
+      paymentMethod: payment_method || 'safepay',
+      paymentSubMethod: payment_sub_method || undefined,
+    }).catch(err => {
+      console.error('❌ Failed to send order placement email:', err.message);
+    });
 
     return NextResponse.json({ success: true, orderId });
   } catch (error: any) {
@@ -138,6 +137,42 @@ export async function PATCH(req: NextRequest) {
     }
 
     console.log(`🔄 Order ${orderId} updated to: ${status}`);
+
+    // Parse product name if metadata tag exists
+    let prodName = updatedOrder.product || '';
+    let payMethod = updatedOrder.payment_method || 'safepay';
+    let paySubMethod = updatedOrder.payment_sub_method || undefined;
+    if (prodName.includes('[method:')) {
+      prodName = prodName.replace(/\s*\[method:[^\]]+\]/, '');
+    }
+
+    const emailPayload = {
+      orderId: updatedOrder.order_id,
+      name: updatedOrder.name,
+      email: updatedOrder.email,
+      phone: updatedOrder.phone,
+      address: updatedOrder.address,
+      product: prodName,
+      amount: updatedOrder.amount,
+      paymentMethod: payMethod,
+      paymentSubMethod: paySubMethod,
+      tracker: updatedOrder.tracker || tracker
+    };
+
+    // Automated Trigger 2: Payment Verified
+    if (status === 'paid') {
+      sendPaymentVerifiedEmail(emailPayload).catch(err => {
+        console.error('❌ Failed to send Payment Verified email:', err.message);
+      });
+    }
+
+    // Automated Trigger 3: Order Shipped
+    if (status === 'shipped') {
+      sendOrderShippedEmail(emailPayload).catch(err => {
+        console.error('❌ Failed to send Order Shipped email:', err.message);
+      });
+    }
+
     return NextResponse.json({ success: true, order: updatedOrder });
   } catch (error: any) {
     console.error('❌ Order Status Update Error:', error.message);
