@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, 
@@ -368,12 +369,12 @@ export default function AdminOrdersPage() {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => setSelectedOrder(unverifiedOrders[0])}
-            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-lg shrink-0"
+          <Link
+            href="/admin/approvals"
+            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-lg shrink-0 flex items-center gap-2"
           >
-            Review Payment Proofs
-          </button>
+            Review Payment Proofs <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
         </motion.div>
       )}
 

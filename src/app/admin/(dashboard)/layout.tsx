@@ -10,6 +10,7 @@ import {
   Package,
   ShoppingCart,
   Star,
+  ShieldCheck,
   LogOut,
   Menu,
   ArrowLeft
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Inventory", href: "/admin/inventory", icon: Package },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { name: "Approvals", href: "/admin/approvals", icon: ShieldCheck },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
 ];
 
