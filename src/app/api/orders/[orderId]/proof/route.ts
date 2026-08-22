@@ -120,9 +120,21 @@ export async function POST(
     const suffix = crypto.randomUUID().slice(0, 8);
     const path = `${orderId}/${Date.now()}-${suffix}.${kind.ext}`;
 
-    const { error: uploadError } = await supabaseAdmin.storage
+    // Ensure bucket exists
+    await supabaseAdmin.storage.createBucket(BUCKET, { public: true }).catch(() => {});
+
+    let { error: uploadError } = await supabaseAdmin.storage
       .from(BUCKET)
-      .upload(path, buffer, { contentType: kind.mime, upsert: false });
+      .upload(path, buffer, { contentType: kind.mime, upsert: true });
+
+    if (uploadError) {
+      console.warn('⚠️ Bucket upload error, ensuring bucket and retrying:', uploadError.message);
+      await supabaseAdmin.storage.createBucket(BUCKET, { public: true }).catch(() => {});
+      const retryUpload = await supabaseAdmin.storage
+        .from(BUCKET)
+        .upload(path, buffer, { contentType: kind.mime, upsert: true });
+      uploadError = retryUpload.error;
+    }
 
     if (uploadError) {
       console.error('❌ Proof upload failed:', uploadError.message);
@@ -144,7 +156,7 @@ export async function POST(
 
     if (updateError) {
       // Roll back the stored file so a retry is not blocked by the 409 above.
-      await supabaseAdmin.storage.from(BUCKET).remove([path]);
+      await supabaseAdmin.storage.from(BUCKET).remove([path]).catch(() => {});
       console.error('❌ Proof record failed:', updateError.message);
       return NextResponse.json(
         { error: 'Could not record the payment. Please try again.' },
@@ -185,11 +197,20 @@ export async function GET(
       return NextResponse.json({ error: 'No proof on file' }, { status: 404 });
     }
 
+    if (order.payment_proof_url.startsWith('http') || order.payment_proof_url.startsWith('data:')) {
+      return NextResponse.json({ url: order.payment_proof_url });
+    }
+
+    await supabaseAdmin.storage.createBucket(BUCKET, { public: true }).catch(() => {});
+
     const { data: signed, error: signError } = await supabaseAdmin.storage
       .from(BUCKET)
       .createSignedUrl(order.payment_proof_url, 300); // valid 5 minutes
 
     if (signError || !signed) {
+      // Return public URL fallback
+      const { data: pubData } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(order.payment_proof_url);
+      if (pubData?.publicUrl) return NextResponse.json({ url: pubData.publicUrl });
       return NextResponse.json({ error: 'Could not open the file' }, { status: 500 });
     }
 
