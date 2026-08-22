@@ -21,6 +21,7 @@ import { type Product } from "@/data/products";
 import {
   BRAND_USPS, USP_EYEBROW, USP_HEADING, USP_INTRO,
   CHARACTERISTICS_HEADING, DEFAULT_CHARACTERISTICS,
+  PRODUCT_GALLERY,
 } from "@/data/brand";
 import ReviewSection from "@/app/components/ReviewSection";
 import { useCart } from "@/context/CartContext";
@@ -34,6 +35,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeNote, setActiveNote] = useState<"top" | "heart" | "base">("top");
+  const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
     // Wait for the catalogue to arrive; redirecting while it is still empty
@@ -54,6 +56,10 @@ export default function ProductDetailPage() {
   // Fall back to the brand defaults so the section renders for every product.
   // A product with its own characteristics overrides them.
   const chars = product.characteristics ?? DEFAULT_CHARACTERISTICS;
+
+  // Client-supplied product page images. Falls back to the product's own image
+  // so a product without gallery shots still shows something.
+  const gallery = PRODUCT_GALLERY.length ? PRODUCT_GALLERY : [product.image];
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -97,20 +103,35 @@ export default function ProductDetailPage() {
               <div className="absolute inset-0 bg-radial-gradient from-gold/10 to-transparent opacity-30 blur-3xl" />
               
               <Image
-                src={product.image}
-                alt={product.name}
+                key={gallery[activeImage]}
+                src={gallery[activeImage]}
+                alt={`${product.name} — image ${activeImage + 1} of ${gallery.length}`}
                 width={500}
                 height={600}
                 className="object-contain filter drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)] z-10 transition-transform duration-700 group-hover:scale-105"
                 priority
               />
 
-              {/* Decorative Elements */}
-              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 1 ? 'bg-gold' : 'bg-white/10'}`} />
-                ))}
-              </div>
+              {/* Gallery picker. These dots used to be decorative; they now
+                  select the image above. The dark pill behind them keeps them
+                  legible over both bright and dark photos. */}
+              {gallery.length > 1 && (
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 px-3.5 py-2.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10">
+                  {gallery.map((src, i) => (
+                    <button
+                      key={src}
+                      onClick={() => setActiveImage(i)}
+                      aria-label={`Show image ${i + 1}`}
+                      aria-current={i === activeImage}
+                      className={`w-2.5 h-2.5 rounded-full transition-all hover:scale-125 ${
+                        i === activeImage
+                          ? 'bg-gold scale-125 shadow-[0_0_8px_rgba(226,187,97,0.8)]'
+                          : 'bg-white/60 hover:bg-white'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </motion.div>
           </div>
 

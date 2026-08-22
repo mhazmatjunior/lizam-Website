@@ -51,3 +51,19 @@ export const DEFAULT_CHARACTERISTICS = {
   profile: "A captivating blend of Woody, Gourmand, Sweet, and Powdery accords",
   longevity: "Exceptional 15 to 20 Hours of lasting performance",
 };
+
+// ---------------------------------------------------------------------------
+// Product page gallery.
+//
+// Client-supplied images for the product page, shown in order with the dots
+// under the frame acting as the picker.
+//
+// The filenames really do read "imagee" — that is how they arrived, and these
+// paths must match the files in public/product-img exactly.
+// ---------------------------------------------------------------------------
+
+export const PRODUCT_GALLERY: string[] = [
+  "/product-img/Product%20page%20imagee%201.webp",
+  "/product-img/Product%20page%20imagee%202.webp",
+  "/product-img/Product%20page%20imagee%203.webp",
+];
