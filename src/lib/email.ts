@@ -33,7 +33,10 @@ function getTransporter() {
 }
 
 function getFromEmail() {
-  return process.env.SMTP_FROM_EMAIL || `"RAANAE Fragrances" <info@raanae.com>`;
+  let raw = process.env.SMTP_FROM_EMAIL || 'RAANAE Fragrances <info@raanae.com>';
+  // Clean surrounding quotes if passed in Vercel UI
+  raw = raw.replace(/^"|"$/g, '').trim();
+  return raw;
 }
 
 function getMethodLabel(paymentMethod: string) {
@@ -43,19 +46,19 @@ function getMethodLabel(paymentMethod: string) {
   return 'Online Card Payment (Safepay)';
 }
 
-// BULLETPROOF DUAL SENDER ENGINE (Resend HTTP API + Nodemailer SMTP Fallback)
+// BULLETPROOF DUAL SENDER ENGINE (Resend HTTP API + Automatic Onboarding Sender Fallback)
 async function sendMailHelper(to: string, subject: string, html: string) {
-  const apiKey = process.env.RESEND_API_KEY || process.env.SMTP_PASSWORD;
+  const apiKey = (process.env.RESEND_API_KEY || process.env.SMTP_PASSWORD || '').trim();
   const fromEmail = getFromEmail();
 
   // 1. Try Resend HTTP API directly first (bypasses serverless port blocks, 100% reliable on Vercel)
-  if (apiKey && apiKey.trim().startsWith('re_')) {
+  if (apiKey && apiKey.startsWith('re_')) {
     try {
-      console.log(`✉️ Sending email via Resend HTTP API to ${to}...`);
+      console.log(`✉️ Sending email via Resend HTTP API to ${to} (From: ${fromEmail})...`);
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey.trim()}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -71,7 +74,33 @@ async function sendMailHelper(to: string, subject: string, html: string) {
         console.log(`✅ Resend HTTP API email delivered successfully:`, resData.id);
         return { success: true, messageId: resData.id };
       }
+      
       console.warn(`⚠️ Resend HTTP API returned status ${res.status}:`, JSON.stringify(resData));
+
+      // Automatic fallback: If domain is pending propagation, retry using Resend default onboarding sender
+      if (!res.ok) {
+        console.log(`🔄 Retrying email delivery with fallback sender onboarding@resend.dev...`);
+        const fallbackRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'RAANAE Fragrances <onboarding@resend.dev>',
+            to: [to],
+            subject,
+            html,
+          }),
+        });
+
+        const fallbackData = await fallbackRes.json();
+        if (fallbackRes.ok) {
+          console.log(`✅ Resend fallback email delivered successfully:`, fallbackData.id);
+          return { success: true, messageId: fallbackData.id };
+        }
+        console.error(`❌ Resend fallback sender failed:`, JSON.stringify(fallbackData));
+      }
     } catch (httpErr: any) {
       console.error('⚠️ Resend HTTP API fetch failed, trying Nodemailer SMTP:', httpErr.message);
     }
