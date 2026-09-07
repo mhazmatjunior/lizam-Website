@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 // Global in-memory fallback for global settings
 let globalSettings = {
-  deliveryFee: 250,
+  deliveryFee: 200,
 };
 
 export async function GET() {

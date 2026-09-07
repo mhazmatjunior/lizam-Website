@@ -57,7 +57,7 @@ export default function CheckoutPage() {
     phone: "",
   });
 
-  const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(250);
+  const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(200);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -198,9 +198,13 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    if (e && e.preventDefault) e.preventDefault();
-    if (!validate()) return;
+  const handlePlaceOrder = async () => {
+    if (!validate()) {
+      if (subMethod === 'manual' && !screenshotUrl) {
+        document.querySelector('[data-payment-proof]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -280,7 +284,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white font-sans selection:bg-gold/30 pb-20">
+    <main className="checkout-light min-h-screen bg-white text-slate-900 font-sans selection:bg-gold/30 pb-20">
       {/* Header */}
       <header className="px-8 md:px-24 py-10 border-b border-white/5 bg-black/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -447,7 +451,7 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <h4 className="text-xs font-black uppercase tracking-widest text-white">Cash on Delivery</h4>
-                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Pay product amount on doorstep (+ Rs {standardDeliveryFee} Delivery fee paid online upfront)</p>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Pay Rs {standardDeliveryFee} advance payment for delivery charges. Pay product amount on doorstep.</p>
                     </div>
                   </div>
                   <span className="text-[7px] font-black uppercase tracking-widest bg-white/10 text-white/60 px-2 py-0.5 rounded border border-white/10">+ Rs {standardDeliveryFee} Delivery</span>
@@ -606,19 +610,32 @@ export default function CheckoutPage() {
                       <>
                         <div className="flex justify-between text-[10px] font-bold uppercase">
                           <span className="text-white/40">Bank Name</span>
-                          <span className="text-white">Meezan Bank</span>
+                          <span className="text-gold font-black">AL FALAH</span>
                         </div>
                         <div className="flex justify-between text-[10px] font-bold uppercase">
                           <span className="text-white/40">Account Title</span>
-                          <span className="text-gold font-black">RAANAE PERFUMES LUXURY</span>
+                          <span className="text-gold font-black">RAANAE</span>
                         </div>
                         <div className="flex justify-between items-center text-[10px] font-bold uppercase pt-2 border-t border-white/5">
-                          <span className="text-white/40">IBAN / Account #</span>
+                          <span className="text-white/40">Account Number</span>
                           <div className="flex items-center gap-2 font-mono text-gold">
-                            <span>PK82 MEZN 0001 0203 0405 0607</span>
+                            <span>00761011316137</span>
                             <button 
                               type="button"
-                              onClick={() => copyToClipboard('PK82 MEZN 0001 0203 0405 0607', 'iban')} 
+                              onClick={() => copyToClipboard('00761011316137', 'account')} 
+                              className="p-1 hover:text-white"
+                            >
+                              {copiedText === 'account' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] font-bold uppercase pt-2 border-t border-white/5">
+                          <span className="text-white/40">IBAN</span>
+                          <div className="flex items-center gap-2 font-mono text-gold">
+                            <span>PK03ALFH0076001011316137</span>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard('PK03ALFH0076001011316137', 'iban')}
                               className="p-1 hover:text-white"
                             >
                               {copiedText === 'iban' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -676,7 +693,7 @@ export default function CheckoutPage() {
                   {/* Upload Screenshot File Input */}
                   <div className="space-y-2">
                     <label className="text-[10px] text-gold uppercase tracking-widest font-black block">Upload Payment Screenshot / Receipt</label>
-                    <div className="relative border-2 border-dashed border-white/20 hover:border-gold/50 rounded-xl p-6 text-center transition-all bg-black/40">
+                    <div data-payment-proof className="relative border-2 border-dashed border-white/20 hover:border-gold/50 rounded-xl p-6 text-center transition-all bg-black/40">
                       <input 
                         type="file" 
                         accept="image/*"
@@ -717,7 +734,7 @@ export default function CheckoutPage() {
 
           {/* Right: Order Summary */}
           <div className="lg:col-span-5 pr-1">
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8 sticky top-[120px] h-fit self-start shadow-[0_30px_60px_rgba(0,0,0,0.5)]">
+            <div className="bg-white border border-slate-200 rounded-3xl p-8 sticky top-[120px] h-fit self-start shadow-[0_20px_50px_rgba(15,23,42,0.10)]">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-black uppercase tracking-tight">Your Order</h2>
                 <ShoppingBag className="w-5 h-5 text-gold" />
@@ -749,7 +766,7 @@ export default function CheckoutPage() {
                 {paymentMethod === 'cod' && (
                   <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/60 font-bold">
                     <span>COD Delivery Fee (Upfront)</span>
-                    <span className="text-gold">Rs 250</span>
+                    <span className="text-gold">Rs 200</span>
                   </div>
                 )}
 
@@ -784,8 +801,9 @@ export default function CheckoutPage() {
               </div>
 
               <button 
+                type="button"
                 onClick={handlePlaceOrder}
-                disabled={isSubmitting || cart.length === 0}
+                disabled={isSubmitting || isUploading || cart.length === 0}
                 className="w-full btn-premium-gold py-5 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] mt-10 group shadow-[0_20px_40px_rgba(200,164,77,0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
@@ -795,7 +813,7 @@ export default function CheckoutPage() {
                   </>
                 ) : (
                   <>
-                    {subMethod === 'safepay' ? 'Proceed to Safepay' : 'Submit Manual Order'}
+                    {isUploading ? 'Uploading Receipt...' : subMethod === 'safepay' ? 'Proceed to Safepay' : 'Submit Manual Order'}
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}

@@ -390,17 +390,19 @@ export default function Home() {
             </h2>
 
             {/* Description Subtitle */}
-            <p className="text-white/80 ds-house-body tracking-wide max-w-5xl leading-relaxed mb-12 sm:mb-16">
-              Raanae is a luxury fragrance house renowned for delivering unmatched scent quality through innovative infusions. We blend advanced distillation with architectural design, keeping{" "}
-              <span className="text-white ds-house-body-em underline underline-offset-4 decoration-white/90">
-                human wellbeing our top priority.
-              </span>
-            </p>
+            <div className="text-white/80 ds-house-body tracking-wide max-w-5xl leading-relaxed mb-12 sm:mb-16 space-y-4">
+              <p>
+                Raanae is a luxury perfume brand. We don&apos;t claim to be perfect, but we guarantee you the best-quality products so that you can rely on them.
+              </p>
+              <p>
+                As a Muslim brand, our purpose is not limited to generating money from this business but to provide quality. That&apos;s why we avoid false claims and harmful chemicals.
+              </p>
+            </div>
 
             {/* Three Stats Cards matching Laptop PDF 2 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-5xl mb-12 sm:mb-20">
               
-              {/* Card 1: 25-35% */}
+              {/* Card 1: 40% oil concentration */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -410,7 +412,7 @@ export default function Home() {
               >
                 {/* SIZE: change text-4xl / md:text-5xl to resize the number */}
                 <span className="text-white ds-stat-25 text-4xl md:text-5xl tracking-tight leading-none mb-2 min-h-16 flex items-center justify-center group-hover:text-[#e2bb61] transition-colors">
-                  25-35<span className="ds-stat-unit text-2xl md:text-3xl">%</span>
+                  40<span className="ds-stat-unit text-2xl md:text-3xl">%</span>
                 </span>
                 {/* SIZE: change text-xs / md:text-sm to resize this label */}
                 <span className="text-white/60 group-hover:text-white/80 transition-colors ds-stat-label text-xs md:text-sm tracking-[0.15em] leading-snug">

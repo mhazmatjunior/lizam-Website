@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { type Product } from "@/data/products";
 import {
-  BRAND_USPS, USP_EYEBROW, USP_HEADING, USP_INTRO,
+  BRAND_USPS, USP_HEADING, USP_INTRO,
   CHARACTERISTICS_HEADING, DEFAULT_CHARACTERISTICS,
   PRODUCT_GALLERY,
 } from "@/data/brand";
@@ -164,11 +164,6 @@ export default function ProductDetailPage() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="space-y-4"
             >
-              <div className="flex items-center gap-4">
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold px-3 py-1 bg-gold/10 rounded-full border border-gold/20">
-                  {product.category}
-                </span>
-              </div>
               <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9]">
                 {product.name}
               </h1>
@@ -186,14 +181,13 @@ export default function ProductDetailPage() {
                 {(() => {
                   const phrase = "No Harmful Effects and No Side Effects.";
                   if (product.longDescription.includes(phrase)) {
-                    const parts = product.longDescription.split(phrase);
                     return (
                       <>
-                        <p>{parts[0]}</p>
                         <span className="block mt-4 p-4 rounded-2xl bg-gradient-to-r from-[#e2bb61]/10 to-transparent border-l-2 border-[#e2bb61] text-[#e2bb61] font-black text-xs uppercase tracking-widest text-left shadow-[0_4px_20px_rgba(226,187,97,0.05)]">
-                          ✨ {phrase}
+                          <span className="block">✨ 12 Upto 15 hours lasting</span>
+                          <span className="block mt-2">✨ Unisex Perfume (both male and female can use)</span>
+                          <span className="block mt-2">✨ {phrase}</span>
                         </span>
-                        {parts[1] && <p className="mt-4">{parts[1]}</p>}
                       </>
                     );
                   }
@@ -327,27 +321,31 @@ export default function ProductDetailPage() {
 
         {activeTab === "details" && (
         <>
-        <div id="product-details" className="border-t border-white/5 py-16 mt-20 space-y-20 scroll-mt-24">
+        <div id="product-details" className="border-t border-white/10 py-16 md:py-24 mt-20 space-y-20 scroll-mt-24">
             {/* Characteristics Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="space-y-8"
+              className="relative space-y-10 rounded-[32px] border border-white/10 bg-white/[0.015] px-4 py-8 font-sans md:px-8 md:py-12"
             >
-              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 text-center">{CHARACTERISTICS_HEADING}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] space-y-3">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Intensity</span>
-                <p className="text-xl font-black text-white uppercase tracking-tight">{chars.intensity}</p>
+              <div className="text-center space-y-3">
+                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.28em] md:tracking-[0.45em] text-gold/70">The Signature</span>
+                <h3 className="text-sm md:text-base font-black uppercase tracking-[0.2em] md:tracking-[0.35em] text-white/80">{CHARACTERISTICS_HEADING}</h3>
+                <div className="mx-auto h-px w-12 bg-gold/60" />
               </div>
-              <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] flex flex-col justify-center space-y-3">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Scent Profile</span>
-                <p className="text-xs font-medium text-white/60 leading-relaxed max-w-[200px] mx-auto">{chars.profile}</p>
-              </div>
-              <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[30px] space-y-3">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 block">Longevity</span>
-                <p className="text-xl font-black text-white uppercase tracking-tight">{chars.longevity}</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 text-center">
+                <div className="min-h-[230px] rounded-2xl border border-gold/20 border-t-gold/70 bg-black/40 px-5 py-8 flex flex-col items-center justify-center gap-4 shadow-[0_18px_45px_rgba(0,0,0,0.2)]">
+                  <span className="text-[10px] font-black uppercase tracking-[0.22em] text-gold">Intensity</span>
+                  <p className="max-w-[260px] text-[15px] md:text-lg font-black text-white uppercase tracking-tight leading-tight break-words">{chars.intensity}</p>
+                </div>
+                <div className="min-h-[230px] rounded-2xl border border-gold/20 border-t-gold/70 bg-black/40 px-5 py-8 flex flex-col items-center justify-center gap-4 shadow-[0_18px_45px_rgba(0,0,0,0.2)]">
+                  <span className="text-[10px] font-black uppercase tracking-[0.22em] text-gold">Scent Profile</span>
+                  <p className="max-w-[280px] text-[15px] md:text-lg font-black text-white uppercase tracking-tight leading-tight break-words">{chars.profile}</p>
+                </div>
+                <div className="min-h-[230px] rounded-2xl border border-gold/20 border-t-gold/70 bg-black/40 px-5 py-8 flex flex-col items-center justify-center gap-4 shadow-[0_18px_45px_rgba(0,0,0,0.2)]">
+                  <span className="text-[10px] font-black uppercase tracking-[0.22em] text-gold">Longevity</span>
+                  <p className="max-w-[260px] text-[15px] md:text-lg font-black text-white uppercase tracking-tight leading-tight break-words">{chars.longevity}</p>
                 </div>
               </div>
             </motion.div>
@@ -359,7 +357,6 @@ export default function ProductDetailPage() {
         <div className="border-t border-white/5 py-16 space-y-20">
           <div className="space-y-12 pt-8">
             <div className="text-center space-y-3">
-              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gold/60">{USP_EYEBROW}</span>
               <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">{USP_HEADING}</h2>
               <p className="text-white/50 text-xs md:text-sm font-medium leading-relaxed max-w-2xl mx-auto pt-4">{USP_INTRO}
               </p>

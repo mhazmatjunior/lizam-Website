@@ -726,3 +726,32 @@ body::after {
   font-weight: 300;
   font-size: clamp(10px, 1.88vw, calc(36px * var(--ds-cap)));
 }
+
+/* Checkout uses a light surface while retaining the Raanae gold accents. */
+.checkout-light [class*="bg-black"] {
+  background-color: #ffffff !important;
+}
+
+.checkout-light [class*="bg-[#0c0c0c]"] {
+  background-color: #ffffff !important;
+}
+
+.checkout-light [class*="bg-white/"] {
+  background-color: #f8fafc !important;
+}
+
+.checkout-light [class*="border-white"] {
+  border-color: #e2e8f0 !important;
+}
+
+.checkout-light [class*="text-white"] {
+  color: #334155 !important;
+}
+
+.checkout-light [class*="placeholder:text-white"]::placeholder {
+  color: #94a3b8 !important;
+}
+
+.checkout-light .rounded-full.bg-black {
+  background-color: #0f172a !important;
+}
