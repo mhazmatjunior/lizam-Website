@@ -37,7 +37,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: checkoutUrl });
   } catch (error: any) {
-    console.error('❌ Safepay Checkout Error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const upstreamStatus = error?.response?.status;
+    const upstreamMessage = error?.response?.data?.message || error?.response?.data?.error;
+    const message = upstreamMessage || error?.message || 'Unable to initialize Safepay checkout';
+    console.error('❌ Safepay Checkout Error:', { status: upstreamStatus, message });
+    return NextResponse.json(
+      { error: upstreamStatus ? `Safepay returned ${upstreamStatus}: ${message}` : message },
+      { status: 502 }
+    );
   }
 }

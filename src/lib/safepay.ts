@@ -8,7 +8,14 @@ export const hasWebhookSecret = () => Boolean(process.env.SAFEPAY_WEBHOOK_SECRET
 export const getSafepayClient = () => {
   if (safepayInstance) return safepayInstance;
 
-  const env = (process.env.NEXT_PUBLIC_SAFEPAY_ENVIRONMENT as any) || 'sandbox';
+  const configuredEnvironment = (
+    process.env.SAFEPAY_ENVIRONMENT ||
+    process.env.NEXT_PUBLIC_SAFEPAY_ENVIRONMENT ||
+    (process.env.NODE_ENV === 'production' ? 'production' : 'sandbox')
+  ).trim().toLowerCase();
+  const env = (configuredEnvironment === 'sandbox' || configuredEnvironment === 'development'
+    ? configuredEnvironment
+    : 'production') as any;
   const apiKey = process.env.NEXT_PUBLIC_SAFEPAY_PUBLIC;
   const v1Secret = process.env.SAFEPAY_SECRET;
 
