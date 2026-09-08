@@ -38,7 +38,11 @@ export default function CheckoutPage() {
   
   // Payment Options State
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod' | 'founder'>('online');
-  const [subMethod, setSubMethod] = useState<'safepay' | 'manual'>('safepay');
+  // Safepay card checkout is hidden on the checkout page, so manual transfer is
+  // the only reachable option and has to be the default: left on 'safepay' the
+  // form would still redirect to the Safepay portal with nothing on screen
+  // saying so. Re-showing the card option below is enough to undo this.
+  const [subMethod, setSubMethod] = useState<'safepay' | 'manual'>('manual');
   const [manualAccountType, setManualAccountType] = useState<'bank' | 'easypaisa' | 'jazzcash'>('bank');
   
   // Screenshot Upload State
@@ -436,7 +440,7 @@ export default function CheckoutPage() {
                         Online Payment (Full Amount)
                         <span className="text-[7px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">Free Shipping</span>
                       </h4>
-                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Safepay Card OR Manual Bank / Easypaisa Transfer</p>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Manual Bank / Easypaisa Transfer</p>
                     </div>
                   </div>
                 </div>
@@ -548,8 +552,15 @@ export default function CheckoutPage() {
             <section className="space-y-6 pt-4 border-t border-white/5">
               <h3 className="text-sm font-black uppercase tracking-widest text-white/80">Choose How To Complete Payment</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div 
+              {/* Single column while the card option is hidden, so the one
+                  remaining choice is not left sitting in half a row. */}
+              <div className="grid grid-cols-1 gap-4">
+                {/* Credit / Debit Card (Safepay) — hidden. The submit handler and
+                    the button label still branch on subMethod === 'safepay', so
+                    restoring this block and flipping the useState default above
+                    back to 'safepay' is all that is needed to bring it back.
+
+                <div
                   onClick={() => setSubMethod('safepay')}
                   className={`cursor-pointer rounded-xl p-4 border transition-all flex items-center gap-3 ${subMethod === 'safepay' ? 'bg-gold/10 border-gold' : 'bg-white/[0.02] border-white/10'}`}
                 >
@@ -559,6 +570,7 @@ export default function CheckoutPage() {
                     <p className="text-[8px] text-white/40 uppercase">Instant Card Checkout</p>
                   </div>
                 </div>
+                */}
 
                 <div 
                   onClick={() => setSubMethod('manual')}
