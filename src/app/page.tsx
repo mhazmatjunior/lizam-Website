@@ -164,20 +164,27 @@ export default function Home() {
               "perfume brand". So the box below matches the file's aspect ratio
               exactly and nothing is cropped; the artwork's own black margins
               read as the section's padding.
+              GAP: the file opens with ~205 rows of flat near-black above the
+              cave. Left in, that dead band stacked onto the hero's own bottom
+              padding and read as a 146px hole between the sections, so the box
+              is 1080/1522 rather than 1080/1727 and object-bottom crops those
+              rows off the top. Nothing visible is lost — the cropped rows are
+              uniformly black (max channel value 8).
               TEXT: the two blocks are placed as percentages of this box so they
-              stay inside the baked frame at every width. To move them, change
-              the percentages — not the font size. */}
-          <div className="relative block w-full aspect-[1080/1727] lg:hidden">
+              stay inside the baked frame at every width. The percentages are
+              measured against the trimmed 1522, not the full 1727. To move
+              them, change the percentages — not the font size. */}
+          <div className="relative block w-full aspect-[1080/1522] lg:hidden">
             <Image
               src="/section-img/Section%202%20Image%20-%20Mobile.webp"
               alt="Jerusalem Cave View Mobile"
               fill
               sizes="100vw"
-              className="object-cover"
+              className="object-cover object-bottom"
             />
 
             {/* Left narrative — on the dark cave wall, above the mosque */}
-            <div className="absolute left-[15%] top-[50%] z-10">
+            <div className="absolute left-[15%] top-[43%] z-10">
               <h2 className="ds-cave-left-m leading-tight tracking-wide text-[#e2bb61]">
                 Raanae is<br />
                 not another<br />
@@ -187,7 +194,7 @@ export default function Home() {
             </div>
 
             {/* Right narrative — on the right-hand wall, below the lantern */}
-            <div className="absolute right-[11%] top-[69%] z-10">
+            <div className="absolute right-[11%] top-[65%] z-10">
               <h2 className="ds-cave-right-m leading-tight tracking-wide text-white">
                 ...an Initiative<br />
                 Inspired<br />
