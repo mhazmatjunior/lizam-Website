@@ -22,10 +22,10 @@ export const COD_DELIVERY_FEE = 200;
  * typed by the customer; matching is case-insensitive and ignores spaces.
  */
 export const FOUNDER_DELIVERY_ZONES: Array<{ fee: number; cities: string[] }> = [
-  { fee: 4000,  cities: ['lahore', 'gujranwala', 'sialkot', 'gujrat', 'jehlum', 'jhelum', 'faisalabad'] },
-  { fee: 7000,  cities: ['multan', 'bhawalpur', 'bahawalpur'] },
-  { fee: 8000,  cities: ['islamabad', 'pindi', 'rawalpindi'] },
-  { fee: 10000, cities: ['karachi', 'rahimyaarkhan', 'rahimyarkhan'] },
+  { fee: 3999,  cities: ['lahore', 'gujranwala', 'sialkot', 'gujrat', 'jehlum', 'jhelum', 'faisalabad'] },
+  { fee: 10999, cities: ['multan', 'bhawalpur', 'bahawalpur'] },
+  { fee: 7999,  cities: ['islamabad', 'pindi', 'rawalpindi'] },
+  { fee: 12999, cities: ['karachi', 'rahimyaarkhan', 'rahimyarkhan'] },
 ];
 
 const normalise = (city: string) => city.toLowerCase().replace(/\s+/g, '');

@@ -74,7 +74,7 @@ export default function CheckoutPage() {
   // Calculation Logic
   const founderInfo = getFounderDeliveryInfo(formData.city);
   const codDeliveryFee = paymentMethod === 'cod' ? standardDeliveryFee : 0;
-  const founderDeliveryFee = paymentMethod === 'founder' ? (founderInfo ? founderInfo.price : 4000) : 0;
+  const founderDeliveryFee = paymentMethod === 'founder' ? (founderInfo ? founderInfo.price : 3999) : 0;
   const totalAmount = subtotal + codDeliveryFee + founderDeliveryFee;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

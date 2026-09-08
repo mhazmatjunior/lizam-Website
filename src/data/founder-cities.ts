@@ -9,8 +9,8 @@ export interface FounderCityTier {
 export const FOUNDER_DELIVERY_TIERS: FounderCityTier[] = [
   {
     tier: 1,
-    price: 4000,
-    priceFormatted: 'Rs 4,000',
+    price: 3999,
+    priceFormatted: 'Rs 3,999',
     cities: ['Lahore', 'Gujranwala', 'Sialkot', 'Gujrat', 'Jhelum', 'Faisalabad'],
     aliases: {
       'lhr': 'Lahore',
@@ -22,8 +22,8 @@ export const FOUNDER_DELIVERY_TIERS: FounderCityTier[] = [
   },
   {
     tier: 2,
-    price: 8000,
-    priceFormatted: 'Rs 8,000',
+    price: 7999,
+    priceFormatted: 'Rs 7,999',
     cities: ['Islamabad', 'Rawalpindi'],
     aliases: {
       'isb': 'Islamabad',
@@ -33,8 +33,8 @@ export const FOUNDER_DELIVERY_TIERS: FounderCityTier[] = [
   },
   {
     tier: 3,
-    price: 7000,
-    priceFormatted: 'Rs 7,000',
+    price: 10999,
+    priceFormatted: 'Rs 10,999',
     cities: ['Multan', 'Bahawalpur'],
     aliases: {
       'bhawalpur': 'Bahawalpur',
@@ -44,8 +44,8 @@ export const FOUNDER_DELIVERY_TIERS: FounderCityTier[] = [
   },
   {
     tier: 4,
-    price: 10000,
-    priceFormatted: 'Rs 10,000',
+    price: 12999,
+    priceFormatted: 'Rs 12,999',
     cities: ['Karachi', 'Rahim Yar Khan'],
     aliases: {
       'khi': 'Karachi',
