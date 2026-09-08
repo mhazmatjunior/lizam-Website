@@ -270,7 +270,7 @@ export default function ReviewSection({ productId }: { productId: number }) {
                 <label htmlFor="rv-order" className="block text-[9px] uppercase tracking-widest text-white/40 font-bold">
                   Order number <span className="text-white/20">(optional)</span>
                 </label>
-                <input id="rv-order" type="text" value={orderId} onChange={(e) => setOrderId(e.target.value)} className={inputCls} placeholder="ORD-1787234049226" />
+                <input id="rv-order" type="text" value={orderId} onChange={(e) => setOrderId(e.target.value)} className={inputCls} placeholder="OCT-1787234049226" />
                 <p className="text-[9px] text-white/25 leading-relaxed">
                   Add it to have your review marked as a verified purchase.
                 </p>

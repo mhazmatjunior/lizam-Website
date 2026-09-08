@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSafepayClient } from '@/lib/safepay';
+import { newOrderId } from '@/lib/order-id';
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
     console.log('📦 Payment tracker created:', payment.token);
 
     // Step 2: Generate the official Safepay checkout URL using the SDK
-    const finalOrderId = orderId || `ORD-${Date.now()}`;
+    const finalOrderId = orderId || newOrderId();
     const checkoutUrl = safepay.checkout.create({
       token: payment.token,
       orderId: finalOrderId,

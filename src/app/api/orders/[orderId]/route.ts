@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { isAdminRequest } from '@/lib/auth';
 
 /**
- * GET — the buyer's own order state, used by the confirmation page to decide
- * whether to ask for a payment screenshot.
+ * GET — one order.
  *
- * Returns only what the buyer already knows plus the payment state. No name,
- * email, phone or address, because order IDs are sequential timestamps and so
- * are guessable; anything personal here would be a data leak.
+ * Two shapes, depending on who is asking:
+ *
+ *  - A shopper (no session) gets only the payment state, which the confirmation
+ *    page needs. No name, email, phone or address: order references are
+ *    timestamp-based and therefore guessable, so anything personal here would
+ *    be a data leak.
+ *  - An admin gets the full record, which the delivery receipt prints from.
  */
 export async function GET(
   _req: NextRequest,
@@ -26,14 +30,32 @@ export async function GET(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
+    const base = {
+      orderId: order.order_id,
+      status: order.status,
+      paymentMethod: order.payment_method || 'safepay',
+      amount: order.amount,
+      currency: order.currency || 'PKR',
+      hasProof: Boolean(order.payment_proof_url || order.payment_screenshot),
+    };
+
+    if (!(await isAdminRequest())) {
+      return NextResponse.json({ order: base });
+    }
+
     return NextResponse.json({
       order: {
-        orderId: order.order_id,
-        status: order.status,
-        paymentMethod: order.payment_method || 'safepay',
-        amount: order.amount,
-        currency: order.currency || 'PKR',
-        hasProof: Boolean(order.payment_proof_url),
+        ...base,
+        name: order.name,
+        email: order.email,
+        phone: order.phone,
+        address: order.address,
+        product: order.product,
+        deliveryFee: order.delivery_fee ?? 0,
+        paymentSubMethod: order.payment_sub_method ?? null,
+        paymentReference: order.payment_reference ?? null,
+        tracker: order.tracker ?? null,
+        createdAt: order.created_at,
       },
     });
   } catch (error: any) {

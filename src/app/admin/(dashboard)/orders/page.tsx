@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, 
@@ -20,8 +21,11 @@ import {
   ShieldAlert,
   History,
   CheckCheck,
-  ExternalLink
+  ExternalLink,
+  Printer,
+  Pencil
 } from "lucide-react";
+import { paymentLabel } from "@/data/payment-labels";
 
 interface Order {
   orderId: string;
@@ -59,14 +63,54 @@ const StatusDropdown = ({ currentStatus, onUpdate, isLoading }: {
   isLoading: boolean
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const statusInfo = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.pending;
   const Icon = statusInfo.icon;
+
+  const MENU_WIDTH = 176; // matches w-44
+
+  // The menu renders into document.body rather than beside the button. Both
+  // order tables scroll horizontally (overflow-x-auto), and CSS refuses to keep
+  // overflow-y visible when overflow-x is auto — so an absolutely positioned
+  // menu was being clipped by the table on the lower rows.
+  const place = () => {
+    const el = buttonRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const estimatedHeight = ADMIN_STATUS_OPTIONS.length * 42 + 16;
+    const openUpwards = r.bottom + estimatedHeight > window.innerHeight - 8;
+    setCoords({
+      top: openUpwards ? r.top - estimatedHeight - 8 : r.bottom + 8,
+      left: Math.min(r.left, window.innerWidth - MENU_WIDTH - 12),
+    });
+  };
+
+  const toggle = () => {
+    if (isOpen) { setIsOpen(false); return; }
+    place();
+    setIsOpen(true);
+  };
+
+  // A fixed menu would drift from its button once anything scrolls, so close
+  // it rather than trying to follow.
+  useEffect(() => {
+    if (!isOpen) return;
+    const close = () => setIsOpen(false);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [isOpen]);
 
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         disabled={isLoading}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggle}
         className={`w-36 px-4 py-2 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-between gap-2 hover:scale-105 active:scale-95
           ${statusInfo.color} ${isLoading ? 'opacity-50' : ''}`}
       >
@@ -77,54 +121,160 @@ const StatusDropdown = ({ currentStatus, onUpdate, isLoading }: {
         <ChevronDown className={`w-3 h-3 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute z-50 top-full mt-2 left-0 w-44 bg-[#0d0d0d] border border-white/10 rounded-2xl p-2 shadow-2xl backdrop-blur-3xl overflow-hidden"
-            >
-              <div className="space-y-1">
-                {ADMIN_STATUS_OPTIONS.map((opt) => {
-                  const optInfo = STATUS_CONFIG[opt];
-                  const OptIcon = optInfo.icon;
-                  return (
-                    <button
-                      key={opt}
-                      onClick={() => {
-                        onUpdate(opt);
-                        setIsOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-3
-                        ${currentStatus === opt 
-                          ? 'bg-gold/10 text-gold' 
-                          : 'text-white/40 hover:text-white hover:bg-white/5'}`}
-                    >
-                      <OptIcon className="w-3.5 h-3.5" />
-                      {optInfo.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {isOpen && coords && typeof document !== "undefined" && createPortal(
+        <>
+          <div className="fixed inset-0 z-[190]" onClick={() => setIsOpen(false)} />
+          <div
+            style={{ top: coords.top, left: coords.left, width: MENU_WIDTH }}
+            className="fixed z-[200] bg-[#0d0d0d] border border-white/10 rounded-2xl p-2 shadow-2xl backdrop-blur-3xl overflow-hidden"
+          >
+            <div className="space-y-1">
+              {ADMIN_STATUS_OPTIONS.map((opt) => {
+                const optInfo = STATUS_CONFIG[opt];
+                const OptIcon = optInfo.icon;
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      onUpdate(opt);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-3
+                      ${currentStatus === opt
+                        ? 'bg-gold/10 text-gold'
+                        : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                  >
+                    <OptIcon className="w-3.5 h-3.5" />
+                    {optInfo.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
     </div>
   );
 };
 
-const OrderDetailsModal = ({ 
-  order, 
+/**
+ * Edit the delivery charge on a single order.
+ *
+ * The server keeps the product subtotal and swaps only the delivery portion,
+ * so the total stays consistent with what was actually ordered. Admin-only on
+ * the server too — the PATCH route is otherwise reachable by shoppers.
+ */
+const DeliveryFeeEditor = ({ order, onUpdated }: { order: Order; onUpdated?: () => void }) => {
+  const current = Number(order.deliveryFee ?? 0);
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(String(current));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fee, setFee] = useState(current);
+
+  const subtotal = Math.max(0, Number(order.amount || 0) - fee);
+
+  const save = async () => {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n < 0) return setError("Enter a valid amount.");
+
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.orderId, deliveryFee: n }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Update failed");
+      setFee(n);
+      setEditing(false);
+      onUpdated?.();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30">Order Total</p>
+        {!editing && (
+          <button
+            onClick={() => { setValue(String(fee)); setEditing(true); setError(null); }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gold/10 border border-gold/30 text-gold text-[9px] font-black uppercase tracking-widest hover:bg-gold/20 hover:border-gold/50 active:scale-95 transition-all"
+          >
+            <Pencil className="w-3 h-3" />
+            Change Delivery
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-1.5 text-[11px]">
+        <div className="flex justify-between text-white/50">
+          <span>Products</span>
+          <span className="tabular-nums">Rs {subtotal.toLocaleString()}</span>
+        </div>
+
+        <div className="flex justify-between items-center gap-3 text-white/50">
+          <span>Delivery</span>
+          {editing ? (
+            <div className="flex items-center gap-2">
+              <span className="text-white/30">Rs</span>
+              <input
+                type="number"
+                value={value}
+                autoFocus
+                onChange={(e) => { setValue(e.target.value); setError(null); }}
+                className="w-24 bg-black/40 border border-white/10 focus:border-gold/40 rounded-lg px-2 py-1 text-[11px] text-white outline-none text-right tabular-nums"
+              />
+              <button
+                onClick={save}
+                disabled={saving}
+                className="px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[8px] font-black uppercase tracking-widest disabled:opacity-40"
+              >
+                {saving ? "…" : "Save"}
+              </button>
+              <button
+                onClick={() => { setEditing(false); setError(null); }}
+                disabled={saving}
+                className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/40 text-[8px] font-black uppercase tracking-widest disabled:opacity-40"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <span className="tabular-nums">{fee > 0 ? `Rs ${fee.toLocaleString()}` : "Free"}</span>
+          )}
+        </div>
+
+        <div className="flex justify-between pt-2 border-t border-white/5">
+          <span className="font-black uppercase tracking-widest text-white/70 text-[10px]">Total</span>
+          <span className="text-base font-black text-gold tabular-nums">
+            Rs {(subtotal + fee).toLocaleString()}
+          </span>
+        </div>
+      </div>
+
+      {error && <p className="text-[10px] text-rose-300">{error}</p>}
+    </div>
+  );
+};
+
+const OrderDetailsModal = ({
+  order,
   onClose,
-  onVerifyPayment 
-}: { 
-  order: Order; 
+  onVerifyPayment,
+  onUpdated
+}: {
+  order: Order;
   onClose: () => void;
   onVerifyPayment: (orderId: string) => void;
+  onUpdated?: () => void;
 }) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -199,13 +349,17 @@ const OrderDetailsModal = ({
           <DetailRow icon={Phone} label="Phone Number" value={order.phone} field="phone" index={2} />
           <DetailRow icon={Truck} label="Shipping Address" value={order.address} field="address" index={3} />
           <DetailRow icon={FileText} label="Product Ordered" value={order.product} index={4} />
-          <DetailRow 
-            icon={CheckCircle} 
-            label="Payment & Delivery Mode" 
-            value={`${order.paymentMethod === 'cod_founder' ? 'Founder Delivery (Lahore)' : order.paymentMethod === 'cod_standard' ? 'Cash on Delivery' : 'Online Payment'} (${order.paymentSubMethod || 'Standard'})`} 
-            index={5} 
+          <DetailRow
+            icon={CheckCircle}
+            label="Payment & Delivery Mode"
+            value={`${paymentLabel(order.paymentMethod)}${order.paymentSubMethod ? ` (${order.paymentSubMethod})` : ''}`}
+            index={5}
           />
         </div>
+
+        {/* Delivery charge, editable. Changing it swaps only the delivery
+            portion of the total; the product subtotal stays as ordered. */}
+        <DeliveryFeeEditor order={order} onUpdated={onUpdated} />
 
         {/* Uploaded Payment Screenshot Section */}
         {order.paymentScreenshot ? (
@@ -508,12 +662,26 @@ export default function AdminOrdersPage() {
                           />
                         </td>
                         <td className="px-6 py-5 text-right">
-                          <button 
-                            onClick={() => setSelectedOrder(order)}
-                            className="p-2.5 text-white/30 hover:text-gold hover:bg-gold/10 rounded-xl transition-all"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            {/* Opens the printable delivery slip in its own tab
+                                so the admin list stays where it is. */}
+                            <a
+                              href={`/admin/receipt/${order.orderId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Delivery receipt"
+                              className="p-2.5 text-white/30 hover:text-gold hover:bg-gold/10 rounded-xl transition-all"
+                            >
+                              <Printer className="w-4 h-4" />
+                            </a>
+                            <button
+                              onClick={() => setSelectedOrder(order)}
+                              title="Inspect order"
+                              className="p-2.5 text-white/30 hover:text-gold hover:bg-gold/10 rounded-xl transition-all"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </motion.tr>
                     );
@@ -603,12 +771,24 @@ export default function AdminOrdersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-5 text-right">
-                        <button 
-                          onClick={() => setSelectedOrder(order)}
-                          className="p-2 text-white/20 hover:text-gold transition-all"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <a
+                            href={`/admin/receipt/${order.orderId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Delivery receipt"
+                            className="p-2 text-white/20 hover:text-gold transition-all"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </a>
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            title="Inspect order"
+                            className="p-2 text-white/20 hover:text-gold transition-all"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -625,6 +805,7 @@ export default function AdminOrdersPage() {
           order={selectedOrder} 
           onClose={() => setSelectedOrder(null)} 
           onVerifyPayment={handleVerifyPayment}
+          onUpdated={fetchOrders}
         />
       )}
 

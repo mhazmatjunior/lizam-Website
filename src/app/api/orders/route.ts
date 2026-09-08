@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { newOrderId } from '@/lib/order-id';
+import { isAdminRequest } from '@/lib/auth';
 import { 
   sendOrderConfirmationEmail, 
   sendPaymentVerifiedEmail, 
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'All customer fields are required' }, { status: 400 });
     }
 
-    const orderId = `ORD-${Date.now()}`;
+    const orderId = newOrderId();
     const initialStatus = requestedStatus || (payment_method === 'online_manual' ? 'unverified' : 'pending');
     
     let insertObj: any = {
@@ -121,14 +123,48 @@ export async function POST(req: NextRequest) {
 // PATCH - Update order status (called after payment confirmation or by admin)
 export async function PATCH(req: NextRequest) {
   try {
-    const { orderId, status, tracker } = await req.json();
+    const { orderId, status, tracker, deliveryFee } = await req.json();
 
     const updateData: any = {
-      status,
       updated_at: new Date().toISOString()
     };
+    if (status !== undefined) {
+      updateData.status = status;
+    }
     if (tracker !== undefined) {
       updateData.tracker = tracker;
+    }
+
+    // Changing the delivery charge moves real money, so unlike a status update
+    // (which the customer's own confirmation page performs) this is admin-only.
+    if (deliveryFee !== undefined) {
+      if (!(await isAdminRequest())) {
+        return NextResponse.json({ error: 'Not authorised' }, { status: 401 });
+      }
+
+      const fee = Number(deliveryFee);
+      if (!Number.isFinite(fee) || fee < 0 || fee > 100000) {
+        return NextResponse.json(
+          { error: 'Enter a delivery fee between 0 and 100,000' },
+          { status: 400 }
+        );
+      }
+
+      // Keep the product subtotal intact and swap only the delivery portion,
+      // so the total stays consistent with what was actually ordered.
+      const { data: current, error: readError } = await supabaseAdmin
+        .from('orders')
+        .select('amount, delivery_fee')
+        .eq('order_id', orderId)
+        .single();
+
+      if (readError || !current) {
+        return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      }
+
+      const subtotal = Math.max(0, Number(current.amount || 0) - Number(current.delivery_fee || 0));
+      updateData.delivery_fee = fee;
+      updateData.amount = subtotal + fee;
     }
 
     const { data: updatedOrder, error } = await supabaseAdmin
@@ -178,6 +214,12 @@ export async function PATCH(req: NextRequest) {
 // GET - Retrieve all orders from Supabase (for admin use)
 export async function GET() {
   try {
+    // Admin only. This returns every customer's name, email, phone and
+    // address, so it must never be readable by an anonymous visitor.
+    if (!(await isAdminRequest())) {
+      return NextResponse.json({ error: 'Not authorised' }, { status: 401 });
+    }
+
     const { data: orders, error } = await supabaseAdmin
       .from('orders')
       .select('*')

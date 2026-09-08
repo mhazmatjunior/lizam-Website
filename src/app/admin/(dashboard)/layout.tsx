@@ -14,7 +14,8 @@ import {
   Calculator,
   LogOut,
   Menu,
-  ArrowLeft
+  ArrowLeft,
+  TrendingUp
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Approvals", href: "/admin/approvals", icon: ShieldCheck },
   { name: "Inventory", href: "/admin/inventory", icon: Package },
+  { name: "Profit & Loss", href: "/admin/profit-loss", icon: TrendingUp },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
 ];
 

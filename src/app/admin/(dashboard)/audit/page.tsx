@@ -15,7 +15,8 @@ import {
   Sparkles,
   Award,
   Download,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Pencil
 } from "lucide-react";
 
 interface Order {
@@ -35,6 +36,91 @@ interface Order {
 }
 
 const BOTTLE_UNIT_COST = 2100; // Rs. 2,100 manufacturing cost per bottle
+
+/**
+ * Delivery cost for one order, editable straight from the ledger.
+ *
+ * Saving recomputes the order total server-side (product subtotal is kept, the
+ * delivery portion is swapped), so the profit figures on this page follow from
+ * the same numbers the customer was charged.
+ */
+const EditableDeliveryCost = ({
+  orderId, value, onSaved,
+}: { orderId: string; value: number; onSaved: () => void }) => {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+  const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const save = async () => {
+    const n = Number(draft);
+    if (!Number.isFinite(n) || n < 0) { setFailed(true); return; }
+    setSaving(true);
+    setFailed(false);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, deliveryFee: n }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "failed");
+      setEditing(false);
+      onSaved();
+    } catch {
+      setFailed(true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => { setDraft(String(value)); setEditing(true); setFailed(false); }}
+        title="Click to change the delivery cost"
+        // The pencil stays visible rather than appearing on hover: touch
+        // devices have no hover, so a hover-only affordance is invisible there.
+        className="group flex items-center gap-2 px-2.5 py-1.5 -mx-2.5 rounded-lg border border-cyan-500/20 bg-cyan-500/[0.06] text-[11px] font-bold text-cyan-400 hover:bg-cyan-500/15 hover:border-cyan-500/40 active:scale-95 transition-all"
+      >
+        Rs {value.toLocaleString()}
+        <Pencil className="w-3 h-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <input
+        type="number"
+        value={draft}
+        autoFocus
+        onChange={(e) => { setDraft(e.target.value); setFailed(false); }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") save();
+          if (e.key === "Escape") setEditing(false);
+        }}
+        className={`w-20 bg-black/50 border rounded-lg px-2 py-1 text-[11px] text-white outline-none text-right tabular-nums ${
+          failed ? "border-rose-500/60" : "border-cyan-500/40 focus:border-cyan-400"
+        }`}
+      />
+      <button
+        onClick={save}
+        disabled={saving}
+        className="px-2 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[8px] font-black uppercase disabled:opacity-40"
+      >
+        {saving ? "…" : "Save"}
+      </button>
+      <button
+        onClick={() => setEditing(false)}
+        disabled={saving}
+        className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-white/40 text-[8px] font-black uppercase disabled:opacity-40"
+      >
+        Esc
+      </button>
+    </div>
+  );
+};
 
 export default function AuditPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -425,7 +511,13 @@ export default function AuditPage() {
                     <td className="px-5 py-5 text-[11px] font-bold text-white/70">{row.bottleQty}</td>
                     <td className="px-5 py-5 text-[11px] font-black text-white">Rs {row.amount.toLocaleString()}</td>
                     <td className="px-5 py-5 text-[11px] font-bold text-rose-400">Rs {row.bottleCost.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-[11px] font-bold text-cyan-400">Rs {row.deliveryExpense.toLocaleString()}</td>
+                    <td className="px-5 py-5">
+                      <EditableDeliveryCost
+                        orderId={row.orderId}
+                        value={row.deliveryExpense}
+                        onSaved={fetchOrders}
+                      />
+                    </td>
                     <td className="px-5 py-5 font-black text-emerald-400 text-xs">
                       + Rs {row.orderNetProfit.toLocaleString()}
                     </td>

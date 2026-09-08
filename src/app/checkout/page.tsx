@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
+import { newOrderId } from "@/lib/order-id";
 import { FOUNDER_DELIVERY_TIERS, getFounderDeliveryInfo } from "@/data/founder-cities";
 
 export default function CheckoutPage() {
@@ -214,7 +215,7 @@ export default function CheckoutPage() {
       const calculatedStatus = subMethod === 'manual' ? 'unverified' : (paymentMethod === 'cod' ? 'cashondelivery' : 'pending');
       const backendPaymentMethod = paymentMethod === 'founder' ? 'cod_founder' : (paymentMethod === 'cod' ? 'cod_standard' : 'safepay');
 
-      const tempOrderId = `ORD-${Date.now()}`;
+      const tempOrderId = newOrderId();
 
       const orderPayload = {
         name: formData.fullName,
