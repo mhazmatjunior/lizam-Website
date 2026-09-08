@@ -49,13 +49,13 @@ export default function Home() {
           {/* Logo */}
           <div className="flex items-center shrink-0">
             <Image
-              src="/raanai-logo.png"
+              src="/raanae-logo.webp"
               alt="RAANAE Logo"
-              width={600}
-              height={906}
-              /* Sized by height: the mark is portrait (0.63), and unlike the old
-                 file this one has almost no transparent padding, so the negative
-                 left margin that compensated for it is no longer needed.
+              width={1538}
+              height={2176}
+              /* Sized by height: the mark is portrait (artwork ratio 0.63) and the
+                 file carries only ~4% transparent padding top/bottom, so no negative
+                 margin is needed to compensate.
                  SIZE: change h-20 / md:h-28 to resize the logo. */
               className="h-20 md:h-28 w-auto object-contain cursor-pointer"
               priority
