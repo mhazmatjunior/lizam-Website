@@ -153,24 +153,57 @@ export default function Home() {
         </section>
 
         {/* Section 2: Cave Section */}
-        <section id="cave" className="relative min-h-screen w-full flex flex-col justify-between py-24 overflow-hidden bg-black">
+        <section id="cave" className="relative w-full overflow-hidden bg-black lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:py-24">
+
+          {/* ---- MOBILE ------------------------------------------------------
+              The artwork carries its own gold frame, baked into the file as a
+              rounded rectangle at x 41-1038, y 470-1602 of 1080x1727. Cropping
+              the file to a phone's tall viewport (object-cover) cuts both
+              vertical edges away and leaves the two horizontal edges lying
+              across the scene as orphaned lines, one of them straight through
+              "perfume brand". So the box below matches the file's aspect ratio
+              exactly and nothing is cropped; the artwork's own black margins
+              read as the section's padding.
+              TEXT: the two blocks are placed as percentages of this box so they
+              stay inside the baked frame at every width. To move them, change
+              the percentages — not the font size. */}
+          <div className="relative block w-full aspect-[1080/1727] lg:hidden">
+            <Image
+              src="/section-img/Section%202%20Image%20-%20Mobile.webp"
+              alt="Jerusalem Cave View Mobile"
+              fill
+              sizes="100vw"
+              className="object-cover"
+            />
+
+            {/* Left narrative — on the dark cave wall, above the mosque */}
+            <div className="absolute left-[15%] top-[50%] z-10">
+              <h2 className="ds-cave-left-m leading-tight tracking-wide text-[#e2bb61]">
+                Raanae is<br />
+                not another<br />
+                perfume brand<br />
+                <span className="text-white">but...</span>
+              </h2>
+            </div>
+
+            {/* Right narrative — on the right-hand wall, below the lantern */}
+            <div className="absolute right-[11%] top-[69%] z-10">
+              <h2 className="ds-cave-right-m leading-tight tracking-wide text-white">
+                ...an Initiative<br />
+                Inspired<br />
+                by the cause of<br />
+                Palestine
+              </h2>
+            </div>
+          </div>
+
+          {/* ---- DESKTOP (unchanged) ---------------------------------------- */}
           {/* Cave Background Image with Jerusalem View */}
-          <div className="absolute inset-0 z-0 pointer-events-none select-none">
-            {/* Laptop Background */}
-            <div className="hidden lg:block absolute inset-0 w-full h-full">
+          <div className="pointer-events-none absolute inset-0 z-0 hidden select-none lg:block">
+            <div className="absolute inset-0 h-full w-full">
               <Image
                 src="https://ybhzcrqaxtglysnpxcmd.supabase.co/storage/v1/object/public/product-images/theme-image4.png"
                 alt="Jerusalem Cave View Laptop"
-                fill
-                sizes="100vw"
-                className="object-cover object-center"
-              />
-            </div>
-            {/* Mobile Background */}
-            <div className="block lg:hidden absolute inset-0 w-full h-full">
-              <Image
-                src="/section-img/Section%202%20Image%20-%20Mobile.webp"
-                alt="Jerusalem Cave View Mobile"
                 fill
                 sizes="100vw"
                 className="object-cover object-center"
@@ -182,13 +215,15 @@ export default function Home() {
             <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent" />
           </div>
 
-          {/* Inset Gold Frame */}
-          <div className="absolute inset-4 md:inset-10 border border-[#e2bb61]/20 rounded-[16px] md:rounded-[24px] z-10 pointer-events-none" />
+          {/* Inset Gold Frame. Desktop only: on mobile the artwork supplies its
+              own frame, and a second one at a different inset read as a bug. */}
+          <div className="pointer-events-none absolute inset-10 z-10 hidden rounded-[24px] border border-[#e2bb61]/20 lg:block" />
 
           {/* Left/Right Narrative overlay */}
-          <div className="relative z-20 w-full max-w-7xl mx-auto px-8 md:px-20 h-[70vh] flex flex-col lg:flex-row justify-between lg:items-center gap-12 my-auto">
-            {/* Left Narrative Text */}
-            <div className="max-w-[280px] self-start text-left mt-8 lg:mt-0">
+          <div className="relative z-20 mx-auto my-auto hidden h-[70vh] w-full max-w-7xl flex-row items-center justify-between gap-12 px-20 lg:flex">
+            {/* Left Narrative Text. self-start overrides the row's
+                items-center so this block sits at the top, as it did before. */}
+            <div className="max-w-[280px] self-start text-left">
               <h2 className="text-[#e2bb61] ds-cave-left leading-tight tracking-wide">
                 Raanae is<br />
                 not another<br />
@@ -198,7 +233,7 @@ export default function Home() {
             </div>
 
             {/* Right Narrative Text */}
-            <div className="max-w-[280px] self-end text-left lg:text-right mb-8 lg:mb-0">
+            <div className="max-w-[280px] self-end text-right">
               <h2 className="text-white ds-cave-right leading-tight tracking-wide">
                 ...an Initiative<br />
                 Inspired<br />
