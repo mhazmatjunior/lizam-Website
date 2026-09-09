@@ -16,6 +16,7 @@ import {
     ShoppingBag
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import SiteFooter from '@/app/components/SiteFooter';
 
 // --- Types ---
 import { type Product } from '@/data/products';
@@ -304,17 +305,7 @@ export default function ProductListPage() {
                 </div>
             </section>
 
-            {/* Simple Footer */}
-            <footer className="px-8 md:px-24 py-16 border-t border-white/5 opacity-40">
-                <div className="max-w-7xl mx-auto flex justify-between items-center text-[8px] uppercase tracking-[0.4em] font-black">
-                    <span>RAANAE &copy; 2024</span>
-                    <div className="flex gap-8">
-                        <span className="cursor-pointer hover:text-gold">PRIVACY</span>
-                        <span className="cursor-pointer hover:text-gold">TERMS</span>
-                        <span className="cursor-pointer hover:text-gold">SHIPPING</span>
-                    </div>
-                </div>
-            </footer>
+            <SiteFooter />
         </main>
     );
 }

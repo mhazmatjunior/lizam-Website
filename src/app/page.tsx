@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Instagram, Facebook, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import CheckoutModal from "./components/CheckoutModal";
+import { LEGAL_PAGES } from "@/data/legal";
 
 export default function Home() {
   const { setIsCartOpen, itemsCount } = useCart();
@@ -496,13 +497,31 @@ export default function Home() {
 
           {/* Ochre disclaimer footer */}
           <footer className="w-full bg-gold-sweep text-[#5a4522] py-5 px-6 md:px-16 border-t border-[#b8892f]/20">
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="ds-footer-body max-w-2xl text-center md:text-left leading-relaxed">
-                <span className="ds-disclaimer-label text-[#3d2e13]">Disclaimer:</span> Raanae is not just a perfume brand but a purpose, a vision, a platform, community for one united muslim ummah.
-              </p>
-              <p className="ds-footer-body whitespace-nowrap text-[#3d2e13]">
-                Our Touch Point: <a href="mailto:raanae980@gmail.com" className="underline hover:text-black transition-colors">raanae980@gmail.com</a>
-              </p>
+            <div className="max-w-7xl mx-auto flex flex-col gap-4">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <p className="ds-footer-body max-w-2xl text-center md:text-left leading-relaxed">
+                  <span className="ds-disclaimer-label text-[#3d2e13]">Disclaimer:</span> Raanae is not just a perfume brand but a purpose, a vision, a platform, community for one united muslim ummah.
+                </p>
+                <p className="ds-footer-body whitespace-nowrap text-[#3d2e13]">
+                  Our Touch Point: <a href="mailto:raanae980@gmail.com" className="underline hover:text-black transition-colors">raanae980@gmail.com</a>
+                </p>
+              </div>
+
+              {/* Policy links. These have to be reachable from the landing page,
+                  not just from a URL, so they sit in the footer every visitor
+                  scrolls past. Sourced from LEGAL_PAGES so a new policy page
+                  shows up here automatically. */}
+              <nav className="flex flex-wrap justify-center md:justify-start gap-x-5 gap-y-2 pt-3 border-t border-[#b8892f]/25">
+                {LEGAL_PAGES.map((page) => (
+                  <Link
+                    key={page.href}
+                    href={page.href}
+                    className="text-[10px] md:text-[11px] font-semibold tracking-wide text-[#4a3813] underline-offset-4 hover:text-black hover:underline transition-colors"
+                  >
+                    {page.label}
+                  </Link>
+                ))}
+              </nav>
             </div>
           </footer>
 
