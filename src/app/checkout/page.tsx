@@ -836,6 +836,17 @@ export default function CheckoutPage() {
                   </>
                 )}
               </button>
+
+              {/* Policy acknowledgement. The terms a customer is agreeing to have
+                  to be readable at the moment of payment, not just findable from
+                  the homepage footer. */}
+              <p className="mt-5 text-[10px] leading-relaxed text-white/35 text-center">
+                By placing this order you agree to our{' '}
+                <Link href="/terms" className="text-gold/70 hover:text-gold underline underline-offset-2">Terms &amp; Conditions</Link>,{' '}
+                <Link href="/shipping-returns" className="text-gold/70 hover:text-gold underline underline-offset-2">Shipping, Returns &amp; Refunds Policy</Link>{' '}
+                and{' '}
+                <Link href="/privacy" className="text-gold/70 hover:text-gold underline underline-offset-2">Privacy Policy</Link>.
+              </p>
             </div>
           </div>
 

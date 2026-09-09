@@ -28,6 +28,7 @@ import {
 } from "@/data/brand";
 import ProductGallery from "@/app/components/ProductGallery";
 import ReviewSection from "@/app/components/ReviewSection";
+import SiteFooter from "@/app/components/SiteFooter";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 
@@ -446,6 +447,8 @@ export default function ProductDetailPage() {
           </div>
         </section>
       )}
+
+      <SiteFooter />
     </main>
   );
 }
