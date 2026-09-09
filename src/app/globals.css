@@ -610,23 +610,6 @@ body::after {
   font-size: clamp(24px, 3.02vw, calc(58px * var(--ds-cap)));
 }
 
-/* Mobile cave narrative. Same vw ramp as the two rules above, but without
-   their 24px floor: on a 390px screen that floor pinned the type at roughly
-   twice its designed proportion, so the two blocks swallowed the cave and
-   crossed the mosque. Sized to track the artwork, which on mobile is shown
-   whole rather than cropped (see Section 2 in page.tsx). */
-.ds-cave-left-m {
-  font-family: var(--font-heading);
-  font-weight: 400;
-  font-size: clamp(11px, 3.23vw, 22px);
-}
-
-.ds-cave-right-m {
-  font-family: var(--font-heading);
-  font-weight: 400;
-  font-size: clamp(11px, 3.02vw, 21px);
-}
-
 /* ---- Oct 7 launch ------------------------------------------------------- */
 
 /* "Our First Launch" — Montserrat 300 / 55px */

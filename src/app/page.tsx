@@ -156,52 +156,21 @@ export default function Home() {
         <section id="cave" className="relative w-full overflow-hidden bg-black lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:py-24">
 
           {/* ---- MOBILE ------------------------------------------------------
-              The artwork carries its own gold frame, baked into the file as a
-              rounded rectangle at x 41-1038, y 470-1602 of 1080x1727. Cropping
-              the file to a phone's tall viewport (object-cover) cuts both
-              vertical edges away and leaves the two horizontal edges lying
-              across the scene as orphaned lines, one of them straight through
-              "perfume brand". So the box below matches the file's aspect ratio
-              exactly and nothing is cropped; the artwork's own black margins
-              read as the section's padding.
-              GAP: the file opens with ~205 rows of flat near-black above the
-              cave. Left in, that dead band stacked onto the hero's own bottom
-              padding and read as a 146px hole between the sections, so the box
-              is 1080/1522 rather than 1080/1727 and object-bottom crops those
-              rows off the top. Nothing visible is lost — the cropped rows are
-              uniformly black (max channel value 8).
-              TEXT: the two blocks are placed as percentages of this box so they
-              stay inside the baked frame at every width. The percentages are
-              measured against the trimmed 1522, not the full 1727. To move
-              them, change the percentages — not the font size. */}
-          <div className="relative block w-full aspect-[1080/1522] lg:hidden">
+              A single flattened artwork: the frame and both lines of narrative
+              are part of the image, so there is no text overlay here. The box
+              matches the file's 1080x1512 aspect exactly, which means nothing
+              is cropped at any phone width.
+              The wording is repeated in alt below — baked-in text is invisible
+              to screen readers and to search engines, and alt is the only thing
+              carrying it. Keep the two in sync if the artwork is replaced. */}
+          <div className="relative block w-full aspect-[1080/1512] lg:hidden">
             <Image
-              src="/section-img/Section%202%20Image%20-%20Mobile.webp"
-              alt="Jerusalem Cave View Mobile"
+              src="/section-img/section-2-mobile.webp"
+              alt="Raanae is not another perfume brand but... an initiative inspired by the cause of Palestine. The Dome of the Rock seen through a cave opening."
               fill
               sizes="100vw"
-              className="object-cover object-bottom"
+              className="object-cover"
             />
-
-            {/* Left narrative — on the dark cave wall, above the mosque */}
-            <div className="absolute left-[15%] top-[43%] z-10">
-              <h2 className="ds-cave-left-m leading-tight tracking-wide text-[#e2bb61]">
-                Raanae is<br />
-                not another<br />
-                perfume brand<br />
-                <span className="text-white">but...</span>
-              </h2>
-            </div>
-
-            {/* Right narrative — on the right-hand wall, below the lantern */}
-            <div className="absolute right-[11%] top-[65%] z-10">
-              <h2 className="ds-cave-right-m leading-tight tracking-wide text-white">
-                ...an Initiative<br />
-                Inspired<br />
-                by the cause of<br />
-                Palestine
-              </h2>
-            </div>
           </div>
 
           {/* ---- DESKTOP (unchanged) ---------------------------------------- */}
