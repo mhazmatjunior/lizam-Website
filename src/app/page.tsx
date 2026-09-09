@@ -532,7 +532,7 @@ export default function Home() {
                 <span className="ds-disclaimer-label text-[#3d2e13]">Disclaimer:</span> Raanae is not just a perfume brand but a purpose, a vision, a platform, community for one united muslim ummah.
               </p>
               <p className="ds-footer-body whitespace-nowrap text-[#3d2e13]">
-                Our Touch Point: <a href="mailto:contact@raanae.com" className="underline hover:text-black transition-colors">contact@raanae.com</a>
+                Our Touch Point: <a href="mailto:raanae980@gmail.com" className="underline hover:text-black transition-colors">raanae980@gmail.com</a>
               </p>
             </div>
           </footer>
