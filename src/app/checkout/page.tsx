@@ -475,12 +475,17 @@ export default function CheckoutPage() {
                       <h4 className="text-xs font-black uppercase tracking-widest text-gold flex items-center gap-2">
                         Hand Delivered By The Founder <Crown className="w-3.5 h-3.5 text-gold" />
                       </h4>
-                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Exclusive Hand-Delivery by Founder in Select Major Cities</p>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Exclusive Hand-Delivery by Founder in Limited Cities</p>
                     </div>
                   </div>
-                  <span className="text-[7px] font-black uppercase tracking-widest bg-gold text-black px-2 py-0.5 rounded font-black border border-gold">
-                    {founderInfo ? `+ ${founderInfo.priceFormatted}` : '+ From Rs 4,000'}
-                  </span>
+                  <div className="flex flex-col items-end gap-1 shrink-0 text-right">
+                    <span className="text-[7px] font-black uppercase tracking-widest bg-gold text-black px-2 py-0.5 rounded font-black border border-gold">
+                      {founderInfo ? `+ ${founderInfo.priceFormatted}` : '+ From Rs 3,999'}
+                    </span>
+                    <span className="text-[7px] font-black uppercase tracking-widest text-gold/70">
+                      Available For Limited Orders
+                    </span>
+                  </div>
                 </div>
 
               </div>

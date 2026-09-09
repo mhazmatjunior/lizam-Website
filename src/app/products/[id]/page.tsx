@@ -22,10 +22,11 @@ import {
 } from "lucide-react";
 import { type Product } from "@/data/products";
 import {
-  BRAND_USPS, USP_HEADING, USP_INTRO,
+  BRAND_USPS,
   CHARACTERISTICS_HEADING, DEFAULT_CHARACTERISTICS,
   PRODUCT_GALLERY,
 } from "@/data/brand";
+import ProductGallery from "@/app/components/ProductGallery";
 import ReviewSection from "@/app/components/ReviewSection";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
@@ -38,7 +39,6 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeNote, setActiveNote] = useState<"top" | "heart" | "base">("top");
-  const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState<"details" | "reviews">("details");
 
   useEffect(() => {
@@ -111,49 +111,8 @@ export default function ProductDetailPage() {
       <div className="max-w-7xl mx-auto px-8 md:px-24 py-4 lg:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center min-h-[calc(100vh-160px)]">
           
-          {/* Left: Product Visuals */}
-          <div className="relative group h-full flex items-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="aspect-square lg:aspect-[4/5] w-full max-h-[60vh] bg-white/[0.02] border border-white/5 rounded-[40px] flex items-center justify-center p-8 md:p-12 relative overflow-hidden"
-            >
-              {/* Background Glow */}
-              <div className="absolute inset-0 bg-radial-gradient from-gold/10 to-transparent opacity-30 blur-3xl" />
-              
-              <Image
-                key={gallery[activeImage]}
-                src={gallery[activeImage]}
-                alt={`${product.name} — image ${activeImage + 1} of ${gallery.length}`}
-                width={500}
-                height={600}
-                className="object-contain filter drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)] z-10 transition-transform duration-700 group-hover:scale-105"
-                priority
-              />
-
-              {/* Gallery picker. These dots used to be decorative; they now
-                  select the image above. The dark pill behind them keeps them
-                  legible over both bright and dark photos. */}
-              {gallery.length > 1 && (
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 px-3.5 py-2.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10">
-                  {gallery.map((src, i) => (
-                    <button
-                      key={src}
-                      onClick={() => setActiveImage(i)}
-                      aria-label={`Show image ${i + 1}`}
-                      aria-current={i === activeImage}
-                      className={`w-2.5 h-2.5 rounded-full transition-all hover:scale-125 ${
-                        i === activeImage
-                          ? 'bg-gold scale-125 shadow-[0_0_8px_rgba(226,187,97,0.8)]'
-                          : 'bg-white/60 hover:bg-white'
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          </div>
+          {/* Left: Product Visuals — swipeable slider with a zoom viewer. */}
+          <ProductGallery images={gallery} alt={product.name} />
 
           {/* Right: Product Story & Sales */}
           <div className="space-y-10 lg:space-y-12 py-4">
@@ -167,7 +126,6 @@ export default function ProductDetailPage() {
               <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9]">
                 {product.name}
               </h1>
-              <p className="text-2xl font-black text-white/90">Rs {product.price.toLocaleString()}</p>
             </motion.div>
 
             {/* Description */}
@@ -183,10 +141,23 @@ export default function ProductDetailPage() {
                   if (product.longDescription.includes(phrase)) {
                     return (
                       <>
-                        <span className="block mt-4 p-4 rounded-2xl bg-gradient-to-r from-[#e2bb61]/10 to-transparent border-l-2 border-[#e2bb61] text-[#e2bb61] font-black text-xs uppercase tracking-widest text-left shadow-[0_4px_20px_rgba(226,187,97,0.05)]">
-                          <span className="block">✨ 12 Upto 15 hours lasting</span>
-                          <span className="block mt-2">✨ Unisex Perfume (both male and female can use)</span>
-                          <span className="block mt-2">✨ {phrase}</span>
+                        {/* Bordered on all four sides with a gold glow, rather
+                            than the single left rule it used to carry, so the
+                            three claims read as one block. Each line is led by a
+                            white dot. */}
+                        <span className="block mt-4 p-5 rounded-2xl bg-gradient-to-br from-[#e2bb61]/[0.12] via-[#e2bb61]/[0.05] to-transparent border border-[#e2bb61]/50 text-[#e2bb61] font-black text-xs uppercase tracking-widest text-left shadow-[0_0_25px_rgba(226,187,97,0.15),inset_0_0_20px_rgba(226,187,97,0.03)]">
+                          <span className="flex items-start gap-2.5">
+                            <span className="mt-[6px] h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
+                            <span>12 Upto 15 hours lasting</span>
+                          </span>
+                          <span className="mt-3 flex items-start gap-2.5">
+                            <span className="mt-[6px] h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
+                            <span>Unisex Perfume (both male and female can use)</span>
+                          </span>
+                          <span className="mt-3 flex items-start gap-2.5">
+                            <span className="mt-[6px] h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
+                            <span>{phrase}</span>
+                          </span>
                         </span>
                       </>
                     );
@@ -194,6 +165,9 @@ export default function ProductDetailPage() {
                   return <p>{product.longDescription}</p>;
                 })()}
               </div>
+
+              {/* Price sits under the highlight block, not beside the title. */}
+              <p className="text-2xl font-black text-white/90">Rs {product.price.toLocaleString()}</p>
             </motion.div>
 
             {/* Olfactory Pyramid (Notes) */}
@@ -353,14 +327,15 @@ export default function ProductDetailPage() {
 
         {/* Brand USPs — shown for every product. A product may override
             them by setting its own `usps`. Deliberately outside the
-            characteristics guard so it appears even without them. */}
+            characteristics guard so it appears even without them.
+
+            The "What Makes Us Different?" heading and its intro line are
+            hidden for now at the client's request — they repeated the claims
+            in the highlight block higher up the page. The three cards stay.
+            The copy is still exported from src/data/brand.ts as USP_HEADING
+            and USP_INTRO, so putting the heading back is a small edit. */}
         <div className="border-t border-white/5 py-16 space-y-20">
           <div className="space-y-12 pt-8">
-            <div className="text-center space-y-3">
-              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">{USP_HEADING}</h2>
-              <p className="text-white/50 text-xs md:text-sm font-medium leading-relaxed max-w-2xl mx-auto pt-4">{USP_INTRO}
-              </p>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {(product.usps ?? BRAND_USPS).map((usp, idx) => (
                 <motion.div
