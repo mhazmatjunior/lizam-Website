@@ -1,3 +1,5 @@
+import { siteUrl } from '@/data/site';
+
 /**
  * Pre-order references and the small amount of logic shared between the API
  * routes, the admin screen and the emails.
@@ -94,8 +96,7 @@ export function remainingBalance(row: {
 
 /** Absolute URL of the emailed balance-payment link. */
 export function balancePaymentUrl(token: string): string {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
-  return `${siteUrl}/preorder/pay/${token}`;
+  return `${siteUrl()}/preorder/pay/${token}`;
 }
 
 /** Database row -> the camelCase shape the admin screen and pages consume. */

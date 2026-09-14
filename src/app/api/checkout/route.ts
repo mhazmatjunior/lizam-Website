@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSafepayClient } from '@/lib/safepay';
 import { newOrderId } from '@/lib/order-id';
+import { siteUrl } from '@/data/site';
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +14,10 @@ export async function POST(req: NextRequest) {
 
     const safepay = getSafepayClient();
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    // Same source as the pre-order payment links. Falling back to localhost
+    // here sent Safepay's post-payment redirect to a machine the customer is
+    // not on, stranding them after they had already paid.
+    const site = siteUrl();
 
     // Step 1: Create a payment tracker token
     const payment = await safepay.payments.create({
@@ -28,8 +32,8 @@ export async function POST(req: NextRequest) {
     const checkoutUrl = safepay.checkout.create({
       token: payment.token,
       orderId: finalOrderId,
-      redirectUrl: `${siteUrl}/checkout/success/${finalOrderId}`,
-      cancelUrl: `${siteUrl}/checkout/cancel/${finalOrderId}`,
+      redirectUrl: `${site}/checkout/success/${finalOrderId}`,
+      cancelUrl: `${site}/checkout/cancel/${finalOrderId}`,
       source: 'custom',
       webhooks: true,
     });
