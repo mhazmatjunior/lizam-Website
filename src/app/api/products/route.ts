@@ -56,7 +56,9 @@ export async function GET() {
         stock: p.stock,
         notes: p.notes,
         characteristics: p.characteristics ?? undefined,
-        usps: p.usps ?? undefined
+        usps: p.usps ?? undefined,
+        preorderEnabled: Boolean(p.preorder_enabled),
+        preorderAmount: Number(p.preorder_amount || 0)
       }));
 
       return NextResponse.json({ products: mapped });
@@ -74,7 +76,9 @@ export async function GET() {
       stock: p.stock,
       notes: p.notes,
       characteristics: p.characteristics ?? undefined,
-      usps: p.usps ?? undefined
+      usps: p.usps ?? undefined,
+      preorderEnabled: Boolean(p.preorder_enabled),
+      preorderAmount: Number(p.preorder_amount || 0)
     }));
 
     return NextResponse.json({ products: mappedProducts });
@@ -91,7 +95,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       id, name, price, category, description, longDescription,
-      image, stock, notes, characteristics, usps
+      image, stock, notes, characteristics, usps,
+      preorderEnabled, preorderAmount
     } = body;
 
     if (!name || !price) {
@@ -129,6 +134,10 @@ export async function POST(req: NextRequest) {
     // Postgres reject the whole insert.
     if (characteristics !== undefined) insertRow.characteristics = characteristics;
     if (usps !== undefined) insertRow.usps = usps;
+    // Same reasoning: these arrive with migration 007 and naming a column that
+    // is not there yet would make Postgres reject the whole insert.
+    if (preorderEnabled !== undefined) insertRow.preorder_enabled = Boolean(preorderEnabled);
+    if (preorderAmount !== undefined) insertRow.preorder_amount = Number(preorderAmount) || 0;
 
     const { data: newProduct, error } = await supabaseAdmin
       .from('products')
@@ -151,7 +160,9 @@ export async function POST(req: NextRequest) {
       stock: newProduct.stock,
       notes: newProduct.notes,
       characteristics: newProduct.characteristics ?? undefined,
-      usps: newProduct.usps ?? undefined
+      usps: newProduct.usps ?? undefined,
+      preorderEnabled: Boolean(newProduct.preorder_enabled),
+      preorderAmount: Number(newProduct.preorder_amount || 0)
     };
 
     return NextResponse.json({ success: true, product: mapped });

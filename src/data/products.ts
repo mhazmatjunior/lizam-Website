@@ -22,6 +22,13 @@ export interface Product {
     title: string;
     description: string;
   }>;
+  /** When true the storefront offers Pre-Order instead of Add to Cart. */
+  preorderEnabled?: boolean;
+  /**
+   * Deposit payable up front to reserve one unit. The balance (price minus
+   * this) is collected later through an emailed payment link.
+   */
+  preorderAmount?: number;
 }
 
 export const PRODUCTS: Product[] = [

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Edit2, Package, X, CheckCircle, Plus, AlertCircle, Trash2, Truck, DollarSign } from "lucide-react";
+import { Search, Edit2, Package, X, CheckCircle, Plus, AlertCircle, Trash2, Truck, DollarSign, Check, Clock } from "lucide-react";
 import { useProducts } from "@/context/ProductContext";
 import { type Product } from "@/data/products";
 
@@ -23,6 +23,8 @@ type FormState = {
   intensity: string;
   profile: string;
   longevity: string;
+  preorderEnabled: boolean;
+  preorderAmount: string;
 };
 
 const BLANK: FormState = {
@@ -31,6 +33,7 @@ const BLANK: FormState = {
   description: "", longDescription: "",
   noteTop: "", noteHeart: "", noteBase: "",
   intensity: "", profile: "", longevity: "",
+  preorderEnabled: false, preorderAmount: "",
 };
 
 function toForm(p: Product): FormState {
@@ -49,6 +52,8 @@ function toForm(p: Product): FormState {
     intensity: p.characteristics?.intensity ?? "",
     profile: p.characteristics?.profile ?? "",
     longevity: p.characteristics?.longevity ?? "",
+    preorderEnabled: Boolean(p.preorderEnabled),
+    preorderAmount: p.preorderAmount ? String(p.preorderAmount) : "",
   };
 }
 
@@ -159,6 +164,19 @@ export default function InventoryPage() {
     const stockNum = Number(form.stock || 0);
     if (!Number.isFinite(stockNum) || stockNum < 0) return setError("Enter a valid stock number.");
 
+    // A pre-order deposit has to be a real part-payment. Zero would charge the
+    // customer nothing to reserve, and anything at or above the price leaves no
+    // balance for the payment link to collect.
+    const depositNum = Number(form.preorderAmount || 0);
+    if (form.preorderEnabled) {
+      if (!Number.isFinite(depositNum) || depositNum <= 0) {
+        return setError("Enter a pre-order amount, or switch pre-order off.");
+      }
+      if (depositNum >= priceNum) {
+        return setError("The pre-order amount must be less than the full price.");
+      }
+    }
+
     const anyCharacteristic = form.intensity.trim() || form.profile.trim() || form.longevity.trim();
 
     const payload: any = {
@@ -173,6 +191,10 @@ export default function InventoryPage() {
       characteristics: anyCharacteristic
         ? { intensity: form.intensity.trim(), profile: form.profile.trim(), longevity: form.longevity.trim() }
         : undefined,
+      preorderEnabled: form.preorderEnabled,
+      // Keep the figure rather than zeroing it when pre-order is switched off,
+      // so toggling it back on does not lose what the admin already typed.
+      preorderAmount: depositNum > 0 ? depositNum : 0,
     };
 
     setIsSaving(true);
@@ -266,7 +288,15 @@ export default function InventoryPage() {
                       </div>
                       <div>
                         <h3 className="text-[12px] font-black uppercase tracking-widest text-white/90 group-hover:text-gold transition-colors">{p.name}</h3>
-                        <p className="text-[10px] text-white/20 font-medium tracking-tight">ID: #RA-{p.id}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] text-white/20 font-medium tracking-tight">ID: #RA-{p.id}</p>
+                          {p.preorderEnabled && (
+                            <span className="inline-flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-gold bg-gold/10 border border-gold/20 rounded-full px-2 py-0.5">
+                              <Clock className="w-2.5 h-2.5" />
+                              Pre-Order Rs {Number(p.preorderAmount || 0).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -379,6 +409,64 @@ export default function InventoryPage() {
                     <Field label="Image URL" hint="A public Supabase storage link, or a local path like /section-img/photo.webp">
                       <input type="text" value={form.image} onChange={(e) => set("image", e.target.value)} className={inputCls} />
                     </Field>
+                  </div>
+
+                  {/* Pre-Order ------------------------------------------------ */}
+                  <div className="space-y-4 pt-2 border-t border-white/5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white pt-5 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-gold inline-block" /> Pre-Order
+                    </p>
+
+                    <label
+                      className={`flex items-center gap-4 cursor-pointer rounded-2xl p-4 border transition-all ${
+                        form.preorderEnabled
+                          ? "bg-gold/10 border-gold/40"
+                          : "bg-white/[0.02] border-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.preorderEnabled}
+                        onChange={(e) => set("preorderEnabled", e.target.checked)}
+                        className="sr-only"
+                      />
+                      <span
+                        className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${
+                          form.preorderEnabled ? "border-gold bg-gold" : "border-white/20"
+                        }`}
+                      >
+                        {form.preorderEnabled && <Check className="w-3.5 h-3.5 text-black" strokeWidth={4} />}
+                      </span>
+                      <span>
+                        <span className="block text-[11px] font-black uppercase tracking-wider text-white">
+                          Available for Pre-Order
+                        </span>
+                        <span className="block text-[9px] text-white/40 mt-0.5 leading-relaxed">
+                          Replaces Add to Cart with a Pre-Order button on the product page.
+                        </span>
+                      </span>
+                    </label>
+
+                    {form.preorderEnabled && (
+                      <Field
+                        label="Pre-Order Amount / Deposit (PKR)"
+                        hint={
+                          Number(form.preorderAmount) > 0 && Number(form.price) > 0
+                            ? `Customer pays Rs ${Number(form.preorderAmount).toLocaleString()} now, then Rs ${(
+                                Number(form.price) - Number(form.preorderAmount)
+                              ).toLocaleString()} plus delivery via the payment link you send later.`
+                            : "Taken up front to reserve the item. The rest is collected later through an emailed payment link."
+                        }
+                      >
+                        <input
+                          type="number"
+                          value={form.preorderAmount}
+                          onChange={(e) => set("preorderAmount", e.target.value)}
+                          className={inputCls}
+                          placeholder="5000"
+                        />
+                      </Field>
+                    )}
                   </div>
 
                   <div className="space-y-4 pt-2 border-t border-white/5">

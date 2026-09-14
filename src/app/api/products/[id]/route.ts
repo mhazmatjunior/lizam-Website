@@ -20,6 +20,8 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     if (body.notes !== undefined) updateData.notes = body.notes;
     if (body.characteristics !== undefined) updateData.characteristics = body.characteristics;
     if (body.usps !== undefined) updateData.usps = body.usps;
+    if (body.preorderEnabled !== undefined) updateData.preorder_enabled = Boolean(body.preorderEnabled);
+    if (body.preorderAmount !== undefined) updateData.preorder_amount = Number(body.preorderAmount) || 0;
 
     const { data: updatedProduct, error } = await supabaseAdmin
       .from('products')
@@ -43,7 +45,9 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       stock: updatedProduct.stock,
       notes: updatedProduct.notes,
       characteristics: updatedProduct.characteristics ?? undefined,
-      usps: updatedProduct.usps ?? undefined
+      usps: updatedProduct.usps ?? undefined,
+      preorderEnabled: Boolean(updatedProduct.preorder_enabled),
+      preorderAmount: Number(updatedProduct.preorder_amount || 0)
     };
 
     return NextResponse.json({ success: true, product: mapped });

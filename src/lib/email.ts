@@ -47,7 +47,9 @@ function getMethodLabel(paymentMethod: string) {
 }
 
 // BULLETPROOF DUAL SENDER ENGINE (Resend HTTP API + Automatic Onboarding Sender Fallback)
-async function sendMailHelper(to: string, subject: string, html: string) {
+// Exported so the pre-order templates in preorder-email.ts send through the
+// same Resend-then-SMTP fallback chain rather than duplicating it.
+export async function sendMailHelper(to: string, subject: string, html: string) {
   const apiKey = (process.env.RESEND_API_KEY || process.env.SMTP_PASSWORD || '').trim();
   const fromEmail = getFromEmail();
 
