@@ -28,6 +28,23 @@ import { useProducts } from "@/context/ProductContext";
 import { newOrderId } from "@/lib/order-id";
 import { FOUNDER_DELIVERY_TIERS, getFounderDeliveryInfo } from "@/data/founder-cities";
 
+/** What /api/preorders/pay/[token] returns for an outstanding balance. */
+interface PreorderBalance {
+  preorderId: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  productName: string;
+  quantity: number;
+  totalAmount: number;
+  depositPaid: number;
+  deliveryFee: number;
+  balanceAmount: number;
+  alreadySubmitted: boolean;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, subtotal, clearCart } = useCart();
@@ -63,6 +80,47 @@ export default function CheckoutPage() {
   });
 
   const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(200);
+
+  // --- Pre-order balance -------------------------------------------------
+  // Reached from the link emailed to a customer whose deposit is already paid.
+  // The cart is irrelevant here: the order exists, and what is left to pay is
+  // the balance after their deposit.
+  //
+  // The token is read from window.location rather than useSearchParams so this
+  // page keeps prerendering without needing a Suspense boundary.
+  const [preorder, setPreorder] = useState<PreorderBalance | null>(null);
+  const [preorderToken, setPreorderToken] = useState<string | null>(null);
+  const [preorderError, setPreorderError] = useState<string | null>(null);
+  const [balanceDone, setBalanceDone] = useState<{ ref: string; isCod: boolean } | null>(null);
+  const isPreorder = Boolean(preorder);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = new URLSearchParams(window.location.search).get("preorder");
+    if (!token) return;
+    setPreorderToken(token);
+
+    fetch(`/api/preorders/pay/${token}`)
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "This payment link is not valid");
+        setPreorder(data.preorder);
+        if (data.preorder.alreadySubmitted) {
+          setBalanceDone({ ref: data.preorder.preorderId, isCod: false });
+        }
+        // Their details came with the pre-order. Re-typing them invites a
+        // mismatch between where the deposit was taken and where it ships.
+        setFormData((prev) => ({
+          ...prev,
+          email: data.preorder.email || prev.email,
+          fullName: data.preorder.name || prev.fullName,
+          phone: data.preorder.phone || prev.phone,
+          address: data.preorder.address || prev.address,
+          city: data.preorder.city || prev.city,
+        }));
+      })
+      .catch((err) => setPreorderError(err.message));
+  }, []);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -203,7 +261,48 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Settle the balance on an existing pre-order.
+   *
+   * Separate from handlePlaceOrder because no new order is raised here: the
+   * pre-order already exists, and verifying this payment is what turns it into
+   * one. Paying by cash on delivery needs no screenshot.
+   */
+  const handleCompletePreorder = async () => {
+    const payingCash = paymentMethod === 'cod';
+    if (!payingCash && !screenshotUrl) {
+      setErrors({ screenshot: "Please upload proof of payment screenshot to proceed." });
+      document.querySelector('[data-payment-proof]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`/api/preorders/pay/${preorderToken}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          balanceMethod: payingCash ? 'cod' : manualAccountType,
+          balanceProofUrl: payingCash ? null : screenshotUrl,
+          balanceReference: null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not complete your order');
+
+      setBalanceDone({ ref: data.preorderId, isCod: Boolean(data.isCod) });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
+      console.error('❌ Pre-order completion failed:', err.message);
+      alert(`Could not complete your order: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handlePlaceOrder = async () => {
+    if (isPreorder) return handleCompletePreorder();
+
     if (!validate()) {
       if (subMethod === 'manual' && !screenshotUrl) {
         document.querySelector('[data-payment-proof]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -288,6 +387,52 @@ export default function CheckoutPage() {
     }
   };
 
+  // A settled or dead balance link has nothing to check out, so it replaces the
+  // form rather than rendering an order the customer cannot place.
+  if (balanceDone || preorderError) {
+    const ok = Boolean(balanceDone);
+    return (
+      <main className="checkout-light min-h-screen bg-white text-slate-900 font-sans flex items-center justify-center px-8">
+        <div className="max-w-md text-center space-y-6">
+          <div
+            className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto border ${
+              ok ? "bg-emerald-50 border-emerald-200" : "bg-rose-50 border-rose-200"
+            }`}
+          >
+            {ok ? (
+              <CheckCircle className="w-7 h-7 text-emerald-600" />
+            ) : (
+              <AlertCircle className="w-7 h-7 text-rose-500" />
+            )}
+          </div>
+          <h1 className="text-3xl font-black uppercase tracking-tight">
+            {ok ? "Order Complete" : "Link Not Valid"}
+          </h1>
+          {ok ? (
+            <div className="space-y-3">
+              <p className="text-[11px] font-black uppercase tracking-[0.3em] text-gold">
+                {balanceDone!.ref}
+              </p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                {balanceDone!.isCod
+                  ? "Thank you. Your order is confirmed — pay the remaining balance in cash when it arrives."
+                  : "Thank you. We have your payment and will confirm your order as soon as it is verified."}
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500 leading-relaxed">{preorderError}</p>
+          )}
+          <Link
+            href="/products"
+            className="inline-block btn-premium-gold px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em]"
+          >
+            Continue Browsing
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="checkout-light min-h-screen bg-white text-slate-900 font-sans selection:bg-gold/30 pb-20">
       {/* Header */}
@@ -313,6 +458,26 @@ export default function CheckoutPage() {
           {/* Left: Checkout Form */}
           <div className="lg:col-span-7 space-y-12">
             
+            {/* Pre-order: say plainly that the deposit is already paid and what
+                is left to do. Without it the customer sees a total smaller than
+                the product costs and cannot tell why. */}
+            {isPreorder && preorder && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex gap-4">
+                <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h2 className="text-sm font-black uppercase tracking-tight text-emerald-900">
+                    You have already paid your pre-order
+                  </h2>
+                  <p className="text-xs text-emerald-800/80 leading-relaxed">
+                    Rs {preorder.depositPaid.toLocaleString()} received for{" "}
+                    <strong>{preorder.preorderId}</strong> ({preorder.productName} &times;{" "}
+                    {preorder.quantity}). Please complete your order by paying the remaining{" "}
+                    <strong>Rs {preorder.balanceAmount.toLocaleString()}</strong>.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Contact Info */}
             <section className="space-y-6">
               <div className="flex items-center gap-4">
@@ -418,7 +583,42 @@ export default function CheckoutPage() {
               </div>
             </section>
 
-            {/* Payment Method Selector */}
+            {/* Payment Method Selector.
+                A pre-order balance gets its own pair of choices: the standard
+                options quote delivery fees that are already fixed on the
+                pre-order, so showing them here would misstate the amount. */}
+            {isPreorder ? (
+              <section className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-8 h-8 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-gold text-xs font-bold">3</div>
+                  <h2 className="text-xl font-black uppercase tracking-tight">How Will You Pay The Balance?</h2>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div
+                    onClick={() => setPaymentMethod('online')}
+                    className={`cursor-pointer rounded-2xl p-5 border transition-all flex items-center gap-3 ${paymentMethod === 'online' ? 'bg-gold/10 border-gold' : 'bg-white/[0.02] border-white/10 hover:border-white/20'}`}
+                  >
+                    <Building className="w-5 h-5 text-gold shrink-0" />
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest">Bank / Wallet Transfer</h4>
+                      <p className="text-[9px] uppercase tracking-wider opacity-50 mt-0.5">Send now, upload the receipt</p>
+                    </div>
+                  </div>
+                  <div
+                    onClick={() => setPaymentMethod('cod')}
+                    className={`cursor-pointer rounded-2xl p-5 border transition-all flex items-center gap-3 ${paymentMethod === 'cod' ? 'bg-gold/10 border-gold' : 'bg-white/[0.02] border-white/10 hover:border-white/20'}`}
+                  >
+                    <Truck className="w-5 h-5 text-gold shrink-0" />
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest">Cash On Delivery</h4>
+                      <p className="text-[9px] uppercase tracking-wider opacity-50 mt-0.5">
+                        Pay Rs {preorder ? preorder.balanceAmount.toLocaleString() : ''} at the door
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            ) : (
             <section className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-8 h-8 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-gold text-xs font-bold">3</div>
@@ -552,8 +752,12 @@ export default function CheckoutPage() {
                 </div>
               )}
             </section>
+            )}
 
-            {/* Sub-Payment Method Details (Safepay Card vs Manual Bank Transfer) */}
+            {/* Sub-Payment Method Details (Safepay Card vs Manual Bank Transfer).
+                Hidden when settling a pre-order balance in cash -- there is
+                nothing to transfer and no receipt to upload. */}
+            {!(isPreorder && paymentMethod === 'cod') && (
             <section className="space-y-6 pt-4 border-t border-white/5">
               <h3 className="text-sm font-black uppercase tracking-widest text-white/80">Choose How To Complete Payment</h3>
               
@@ -747,6 +951,7 @@ export default function CheckoutPage() {
                 </motion.div>
               )}
             </section>
+            )}
 
           </div>
 
@@ -760,7 +965,25 @@ export default function CheckoutPage() {
 
               {/* Product List */}
               <div className="space-y-6 mb-8 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                {cart.map((item) => (
+                {/* A pre-order balance has no cart behind it — the item lives on
+                    the pre-order record. */}
+                {isPreorder && preorder && (
+                  <div className="flex gap-4 items-center">
+                    <div className="w-16 h-16 bg-gold/5 border border-gold/20 rounded-xl flex items-center justify-center shrink-0">
+                      <ShoppingBag className="w-5 h-5 text-gold" />
+                    </div>
+                    <div className="flex-grow">
+                      <h3 className="text-[10px] font-black uppercase tracking-tight">{preorder.productName}</h3>
+                      <p className="text-[9px] uppercase tracking-[0.1em] opacity-50">
+                        Pre-Order x {preorder.quantity}
+                      </p>
+                    </div>
+                    <p className="text-[10px] font-black text-gold">
+                      Rs {preorder.totalAmount.toLocaleString()}
+                    </p>
+                  </div>
+                )}
+                {!isPreorder && cart.map((item) => (
                   <div key={item.id} className="flex gap-4 items-center">
                     <div className="w-16 h-16 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-center p-2 relative shrink-0">
                       <Image src={item.image} alt={item.name} fill className="object-contain p-2" />
@@ -778,31 +1001,52 @@ export default function CheckoutPage() {
               <div className="space-y-4 border-t border-white/5 pt-8">
                 <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold">
                   <span>Subtotal</span>
-                  <span>Rs {subtotal.toLocaleString()}</span>
+                  <span>Rs {(isPreorder && preorder ? preorder.totalAmount : subtotal).toLocaleString()}</span>
                 </div>
 
-                {paymentMethod === 'cod' && (
+                {isPreorder && preorder && (
+                  <>
+                    {preorder.deliveryFee > 0 && (
+                      <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold">
+                        <span>Delivery</span>
+                        <span>Rs {preorder.deliveryFee.toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold text-emerald-600">
+                      <span>Pre-Order Deposit Paid</span>
+                      <span>&minus; Rs {preorder.depositPaid.toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
+
+                {!isPreorder && paymentMethod === 'cod' && (
                   <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/60 font-bold">
                     <span>COD Delivery Fee (Upfront)</span>
                     <span className="text-gold">Rs 200</span>
                   </div>
                 )}
 
-                {paymentMethod === 'founder' && (
+                {!isPreorder && paymentMethod === 'founder' && (
                   <div className="flex justify-between text-[10px] uppercase tracking-widest text-[#e2bb61] font-bold">
                     <span>Founder Delivery ({founderInfo ? founderInfo.matchedCity : 'Select City'})</span>
                     <span>{founderInfo ? founderInfo.priceFormatted : 'Rs 4,000'}</span>
                   </div>
                 )}
 
-                <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold">
-                  <span>Shipping</span>
-                  <span className="text-gold">{paymentMethod === 'online' ? 'FREE (ONLINE PROMO)' : 'STANDARD'}</span>
-                </div>
+                {!isPreorder && (
+                  <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold">
+                    <span>Shipping</span>
+                    <span className="text-gold">{paymentMethod === 'online' ? 'FREE (ONLINE PROMO)' : 'STANDARD'}</span>
+                  </div>
+                )}
 
                 <div className="flex justify-between border-t border-white/5 pt-4">
-                  <span className="text-sm font-black uppercase tracking-widest">Total Amount</span>
-                  <span className="text-xl font-black text-gold underline underline-offset-8 decoration-gold/30">Rs {totalAmount.toLocaleString()}</span>
+                  <span className="text-sm font-black uppercase tracking-widest">
+                    {isPreorder ? 'Remaining To Pay' : 'Total Amount'}
+                  </span>
+                  <span className="text-xl font-black text-gold underline underline-offset-8 decoration-gold/30">
+                    Rs {(isPreorder && preorder ? preorder.balanceAmount : totalAmount).toLocaleString()}
+                  </span>
                 </div>
               </div>
 
@@ -821,7 +1065,7 @@ export default function CheckoutPage() {
               <button 
                 type="button"
                 onClick={handlePlaceOrder}
-                disabled={isSubmitting || isUploading || cart.length === 0}
+                disabled={isSubmitting || isUploading || (!isPreorder && cart.length === 0)}
                 className="w-full btn-premium-gold py-5 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] mt-10 group shadow-[0_20px_40px_rgba(200,164,77,0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
@@ -831,7 +1075,13 @@ export default function CheckoutPage() {
                   </>
                 ) : (
                   <>
-                    {isUploading ? 'Uploading Receipt...' : subMethod === 'safepay' ? 'Proceed to Safepay' : 'Submit Manual Order'}
+                    {isUploading
+                      ? 'Uploading Receipt...'
+                      : isPreorder
+                        ? 'Complete My Order'
+                        : subMethod === 'safepay'
+                          ? 'Proceed to Safepay'
+                          : 'Submit Manual Order'}
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { remainingBalance } from '@/lib/preorder';
 
-const VALID_METHODS = ['bank', 'easypaisa', 'jazzcash'];
+// 'cod' settles the balance in cash at the door. It carries no screenshot --
+// there is nothing to capture until the courier is paid -- so the admin marks
+// it received on delivery instead.
+const VALID_METHODS = ['bank', 'easypaisa', 'jazzcash', 'cod'];
+const PROOFLESS_METHODS = ['cod'];
 
 /**
  * The emailed balance link is public -- the token IS the authentication, so
@@ -97,7 +101,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ token: s
     if (!VALID_METHODS.includes(balanceMethod)) {
       return NextResponse.json({ error: 'Choose how you sent the payment' }, { status: 400 });
     }
-    if (!balanceProofUrl) {
+    if (!balanceProofUrl && !PROOFLESS_METHODS.includes(balanceMethod)) {
       return NextResponse.json(
         { error: 'Upload a screenshot of your transfer to continue' },
         { status: 400 }
@@ -108,7 +112,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ token: s
       .from('preorders')
       .update({
         balance_method: balanceMethod,
-        balance_proof_url: balanceProofUrl,
+        balance_proof_url: balanceProofUrl || null,
         balance_reference: balanceReference || null,
         status: 'balance_unverified',
         updated_at: new Date().toISOString(),
@@ -117,10 +121,14 @@ export async function POST(req: NextRequest, props: { params: Promise<{ token: s
 
     if (error) throw error;
 
+    const isCod = PROOFLESS_METHODS.includes(balanceMethod);
     return NextResponse.json({
       success: true,
       preorderId: preorder.preorder_id,
-      message: 'Payment proof received. We will verify it and confirm your order shortly.',
+      isCod,
+      message: isCod
+        ? 'Your order is confirmed. Pay the remaining balance in cash when it arrives.'
+        : 'Payment proof received. We will verify it and confirm your order shortly.',
     });
   } catch (error: any) {
     console.error('❌ Balance payment submit error:', error.message);

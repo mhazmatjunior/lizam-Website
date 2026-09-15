@@ -94,9 +94,15 @@ export function remainingBalance(row: {
   );
 }
 
-/** Absolute URL of the emailed balance-payment link. */
+/**
+ * Absolute URL of the emailed balance-payment link.
+ *
+ * Lands on the ordinary checkout page, which recognises the token and shows the
+ * customer that their deposit is already paid along with what is left to
+ * complete the order.
+ */
 export function balancePaymentUrl(token: string): string {
-  return `${siteUrl()}/preorder/pay/${token}`;
+  return `${siteUrl()}/checkout?preorder=${token}`;
 }
 
 /** Database row -> the camelCase shape the admin screen and pages consume. */
