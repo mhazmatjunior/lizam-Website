@@ -95,6 +95,46 @@ export function remainingBalance(row: {
 }
 
 /**
+ * The deposit to credit against what the customer still owes.
+ *
+ * deposit_paid is the verified figure and stays the ledger's truth, but it is
+ * still 0 until an admin presses Verify Deposit -- and an admin can quite
+ * reasonably send the payment link first. The customer has transferred the
+ * money either way, so billing on deposit_paid alone asks them for it a second
+ * time. A deposit that was actually rejected earns no credit.
+ */
+export function creditedDeposit(row: {
+  deposit_paid?: number | string | null;
+  deposit_amount?: number | string | null;
+  status?: string | null;
+}): number {
+  if (row.status === 'deposit_rejected') return 0;
+  const verified = Number(row.deposit_paid || 0);
+  return verified > 0 ? verified : Number(row.deposit_amount || 0);
+}
+
+/**
+ * What the customer is actually asked to pay.
+ *
+ * This is the figure on the checkout page and in the payment email, and the two
+ * must never disagree -- so both read it from here.
+ */
+export function customerBalance(row: {
+  total_amount?: number | string | null;
+  delivery_fee?: number | string | null;
+  deposit_paid?: number | string | null;
+  deposit_amount?: number | string | null;
+  balance_paid?: number | string | null;
+  status?: string | null;
+}): number {
+  const n = (v: unknown) => Number(v || 0);
+  return Math.max(
+    0,
+    n(row.total_amount) + n(row.delivery_fee) - creditedDeposit(row) - n(row.balance_paid)
+  );
+}
+
+/**
  * Absolute URL of the emailed balance-payment link.
  *
  * Lands on the ordinary checkout page, which recognises the token and shows the
@@ -124,7 +164,10 @@ export function mapPreorder(p: any) {
     depositPaid: Number(p.deposit_paid || 0),
     deliveryFee: Number(p.delivery_fee || 0),
     balancePaid: Number(p.balance_paid || 0),
-    balanceAmount: Number(p.balance_amount ?? remainingBalance(p)),
+    // What the customer is asked for, so the admin's Remaining column reconciles
+    // against the payment email rather than quietly differing by the deposit.
+    // depositPaid above stays the verified figure for the ledger.
+    balanceAmount: customerBalance(p),
     status: p.status,
     depositMethod: p.deposit_method || '',
     depositProofUrl: p.deposit_proof_url || '',

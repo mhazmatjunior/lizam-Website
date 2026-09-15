@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { remainingBalance } from '@/lib/preorder';
+import { creditedDeposit, customerBalance } from '@/lib/preorder';
 
 // 'cod' settles the balance in cash at the door. It carries no screenshot --
 // there is nothing to capture until the courier is paid -- so the admin marks
@@ -63,9 +63,11 @@ export async function GET(req: NextRequest, props: { params: Promise<{ token: st
         quantity: p.quantity,
         unitPrice: Number(p.unit_price || 0),
         totalAmount: Number(p.total_amount || 0),
-        depositPaid: Number(p.deposit_paid || p.deposit_amount || 0),
+        // These two must agree: crediting the deposit in one and not the other
+        // showed the customer their deposit and then charged them for it again.
+        depositPaid: creditedDeposit(p),
         deliveryFee: Number(p.delivery_fee || 0),
-        balanceAmount: remainingBalance(p),
+        balanceAmount: customerBalance(p),
         currency: p.currency || 'PKR',
         status: p.status,
         // So the page can show "we already have your proof, we're checking it"
