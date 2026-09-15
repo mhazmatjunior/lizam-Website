@@ -5,7 +5,8 @@ import {
   newBalanceToken,
   balanceTokenExpiry,
   balancePaymentUrl,
-  remainingBalance,
+  customerBalance,
+  creditedDeposit,
   mapPreorder,
 } from '@/lib/preorder';
 import { sendPreorderBalancePaymentEmail } from '@/lib/preorder-email';
@@ -49,7 +50,9 @@ export async function POST(req: NextRequest, props: { params: Promise<{ preorder
       return NextResponse.json({ error: 'This pre-order was cancelled' }, { status: 409 });
     }
 
-    const balance = remainingBalance(preorder);
+    // The figure the customer is asked for, which credits a transferred-but-
+    // not-yet-verified deposit. Must match what the checkout page shows them.
+    const balance = customerBalance(preorder);
     if (balance <= 0) {
       return NextResponse.json(
         { error: 'There is no balance outstanding on this pre-order' },
@@ -86,7 +89,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ preorder
       product: updated.product_name,
       quantity: updated.quantity,
       totalAmount: Number(updated.total_amount),
-      depositAmount: Number(updated.deposit_paid || updated.deposit_amount),
+      depositAmount: creditedDeposit(updated),
       balanceAmount: balance,
       deliveryFee: Number(updated.delivery_fee || 0),
       paymentUrl: balancePaymentUrl(token),
