@@ -104,10 +104,11 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ preorde
         update.balance_paid = Number(current.balance_paid || 0) + due;
         update.balance_verified_at = new Date().toISOString();
         update.status = 'fully_paid';
-        // The link has done its job. Clearing it stops the emailed URL being
-        // replayed to submit a second "payment" against a settled pre-order.
+        // The code has done its job. Clearing it stops the emailed QR being
+        // rescanned to submit a second "payment" against a settled pre-order.
         update.balance_token = null;
         update.balance_token_expires_at = null;
+        update.balance_token_used_at = null;
 
         // A fully paid pre-order becomes a real order, so it flows through the
         // existing orders screen, receipts and profit & loss like any other.

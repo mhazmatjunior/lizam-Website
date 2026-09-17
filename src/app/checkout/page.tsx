@@ -82,16 +82,25 @@ export default function CheckoutPage() {
   const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(200);
 
   // --- Pre-order balance -------------------------------------------------
-  // Reached from the link emailed to a customer whose deposit is already paid.
-  // The cart is irrelevant here: the order exists, and what is left to pay is
-  // the balance after their deposit.
+  // Reached by scanning the QR code emailed to a customer whose deposit is
+  // already paid. The cart is irrelevant here: the order exists, and what is
+  // left to pay is the balance after their deposit.
+  //
+  // That code is single use -- it is spent the moment the balance is submitted
+  // through it -- so every read below has to cope with a token that was good
+  // when the email was sent and is not any more.
   //
   // The token is read from window.location rather than useSearchParams so this
   // page keeps prerendering without needing a Suspense boundary.
   const [preorder, setPreorder] = useState<PreorderBalance | null>(null);
   const [preorderToken, setPreorderToken] = useState<string | null>(null);
   const [preorderError, setPreorderError] = useState<string | null>(null);
-  const [balanceDone, setBalanceDone] = useState<{ ref: string; isCod: boolean } | null>(null);
+  // `note` carries the server's own wording when a scanned code turns out to be
+  // already spent, so the customer is told what actually happened rather than
+  // the generic "we have your payment" line meant for a fresh submission.
+  const [balanceDone, setBalanceDone] = useState<
+    { ref: string; isCod: boolean; note?: string } | null
+  >(null);
   const isPreorder = Boolean(preorder);
 
   useEffect(() => {
@@ -103,7 +112,17 @@ export default function CheckoutPage() {
     fetch(`/api/preorders/pay/${token}`)
       .then(async (res) => {
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "This payment link is not valid");
+        if (!res.ok) {
+          // The QR is single use. Scanning a spent one is the commonest way to
+          // land here -- a customer re-opening the email, or the screenshot they
+          // kept -- and that is good news, not a failure. Show them the
+          // confirmation rather than a red screen suggesting something is wrong.
+          if (data.settled) {
+            setBalanceDone({ ref: data.preorderId || "", isCod: false, note: data.error });
+            return;
+          }
+          throw new Error(data.error || "This payment code is not valid");
+        }
         setPreorder(data.preorder);
         if (data.preorder.alreadySubmitted) {
           setBalanceDone({ ref: data.preorder.preorderId, isCod: false });
@@ -288,7 +307,17 @@ export default function CheckoutPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not complete your order');
+      if (!res.ok) {
+        // Their code was spent between loading this page and pressing the
+        // button -- almost always their own double submission. The payment is
+        // recorded either way, so confirm it instead of raising an alarm.
+        if (data.settled) {
+          setBalanceDone({ ref: data.preorderId || '', isCod: false, note: data.error });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+        throw new Error(data.error || 'Could not complete your order');
+      }
 
       setBalanceDone({ ref: data.preorderId, isCod: Boolean(data.isCod) });
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -406,7 +435,7 @@ export default function CheckoutPage() {
             )}
           </div>
           <h1 className="text-3xl font-black uppercase tracking-tight">
-            {ok ? "Order Complete" : "Link Not Valid"}
+            {ok ? "Order Complete" : "Code Not Valid"}
           </h1>
           {ok ? (
             <div className="space-y-3">
@@ -414,9 +443,11 @@ export default function CheckoutPage() {
                 {balanceDone!.ref}
               </p>
               <p className="text-xs text-slate-500 leading-relaxed">
-                {balanceDone!.isCod
-                  ? "Thank you. Your order is confirmed — pay the remaining balance in cash when it arrives."
-                  : "Thank you. We have your payment and will confirm your order as soon as it is verified."}
+                {balanceDone!.note
+                  ? balanceDone!.note
+                  : balanceDone!.isCod
+                    ? "Thank you. Your order is confirmed — pay the remaining balance in cash when it arrives."
+                    : "Thank you. We have your payment and will confirm your order as soon as it is verified."}
               </p>
             </div>
           ) : (

@@ -24,6 +24,11 @@ export interface PreorderEmailData {
   deliveryFee?: number;
   /** Absolute URL of the unique balance-payment link. */
   paymentUrl?: string;
+  /**
+   * Absolute URL of the PNG QR code for that link. When present the email
+   * leads with the code and the address becomes the fallback beneath it.
+   */
+  qrUrl?: string;
   orderId?: string;
 }
 
@@ -98,7 +103,7 @@ export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
 
     <div style="font-size: 12px; line-height: 1.7; color: #999999;">
       <p><strong style="color:#ffffff;">What happens next?</strong><br>
-      When your fragrance is ready to dispatch we will email you a secure payment link to settle the remaining balance. Delivery charges are added at that stage. No further action is needed from you until then.</p>
+      When your fragrance is ready to dispatch we will email you a secure QR code to scan and settle the remaining balance. Delivery charges are added at that stage. No further action is needed from you until then.</p>
       <p><strong>Reserved For:</strong> ${data.name} (${data.phone})<br>${data.address}</p>
     </div>
   `;
@@ -110,12 +115,60 @@ export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
   );
 }
 
-/** 2. Sent when the admin presses "Send Payment Email". Carries the unique link. */
+/**
+ * The QR code the customer scans to pay, as an email-safe block.
+ *
+ * A table rather than a padded div, because Outlook ignores padding on a
+ * block element and would print the code straight onto the black background,
+ * where no scanner can read it. The white card is not decoration.
+ *
+ * The address is still spelled out underneath. A QR is an image, and a good
+ * share of mail clients refuse to load images until the reader asks -- without
+ * the fallback those readers get an email with no way to pay at all.
+ */
+function qrPayBlock(qrUrl: string, paymentUrl: string) {
+  return `
+    <div style="text-align: center; margin: 35px 0;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+        <tr>
+          <td style="background-color: #ffffff; padding: 16px; border-radius: 16px;">
+            <img src="${qrUrl}" width="240" height="240" alt="QR code to pay your RAANAE pre-order balance"
+                 style="display: block; width: 240px; height: 240px; border: 0; outline: none;">
+          </td>
+        </tr>
+      </table>
+
+      <p style="font-size: 13px; color: #cccccc; margin-top: 22px; line-height: 1.7;">
+        <strong style="color: #ffffff;">Scan this code with your phone camera</strong><br>
+        to open your secure payment page and complete your order.
+      </p>
+
+      <p style="font-size: 10px; color: #555555; margin-top: 16px; line-height: 1.7;">
+        This code belongs to your pre-order alone and can be used
+        <strong style="color: #888888;">once</strong>. Please do not forward or share it.<br><br>
+        Cannot scan it? Open this address in your browser instead:<br>
+        <span style="color: #777777; word-break: break-all;">${paymentUrl}</span>
+      </p>
+    </div>
+  `;
+}
+
+/** 2. Sent when the admin presses "Send Payment Email". Carries the unique QR code. */
 export async function sendPreorderBalancePaymentEmail(data: PreorderEmailData) {
   const deliveryRow =
     data.deliveryFee && data.deliveryFee > 0
       ? `<tr class="row"><td>Delivery</td><td class="val">${money(data.deliveryFee)}</td></tr>`
       : '';
+
+  // The QR is the whole point of this email, but it is built from a token the
+  // caller supplies -- so fall back to the plain button rather than sending a
+  // payment request with nothing to press.
+  const payBlock =
+    data.qrUrl && data.paymentUrl
+      ? qrPayBlock(data.qrUrl, data.paymentUrl)
+      : `<div style="text-align: center; margin: 35px 0;">
+           <a href="${data.paymentUrl}" class="cta">Pay Remaining Balance</a>
+         </div>`;
 
   const body = `
     <div style="text-align: center; margin: 30px 0;">
@@ -124,7 +177,7 @@ export async function sendPreorderBalancePaymentEmail(data: PreorderEmailData) {
 
     <div style="font-size: 14px; line-height: 1.6; color: #cccccc;">
       <p>Dear ${data.name},</p>
-      <p>Your pre-order <strong>${data.preorderId}</strong> is ready. To complete your purchase and release it for dispatch, please settle the remaining balance using your secure payment link below.</p>
+      <p>Your pre-order <strong>${data.preorderId}</strong> is ready. To complete your purchase and release it for dispatch, please settle the remaining balance by scanning the code below.</p>
     </div>
 
     <div class="receipt-card">
@@ -137,14 +190,7 @@ export async function sendPreorderBalancePaymentEmail(data: PreorderEmailData) {
       </table>
     </div>
 
-    <div style="text-align: center; margin: 35px 0;">
-      <a href="${data.paymentUrl}" class="cta">Pay Remaining Balance</a>
-      <p style="font-size: 10px; color: #555555; margin-top: 18px; line-height: 1.6;">
-        This link is unique to your pre-order. Please do not forward it.<br>
-        If the button does not work, copy this address into your browser:<br>
-        <span style="color: #777777; word-break: break-all;">${data.paymentUrl}</span>
-      </p>
-    </div>
+    ${payBlock}
   `;
 
   return sendMailHelper(

@@ -14,8 +14,9 @@ import {
   Truck,
   Ban,
   RefreshCw,
+  QrCode,
 } from "lucide-react";
-import { preorderStatusLabel, type PreorderStatus } from "@/lib/preorder";
+import { adminPreorderQrUrl, preorderStatusLabel, type PreorderStatus } from "@/lib/preorder";
 
 interface Preorder {
   preorderId: string;
@@ -40,6 +41,8 @@ interface Preorder {
   depositReference: string;
   depositVerifiedAt: string | null;
   hasBalanceLink: boolean;
+  /** Set once the customer has paid through the QR. A spent code opens nothing. */
+  balanceLinkUsedAt: string | null;
   balanceEmailSentAt: string | null;
   balanceMethod: string;
   balanceProofUrl: string;
@@ -332,8 +335,10 @@ export default function PreordersPage() {
                       </span>
                       {p.balanceEmailSentAt && p.status !== "fully_paid" && (
                         <p className="text-[8px] text-white/25 mt-1.5 flex items-center gap-1">
-                          <Mail className="w-2.5 h-2.5" />
-                          Link sent {new Date(p.balanceEmailSentAt).toLocaleDateString()}
+                          <QrCode className="w-2.5 h-2.5" />
+                          {p.balanceLinkUsedAt
+                            ? `QR used ${new Date(p.balanceLinkUsedAt).toLocaleDateString()}`
+                            : `QR sent ${new Date(p.balanceEmailSentAt).toLocaleDateString()}`}
                         </p>
                       )}
                     </td>
@@ -508,6 +513,69 @@ export default function PreordersPage() {
                       Set this before sending the payment email — it is added to the balance the
                       customer is asked for.
                     </p>
+                  </section>
+                )}
+
+                {/* The QR code the customer was emailed */}
+                {selected.hasBalanceLink && selected.status !== "fully_paid" && (
+                  <section className="space-y-3">
+                    <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white/25">
+                      Payment QR Code
+                    </p>
+
+                    {selected.balanceLinkUsedAt ? (
+                      <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 flex items-center gap-3">
+                        <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-white/70">
+                            Used
+                          </p>
+                          <p className="text-[9px] text-white/30 mt-0.5 leading-relaxed">
+                            Scanned and paid on{" "}
+                            {new Date(selected.balanceLinkUsedAt).toLocaleDateString()}. Resend to
+                            issue a fresh code.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-4">
+                        {/* White card behind it: a QR read against a dark ground is
+                            an unscannable negative, on screen as much as in email. */}
+                        <div className="bg-white rounded-2xl p-4 w-fit mx-auto">
+                          {/* Keyed on the send timestamp so a resent code replaces
+                              the old picture instead of being served from cache. */}
+                          <img
+                            src={`${adminPreorderQrUrl(selected.preorderId)}?v=${encodeURIComponent(
+                              selected.balanceEmailSentAt || ""
+                            )}`}
+                            alt={`Payment QR code for ${selected.preorderId}`}
+                            width={176}
+                            height={176}
+                            className="block w-44 h-44"
+                          />
+                        </div>
+
+                        <p className="text-[9px] text-white/30 leading-relaxed text-center">
+                          The code emailed to {selected.email}
+                          {selected.balanceEmailSentAt
+                            ? ` on ${new Date(selected.balanceEmailSentAt).toLocaleDateString()}`
+                            : ""}
+                          . It works once — send it on by hand if the email did not arrive.
+                        </p>
+
+                        <a
+                          href={`${adminPreorderQrUrl(selected.preorderId)}?v=${encodeURIComponent(
+                            selected.balanceEmailSentAt || ""
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full py-3 rounded-xl text-[9px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-white/60 hover:text-gold hover:border-gold/20 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          Open Full Size
+                        </a>
+                      </div>
+                    )}
                   </section>
                 )}
 

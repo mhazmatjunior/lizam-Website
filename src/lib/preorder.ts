@@ -145,6 +145,25 @@ export function balancePaymentUrl(token: string): string {
   return `${siteUrl()}/checkout?preorder=${token}`;
 }
 
+/**
+ * Absolute URL of the PNG QR code for that link.
+ *
+ * Absolute because an email client fetches it from wherever the customer reads
+ * their mail. The route behind it is stateless -- it draws whatever token it is
+ * handed without touching the database -- so this is safe to build anywhere.
+ */
+export function balancePaymentQrUrl(token: string): string {
+  return `${siteUrl()}/api/preorders/qr/${token}`;
+}
+
+/**
+ * The same QR for the admin screen, which has a session but not the token.
+ * Relative, because it is only ever loaded from one of our own pages.
+ */
+export function adminPreorderQrUrl(preorderId: string): string {
+  return `/api/preorders/${encodeURIComponent(preorderId)}/qr`;
+}
+
 /** Database row -> the camelCase shape the admin screen and pages consume. */
 export function mapPreorder(p: any) {
   return {
@@ -174,8 +193,11 @@ export function mapPreorder(p: any) {
     depositReference: p.deposit_reference || '',
     depositVerifiedAt: p.deposit_verified_at,
     // The token itself is deliberately never mapped out to the client. Only
-    // whether a link is currently outstanding.
+    // whether a link is currently outstanding, and whether it has been spent:
+    // the QR is single use, so a link that exists is not necessarily one the
+    // customer can still pay through.
     hasBalanceLink: Boolean(p.balance_token),
+    balanceLinkUsedAt: p.balance_token_used_at || null,
     balanceEmailSentAt: p.balance_email_sent_at,
     balanceMethod: p.balance_method || '',
     balanceProofUrl: p.balance_proof_url || '',

@@ -5,6 +5,7 @@ import {
   newBalanceToken,
   balanceTokenExpiry,
   balancePaymentUrl,
+  balancePaymentQrUrl,
   customerBalance,
   creditedDeposit,
   mapPreorder,
@@ -12,15 +13,17 @@ import {
 import { sendPreorderBalancePaymentEmail } from '@/lib/preorder-email';
 
 /**
- * POST - Email the customer a unique link to pay their remaining balance.
+ * POST - Email the customer a unique QR code to pay their remaining balance.
  *
  * Behind the admin's "Send Payment Email" button. Admin only: the response
- * would otherwise let anyone mint a working payment link for someone else's
- * pre-order, and the link exposes that customer's details.
+ * would otherwise let anyone mint a working payment code for someone else's
+ * pre-order, and scanning it exposes that customer's details.
  *
  * Pressing it again is safe and deliberate -- it mints a *fresh* token and
  * invalidates the previous one, which is what an admin wants when a customer
- * says the email never arrived or the old link expired.
+ * says the email never arrived, the old code expired, or they scanned it and
+ * abandoned the page halfway through. The customer scans a QR code rather
+ * than following a link, and that code is good for exactly one payment.
  */
 export async function POST(req: NextRequest, props: { params: Promise<{ preorderId: string }> }) {
   try {
@@ -68,6 +71,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ preorder
       .update({
         balance_token: token,
         balance_token_expires_at: expiresAt.toISOString(),
+        // A fresh code is an unspent one. Without this a customer who used
+        // their last QR -- and then had the balance rejected, or needed the
+        // figure corrected -- would be handed a code already marked spent.
+        balance_token_used_at: null,
         balance_email_sent_at: new Date().toISOString(),
         // Don't drag a pre-order backwards out of "customer has already paid,
         // awaiting our check" just because the admin resent the link.
@@ -93,13 +100,15 @@ export async function POST(req: NextRequest, props: { params: Promise<{ preorder
       balanceAmount: balance,
       deliveryFee: Number(updated.delivery_fee || 0),
       paymentUrl: balancePaymentUrl(token),
+      qrUrl: balancePaymentQrUrl(token),
     });
 
     if (result && (result as any).success === false) {
-      // The token is live but never reached the customer. Say so, rather than
-      // reporting a sent email the admin will then wait on.
+      // The code is live but never reached the customer. Say so, rather than
+      // reporting a sent email the admin will then wait on. The admin screen
+      // shows the same QR, so they can still pass it on by hand.
       return NextResponse.json(
-        { error: `Payment link created but the email failed to send: ${(result as any).error}` },
+        { error: `QR code created but the email failed to send: ${(result as any).error}` },
         { status: 502 }
       );
     }
