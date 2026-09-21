@@ -40,6 +40,8 @@ interface Preorder {
   depositProofUrl: string;
   depositReference: string;
   depositVerifiedAt: string | null;
+  /** Taken under the launch offer, so delivery is already paid for. */
+  freeDelivery: boolean;
   hasBalanceLink: boolean;
   /** Set once the customer has paid through the QR. A spent code opens nothing. */
   balanceLinkUsedAt: string | null;
@@ -487,13 +489,29 @@ export default function PreordersPage() {
                     <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white/25">
                       Delivery Charge
                     </p>
+
+                    {/* The offer promised free delivery and the customer was
+                        shown a total with nothing further to pay. The API
+                        refuses a non-zero charge here too -- this is so the
+                        refusal is not a surprise. */}
+                    {selected.freeDelivery && (
+                      <div className="bg-emerald-500/[0.06] border border-emerald-500/20 rounded-2xl p-4 flex items-start gap-2.5">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-[9px] text-white/50 leading-relaxed">
+                          <strong className="text-emerald-400">Launch offer — delivery included.</strong>{" "}
+                          This pre-order was taken at the offer price, so the charge stays at 0.
+                        </p>
+                      </div>
+                    )}
+
                     <div className="flex gap-3">
                       <input
                         type="number"
                         value={feeDraft}
                         onChange={(e) => setFeeDraft(e.target.value)}
                         placeholder="0"
-                        className="flex-grow bg-white/[0.02] border border-white/10 focus:border-gold/30 rounded-xl px-4 py-3 text-xs text-white outline-none font-medium"
+                        disabled={selected.freeDelivery}
+                        className="flex-grow bg-white/[0.02] border border-white/10 focus:border-gold/30 rounded-xl px-4 py-3 text-xs text-white outline-none font-medium disabled:opacity-30"
                       />
                       <button
                         onClick={() =>
@@ -503,16 +521,18 @@ export default function PreordersPage() {
                             "Delivery charge updated"
                           )
                         }
-                        disabled={busy === selected.preorderId}
+                        disabled={busy === selected.preorderId || selected.freeDelivery}
                         className="px-5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-white/70 hover:text-white hover:border-white/20 transition-colors disabled:opacity-40"
                       >
                         Save
                       </button>
                     </div>
-                    <p className="text-[9px] text-white/25 leading-relaxed">
-                      Set this before sending the payment email — it is added to the balance the
-                      customer is asked for.
-                    </p>
+                    {!selected.freeDelivery && (
+                      <p className="text-[9px] text-white/25 leading-relaxed">
+                        Set this before sending the payment email — it is added to the balance the
+                        customer is asked for.
+                      </p>
+                    )}
                   </section>
                 )}
 

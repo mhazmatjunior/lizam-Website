@@ -30,6 +30,13 @@ export interface PreorderEmailData {
    */
   qrUrl?: string;
   orderId?: string;
+  /**
+   * Set when the pre-order was taken under the launch offer. Carries what
+   * the same bottles would have cost at list, so the receipt can show the
+   * saving, and whether delivery is included — which changes what the email
+   * promises about the balance, so it must not be guessed at.
+   */
+  promo?: { listTotal: number; freeDelivery: boolean };
 }
 
 const money = (n: number) => `Rs ${Number(n || 0).toLocaleString()}`;
@@ -74,6 +81,21 @@ function preorderShell(accent: string, title: string, body: string) {
 
 /** 1. Sent the moment a customer places a pre-order and submits their deposit proof. */
 export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
+  // The offer is shown as what it saved, not only as a lower number: a
+  // receipt that quietly prices below the website invites a "why is this
+  // different?" email.
+  const saving = data.promo ? data.promo.listTotal - data.totalAmount : 0;
+
+  const promoRows =
+    data.promo && saving > 0
+      ? `<tr class="row"><td style="color:#777777;">Normal Price</td><td class="val" style="color:#777777; text-decoration:line-through;">${money(data.promo.listTotal)}</td></tr>
+         <tr class="row"><td style="color:#10b981;">Launch Offer</td><td class="val" style="color:#10b981;">- ${money(saving)}</td></tr>`
+      : '';
+
+  const deliveryRow = data.promo?.freeDelivery
+    ? `<tr class="row"><td style="color:#10b981;">Delivery</td><td class="val" style="color:#10b981;">Included</td></tr>`
+    : '';
+
   // The pass is issued with the pre-order, so it is already in this first
   // email. Nothing is payable yet -- scanning it now reports where the
   // reservation stands, and the same code turns into the payment page once we
@@ -112,10 +134,12 @@ export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
         </table>
       </div>
       <table width="100%">
+        ${promoRows}
         <tr class="row"><td>${data.product} &times; ${data.quantity}</td><td class="val">${money(data.totalAmount)}</td></tr>
         <tr class="row"><td style="color:#e2bb61;">Deposit Paid Now</td><td class="val" style="color:#e2bb61;">- ${money(data.depositAmount)}</td></tr>
         <tr><td colspan="2" style="border-top:1px solid #222222; padding-top:10px;"></td></tr>
         <tr class="row"><td style="font-weight:900; color:#ffffff;">Balance Remaining</td><td class="val">${money(data.balanceAmount)}</td></tr>
+        ${deliveryRow}
       </table>
     </div>
 
@@ -123,7 +147,7 @@ export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
 
     <div style="font-size: 12px; line-height: 1.7; color: #999999;">
       <p><strong style="color:#ffffff;">What happens next?</strong><br>
-      We verify your transfer and confirm your reservation. When your fragrance is ready to dispatch we will email you again, and your pass above becomes the payment page for the remaining balance. Delivery charges are added at that stage. No further action is needed from you until then.</p>
+      We verify your transfer and confirm your reservation. When your fragrance is ready to dispatch we will email you again, and your pass above becomes the payment page for the remaining balance. ${data.promo?.freeDelivery ? 'Delivery is included in your launch-offer price, so the balance above is all that is left to pay.' : 'Delivery charges are added at that stage.'} No further action is needed from you until then.</p>
       <p><strong>Reserved For:</strong> ${data.name} (${data.phone})<br>${data.address}</p>
     </div>
   `;

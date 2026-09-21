@@ -9,6 +9,7 @@ import {
   balancePaymentQrUrl,
 } from '@/lib/preorder';
 import { sendPreorderConfirmationEmail } from '@/lib/preorder-email';
+import { preorderUnitPrice, promoApplies } from '@/data/preorder-promo';
 
 const VALID_DEPOSIT_METHODS = ['bank', 'easypaisa', 'jazzcash'];
 
@@ -72,7 +73,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const unitPrice = Number(product.price);
+    // The launch offer, applied server-side so the figure charged is never
+    // whatever the browser happened to be showing. A page left open past the
+    // closing date prices at the full amount here, which is the correct
+    // outcome even though the stale tab still says otherwise.
+    const listPrice = Number(product.price);
+    const unitPrice = preorderUnitPrice(listPrice);
     const unitDeposit = Number(product.preorder_amount);
 
     // A deposit of zero, or one at/above the full price, means the product was
@@ -151,6 +157,11 @@ export async function POST(req: NextRequest) {
         balanceAmount: totalAmount - depositAmount,
         paymentUrl: balancePaymentUrl(passToken),
         qrUrl: balancePaymentQrUrl(passToken),
+        // So the email can promise free delivery only where it is actually
+        // owed, and say what the reservation saved against the list price.
+        promo: promoApplies(listPrice)
+          ? { listTotal: listPrice * qty, freeDelivery: true }
+          : undefined,
       });
     } catch (err: any) {
       console.error('❌ Failed to send pre-order confirmation email:', err.message);

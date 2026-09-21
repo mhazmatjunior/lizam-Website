@@ -10,6 +10,13 @@ import { useProducts } from "@/context/ProductContext";
 import { type Product } from "@/data/products";
 import SiteFooter from "@/app/components/SiteFooter";
 import ManualPaymentPanel, { type ManualMethod } from "@/app/components/ManualPaymentPanel";
+import {
+  preorderUnitPrice,
+  promoApplies,
+  PROMO_ENDS_ON_LABEL,
+  PROMO_HEADLINE,
+  PROMO_FREE_DELIVERY,
+} from "@/data/preorder-promo";
 
 const inputCls =
   "w-full bg-white/[0.02] border border-white/10 focus:border-gold/30 rounded-xl px-4 py-3 text-xs text-white outline-none font-medium tracking-wide";
@@ -70,7 +77,9 @@ export default function PreorderPage() {
 
   const depositUnit = Number(product.preorderAmount || 0);
   const isPreorder =
-    Boolean(product.preorderEnabled) && depositUnit > 0 && depositUnit < product.price;
+    Boolean(product.preorderEnabled) &&
+    depositUnit > 0 &&
+    depositUnit < preorderUnitPrice(product.price);
 
   // Someone can reach this URL directly for a product that is not on pre-order,
   // or whose deposit was cleared in the admin after the link was shared.
@@ -94,7 +103,14 @@ export default function PreorderPage() {
     );
   }
 
-  const total = product.price * quantity;
+  // The launch offer. The same helper prices the API, so what is quoted here
+  // is what gets charged -- and if the offer has closed since this tab was
+  // opened, both fall back to the list price together.
+  const onOffer = promoApplies(product.price);
+  const unitPrice = preorderUnitPrice(product.price);
+  const listTotal = product.price * quantity;
+  const total = unitPrice * quantity;
+  const saving = listTotal - total;
   const deposit = depositUnit * quantity;
   const balance = total - deposit;
 
@@ -199,7 +215,12 @@ export default function PreorderPage() {
             <p>
               Once we verify your transfer your reservation is confirmed. When your fragrance is ready to
               dispatch we will email you again to settle the remaining{" "}
-              <strong className="text-white">Rs {balance.toLocaleString()}</strong> plus delivery.
+              <strong className="text-white">Rs {balance.toLocaleString()}</strong>
+              {onOffer && PROMO_FREE_DELIVERY ? (
+                <> — delivery is included in your launch-offer price.</>
+              ) : (
+                <> plus delivery.</>
+              )}
             </p>
           </div>
           <Link
@@ -233,9 +254,26 @@ export default function PreorderPage() {
       <div className="max-w-6xl mx-auto px-6 md:px-10 py-12 md:py-20">
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-3">Reserve Yours</h1>
         <p className="text-xs text-white/40 mb-12 max-w-xl leading-relaxed">
-          Pay a deposit today to secure your bottle. The balance and delivery are settled later through a
-          secure link we email you when it is ready to dispatch.
+          Pay a deposit today to secure your bottle. The balance
+          {onOffer && PROMO_FREE_DELIVERY ? "" : " and delivery"} is settled later by scanning the
+          code we email you when it is ready to dispatch.
         </p>
+
+        {onOffer && (
+          <div className="-mt-8 mb-12 inline-flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-gold/30 bg-gold/[0.07] px-5 py-3.5">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold">
+              {PROMO_HEADLINE}
+            </span>
+            {PROMO_FREE_DELIVERY && (
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/70">
+                + Free Delivery
+              </span>
+            )}
+            <span className="text-[10px] text-white/40">
+              Pre-order before {PROMO_ENDS_ON_LABEL}
+            </span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-[1fr_400px] gap-10 items-start">
           <div className="space-y-10">
@@ -340,7 +378,19 @@ export default function PreorderPage() {
                   {product.name}
                 </p>
                 <p className="text-[10px] text-white/40 mt-0.5">
-                  Rs {product.price.toLocaleString()} each
+                  {onOffer ? (
+                    <>
+                      <span className="line-through text-white/25">
+                        Rs {product.price.toLocaleString()}
+                      </span>{" "}
+                      <span className="text-gold font-bold">
+                        Rs {unitPrice.toLocaleString()}
+                      </span>{" "}
+                      each
+                    </>
+                  ) : (
+                    <>Rs {product.price.toLocaleString()} each</>
+                  )}
                 </p>
               </div>
             </div>
@@ -369,10 +419,24 @@ export default function PreorderPage() {
             </div>
 
             <div className="space-y-3 pt-5 border-t border-white/10 text-xs">
+              {onOffer && (
+                <div className="flex justify-between text-white/50">
+                  <span>Normal Price</span>
+                  <span className="line-through text-white/30">
+                    Rs {listTotal.toLocaleString()}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-white/50">
                 <span>Product Total</span>
                 <span className="text-white/80 font-bold">Rs {total.toLocaleString()}</span>
               </div>
+              {onOffer && saving > 0 && (
+                <div className="flex justify-between text-emerald-400">
+                  <span className="font-bold">Launch Offer</span>
+                  <span className="font-black">&minus; Rs {saving.toLocaleString()}</span>
+                </div>
+              )}
               <div className="flex justify-between text-gold">
                 <span className="font-bold">Deposit Due Now</span>
                 <span className="font-black">Rs {deposit.toLocaleString()}</span>
@@ -381,8 +445,16 @@ export default function PreorderPage() {
                 <span>Balance Later</span>
                 <span>Rs {balance.toLocaleString()}</span>
               </div>
+              {onOffer && PROMO_FREE_DELIVERY && (
+                <div className="flex justify-between text-emerald-400">
+                  <span>Delivery</span>
+                  <span className="font-black uppercase tracking-wider text-[10px]">Free</span>
+                </div>
+              )}
               <p className="text-[9px] text-white/25 leading-relaxed pt-2">
-                Delivery charges are added to the balance, not to this deposit.
+                {onOffer && PROMO_FREE_DELIVERY
+                  ? `Delivery is included — the balance below is all that is left to pay. Offer closes ${PROMO_ENDS_ON_LABEL}.`
+                  : "Delivery charges are added to the balance, not to this deposit."}
               </p>
             </div>
 

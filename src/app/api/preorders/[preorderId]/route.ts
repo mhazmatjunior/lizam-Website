@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { isAdminRequest } from '@/lib/auth';
 import { newOrderId } from '@/lib/order-id';
 import { mapPreorder, remainingBalance, PREORDER_STATUSES } from '@/lib/preorder';
+import { preorderHasFreeDelivery } from '@/data/preorder-promo';
 import { sendPreorderCompletedEmail } from '@/lib/preorder-email';
 
 /** GET - One pre-order. Admin only. */
@@ -161,6 +162,19 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ preorde
           return NextResponse.json(
             { error: 'Enter a delivery fee between 0 and 100,000' },
             { status: 400 }
+          );
+        }
+        // The launch offer included delivery. The customer has already been
+        // shown a total with nothing further to pay, and the figure they were
+        // shown is the one we are held to -- so the promise is enforced here
+        // rather than left to whoever is working the admin screen that day.
+        if (fee > 0 && preorderHasFreeDelivery(current)) {
+          return NextResponse.json(
+            {
+              error:
+                'This pre-order was taken under the launch offer, which included free delivery. Leave the charge at 0.',
+            },
+            { status: 409 }
           );
         }
         update.delivery_fee = fee;

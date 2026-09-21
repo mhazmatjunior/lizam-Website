@@ -1,4 +1,5 @@
 import { siteUrl } from '@/data/site';
+import { preorderHasFreeDelivery } from '@/data/preorder-promo';
 
 /**
  * Pre-order references and the small amount of logic shared between the API
@@ -250,6 +251,10 @@ export function mapPreorder(p: any) {
     depositProofUrl: p.deposit_proof_url || '',
     depositReference: p.deposit_reference || '',
     depositVerifiedAt: p.deposit_verified_at,
+    // Taken under the launch offer, which included delivery. Derived from the
+    // snapshotted unit price rather than stored, so it cannot drift from what
+    // the customer was actually charged.
+    freeDelivery: preorderHasFreeDelivery(p),
     // The token itself is deliberately never mapped out to the client. Only
     // whether a link is currently outstanding, and whether it has been spent:
     // the QR is single use, so a link that exists is not necessarily one the
