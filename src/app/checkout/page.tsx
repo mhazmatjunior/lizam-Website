@@ -18,6 +18,7 @@ import {
   CheckCircle,
   Copy,
   AlertCircle,
+  Clock,
   Sparkles,
   Crown,
   Wallet,
@@ -27,23 +28,78 @@ import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { newOrderId } from "@/lib/order-id";
 import { FOUNDER_DELIVERY_TIERS, getFounderDeliveryInfo } from "@/data/founder-cities";
+import { type PreorderStage } from "@/lib/preorder";
 
-/** What /api/preorders/pay/[token] returns for an outstanding balance. */
-interface PreorderBalance {
+/**
+ * What /api/preorders/pay/[token] returns for a scanned pre-order pass.
+ *
+ * The contact fields are present only at the "pay" stage, because that is the
+ * only one with a form to prefill — everywhere else the API withholds them.
+ */
+interface PreorderPass {
   preorderId: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
+  stage: PreorderStage;
   productName: string;
   quantity: number;
   totalAmount: number;
   depositPaid: number;
   deliveryFee: number;
   balanceAmount: number;
-  alreadySubmitted: boolean;
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
 }
+
+/**
+ * How each stage reads to the customer who just scanned their code.
+ *
+ * "pay" is absent on purpose: that stage renders the checkout form below
+ * rather than a progress note, so a missing entry here is a real bug and a
+ * lookup failure is better than a plausible-looking wrong message.
+ */
+const STAGE_COPY: Record<Exclude<PreorderStage, "pay">, {
+  tone: "good" | "waiting" | "bad";
+  title: string;
+  body: string;
+}> = {
+  deposit_pending: {
+    tone: "waiting",
+    title: "Deposit Received",
+    body: "We are verifying your transfer. Your reservation is confirmed as soon as it clears, and we will email you then.",
+  },
+  reserved: {
+    tone: "good",
+    title: "Reserved",
+    body: "Your deposit is confirmed and your piece is set aside. When it is ready to dispatch we will email you — and this same code becomes your payment page.",
+  },
+  deposit_rejected: {
+    tone: "bad",
+    title: "Deposit Needs Attention",
+    body: "We could not verify your deposit transfer. Please get in touch and we will sort it out with you.",
+  },
+  verifying: {
+    tone: "waiting",
+    title: "Payment Received",
+    body: "We have your balance payment and are verifying it. Your order is confirmed as soon as it clears — nothing further is needed from you.",
+  },
+  paid: {
+    tone: "good",
+    title: "Paid In Full",
+    body: "Your pre-order is confirmed and being prepared for dispatch. You will get tracking details as soon as it leaves us.",
+  },
+  expired: {
+    tone: "bad",
+    title: "Payment Request Expired",
+    body: "This balance request has lapsed. Please contact us and we will send a fresh one — your reservation is not affected.",
+  },
+  cancelled: {
+    tone: "bad",
+    title: "Pre-Order Cancelled",
+    body: "This pre-order was cancelled. If that is unexpected, please get in touch.",
+  },
+};
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -81,26 +137,24 @@ export default function CheckoutPage() {
 
   const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(200);
 
-  // --- Pre-order balance -------------------------------------------------
-  // Reached by scanning the QR code emailed to a customer whose deposit is
-  // already paid. The cart is irrelevant here: the order exists, and what is
-  // left to pay is the balance after their deposit.
+  // --- Pre-order pass ------------------------------------------------------
+  // Reached by scanning the QR issued when the pre-order was placed. The cart
+  // is irrelevant here: the order already exists.
   //
-  // That code is single use -- it is spent the moment the balance is submitted
-  // through it -- so every read below has to cope with a token that was good
-  // when the email was sent and is not any more.
+  // The same code is scanned throughout the pre-order's life, so landing here
+  // does not mean there is anything to pay. The server says which stage it is
+  // at; only "pay" puts the checkout form on screen, and every other stage
+  // renders a progress note instead. Treating a scan as a payment attempt was
+  // the old behaviour and would now greet a customer with an error the day
+  // after they ordered -- exactly when they are most likely to try the code.
   //
   // The token is read from window.location rather than useSearchParams so this
   // page keeps prerendering without needing a Suspense boundary.
-  const [preorder, setPreorder] = useState<PreorderBalance | null>(null);
+  const [preorder, setPreorder] = useState<PreorderPass | null>(null);
+  const [passStage, setPassStage] = useState<PreorderPass | null>(null);
   const [preorderToken, setPreorderToken] = useState<string | null>(null);
   const [preorderError, setPreorderError] = useState<string | null>(null);
-  // `note` carries the server's own wording when a scanned code turns out to be
-  // already spent, so the customer is told what actually happened rather than
-  // the generic "we have your payment" line meant for a fresh submission.
-  const [balanceDone, setBalanceDone] = useState<
-    { ref: string; isCod: boolean; note?: string } | null
-  >(null);
+  const [balanceDone, setBalanceDone] = useState<{ ref: string; isCod: boolean } | null>(null);
   const isPreorder = Boolean(preorder);
 
   useEffect(() => {
@@ -112,30 +166,26 @@ export default function CheckoutPage() {
     fetch(`/api/preorders/pay/${token}`)
       .then(async (res) => {
         const data = await res.json();
-        if (!res.ok) {
-          // The QR is single use. Scanning a spent one is the commonest way to
-          // land here -- a customer re-opening the email, or the screenshot they
-          // kept -- and that is good news, not a failure. Show them the
-          // confirmation rather than a red screen suggesting something is wrong.
-          if (data.settled) {
-            setBalanceDone({ ref: data.preorderId || "", isCod: false, note: data.error });
-            return;
-          }
-          throw new Error(data.error || "This payment code is not valid");
+        // A non-OK response now means the code itself is unknown. Anything the
+        // server recognises comes back 200 with a stage, however far along.
+        if (!res.ok) throw new Error(data.error || "This pre-order code is not valid");
+
+        const pass: PreorderPass = data.preorder;
+        if (pass.stage !== "pay") {
+          setPassStage(pass);
+          return;
         }
-        setPreorder(data.preorder);
-        if (data.preorder.alreadySubmitted) {
-          setBalanceDone({ ref: data.preorder.preorderId, isCod: false });
-        }
+
+        setPreorder(pass);
         // Their details came with the pre-order. Re-typing them invites a
         // mismatch between where the deposit was taken and where it ships.
         setFormData((prev) => ({
           ...prev,
-          email: data.preorder.email || prev.email,
-          fullName: data.preorder.name || prev.fullName,
-          phone: data.preorder.phone || prev.phone,
-          address: data.preorder.address || prev.address,
-          city: data.preorder.city || prev.city,
+          email: pass.email || prev.email,
+          fullName: pass.name || prev.fullName,
+          phone: pass.phone || prev.phone,
+          address: pass.address || prev.address,
+          city: pass.city || prev.city,
         }));
       })
       .catch((err) => setPreorderError(err.message));
@@ -308,11 +358,13 @@ export default function CheckoutPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        // Their code was spent between loading this page and pressing the
-        // button -- almost always their own double submission. The payment is
-        // recorded either way, so confirm it instead of raising an alarm.
-        if (data.settled) {
-          setBalanceDone({ ref: data.preorderId || '', isCod: false, note: data.error });
+        // The pass stopped being payable between loading this page and
+        // pressing the button -- almost always their own double submission.
+        // Fall through to that stage's note rather than an alert: the payment
+        // is recorded either way, and "we have it" is the honest answer.
+        if (data.stage && preorder) {
+          setPassStage({ ...preorder, stage: data.stage });
+          setPreorder(null);
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
@@ -416,43 +468,87 @@ export default function CheckoutPage() {
     }
   };
 
-  // A settled or dead balance link has nothing to check out, so it replaces the
-  // form rather than rendering an order the customer cannot place.
-  if (balanceDone || preorderError) {
-    const ok = Boolean(balanceDone);
+  // Three things land here: a payment just submitted, a scanned pass that is
+  // not at the paying stage, and a code we do not recognise. None of them has
+  // anything to check out, so each replaces the form rather than rendering an
+  // order the customer cannot place.
+  if (balanceDone || preorderError || passStage) {
+    const copy = passStage && passStage.stage !== "pay" ? STAGE_COPY[passStage.stage] : null;
+
+    const tone = balanceDone ? "good" : copy ? copy.tone : "bad";
+    const title = balanceDone ? "Order Complete" : copy ? copy.title : "Code Not Valid";
+    const reference = balanceDone?.ref || passStage?.preorderId || "";
+    const body = balanceDone
+      ? balanceDone.isCod
+        ? "Thank you. Your order is confirmed — pay the remaining balance in cash when it arrives."
+        : "Thank you. We have your payment and will confirm your order as soon as it is verified."
+      : copy
+        ? copy.body
+        : preorderError || "We could not find a pre-order for this code.";
+
+    const TONES = {
+      good: { ring: "bg-emerald-50 border-emerald-200", icon: <CheckCircle className="w-7 h-7 text-emerald-600" /> },
+      waiting: { ring: "bg-amber-50 border-amber-200", icon: <Clock className="w-7 h-7 text-amber-600" /> },
+      bad: { ring: "bg-rose-50 border-rose-200", icon: <AlertCircle className="w-7 h-7 text-rose-500" /> },
+    } as const;
+    const { ring, icon } = TONES[tone];
+
+    // Their own figures, so they can see the pass is showing the right
+    // pre-order. Withheld on a cancelled one, where a balance still "due"
+    // would read as a bill.
+    const showSummary = Boolean(passStage) && passStage!.stage !== "cancelled";
+
     return (
-      <main className="checkout-light min-h-screen bg-white text-slate-900 font-sans flex items-center justify-center px-8">
-        <div className="max-w-md text-center space-y-6">
-          <div
-            className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto border ${
-              ok ? "bg-emerald-50 border-emerald-200" : "bg-rose-50 border-rose-200"
-            }`}
-          >
-            {ok ? (
-              <CheckCircle className="w-7 h-7 text-emerald-600" />
-            ) : (
-              <AlertCircle className="w-7 h-7 text-rose-500" />
-            )}
+      <main className="checkout-light min-h-screen bg-white text-slate-900 font-sans flex items-center justify-center px-8 py-20">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto border ${ring}`}>
+            {icon}
           </div>
-          <h1 className="text-3xl font-black uppercase tracking-tight">
-            {ok ? "Order Complete" : "Code Not Valid"}
-          </h1>
-          {ok ? (
-            <div className="space-y-3">
-              <p className="text-[11px] font-black uppercase tracking-[0.3em] text-gold">
-                {balanceDone!.ref}
-              </p>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                {balanceDone!.note
-                  ? balanceDone!.note
-                  : balanceDone!.isCod
-                    ? "Thank you. Your order is confirmed — pay the remaining balance in cash when it arrives."
-                    : "Thank you. We have your payment and will confirm your order as soon as it is verified."}
-              </p>
+
+          <h1 className="text-3xl font-black uppercase tracking-tight">{title}</h1>
+
+          <div className="space-y-3">
+            {reference && (
+              <p className="text-[11px] font-black uppercase tracking-[0.3em] text-gold">{reference}</p>
+            )}
+            <p className="text-xs text-slate-500 leading-relaxed">{body}</p>
+          </div>
+
+          {showSummary && (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-left space-y-2.5">
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-[11px] font-bold text-slate-700">
+                  {passStage!.productName} &times; {passStage!.quantity}
+                </span>
+                <span className="text-[11px] font-black text-slate-900">
+                  Rs {passStage!.totalAmount.toLocaleString()}
+                </span>
+              </div>
+              {passStage!.deliveryFee > 0 && (
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="text-[11px] text-slate-500">Delivery</span>
+                  <span className="text-[11px] text-slate-700">
+                    Rs {passStage!.deliveryFee.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-[11px] text-slate-500">Deposit paid</span>
+                <span className="text-[11px] text-emerald-600 font-bold">
+                  &minus; Rs {passStage!.depositPaid.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 pt-2.5 border-t border-slate-200">
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+                  {passStage!.balanceAmount > 0 ? "Remaining" : "Paid in full"}
+                </span>
+                <span className="text-sm font-black text-slate-900">
+                  Rs {passStage!.balanceAmount.toLocaleString()}
+                </span>
+              </div>
             </div>
-          ) : (
-            <p className="text-xs text-slate-500 leading-relaxed">{preorderError}</p>
           )}
+
           <Link
             href="/products"
             className="inline-block btn-premium-gold px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em]"

@@ -37,7 +37,14 @@ export default function PreorderPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [placed, setPlaced] = useState<string | null>(null);
+  // The placed pre-order, with the pass the server minted for it. Held as an
+  // object rather than just the reference because the thank-you screen shows
+  // the QR immediately -- before the confirmation email has even arrived.
+  const [placed, setPlaced] = useState<{
+    preorderId: string;
+    qrUrl: string;
+    passUrl: string;
+  } | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
@@ -132,7 +139,7 @@ export default function PreorderPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not place your pre-order");
-      setPlaced(data.preorderId);
+      setPlaced({ preorderId: data.preorderId, qrUrl: data.qrUrl, passUrl: data.passUrl });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       setSubmitError(err?.message || "Something went wrong. Please try again.");
@@ -150,17 +157,48 @@ export default function PreorderPage() {
           </div>
           <div className="space-y-3">
             <h1 className="text-3xl font-black uppercase tracking-tight">Pre-Order Placed</h1>
-            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-gold">{placed}</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-gold">
+              {placed.preorderId}
+            </p>
           </div>
+
+          {/* The pass, on screen before the email has even landed. Save-able
+              right now by long-pressing or screenshotting it, which is what
+              most people will do on a phone. */}
+          {placed.qrUrl && (
+            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-7 space-y-5">
+              {/* White card: a QR against black is an unscannable negative. */}
+              <div className="bg-white rounded-2xl p-4 w-fit mx-auto">
+                <img
+                  src={placed.qrUrl}
+                  alt={`Pre-order pass for ${placed.preorderId}`}
+                  width={200}
+                  height={200}
+                  className="block w-50 h-50"
+                />
+              </div>
+              <div className="space-y-2 text-xs text-white/60 leading-relaxed">
+                <p className="text-white font-bold text-[11px] uppercase tracking-widest">
+                  Your Pre-Order Pass
+                </p>
+                <p>
+                  Save this code. Scan it any time to see where your reservation stands — and
+                  when the balance is due, the same code becomes your payment page.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-7 text-left space-y-4 text-xs text-white/60 leading-relaxed">
             <p>
               Thank you. We have your deposit receipt for{" "}
               <strong className="text-white">{product.name} &times; {quantity}</strong> and a confirmation
-              email is on its way to <strong className="text-white">{form.email}</strong>.
+              email — with the same pass — is on its way to{" "}
+              <strong className="text-white">{form.email}</strong>.
             </p>
             <p>
               Once we verify your transfer your reservation is confirmed. When your fragrance is ready to
-              dispatch we will email you a secure link to pay the remaining{" "}
+              dispatch we will email you again to settle the remaining{" "}
               <strong className="text-white">Rs {balance.toLocaleString()}</strong> plus delivery.
             </p>
           </div>

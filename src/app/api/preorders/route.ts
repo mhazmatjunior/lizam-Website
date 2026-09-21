@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { isAdminRequest } from '@/lib/auth';
-import { newPreorderId, mapPreorder } from '@/lib/preorder';
+import {
+  newPreorderId,
+  mapPreorder,
+  newBalanceToken,
+  balancePaymentUrl,
+  balancePaymentQrUrl,
+} from '@/lib/preorder';
 import { sendPreorderConfirmationEmail } from '@/lib/preorder-email';
 
 const VALID_DEPOSIT_METHODS = ['bank', 'easypaisa', 'jazzcash'];
@@ -88,6 +94,15 @@ export async function POST(req: NextRequest) {
     const totalAmount = unitPrice * qty;
     const depositAmount = unitDeposit * qty;
 
+    // The customer's pass, minted here rather than when the balance is later
+    // requested, so the QR on the thank-you screen and in the confirmation
+    // email is the same code they will eventually pay with. It carries no
+    // expiry: a pre-order can sit for months, and a pass that died before the
+    // stock arrived would be worse than useless. What expires is the payment
+    // window, which opens with its own deadline when an admin asks for the
+    // balance -- until then preorderStage() will not offer a payment form.
+    const passToken = newBalanceToken();
+
     const { data: created, error } = await supabaseAdmin
       .from('preorders')
       .insert([
@@ -112,6 +127,7 @@ export async function POST(req: NextRequest) {
           deposit_method: depositMethod,
           deposit_proof_url: depositProofUrl,
           deposit_reference: depositReference || null,
+          balance_token: passToken,
         },
       ])
       .select('*')
@@ -133,12 +149,24 @@ export async function POST(req: NextRequest) {
         totalAmount,
         depositAmount,
         balanceAmount: totalAmount - depositAmount,
+        paymentUrl: balancePaymentUrl(passToken),
+        qrUrl: balancePaymentQrUrl(passToken),
       });
     } catch (err: any) {
       console.error('❌ Failed to send pre-order confirmation email:', err.message);
     }
 
-    return NextResponse.json({ success: true, preorderId, preorder: mapPreorder(created) });
+    // The QR goes back to the thank-you screen so the customer can save it
+    // before they ever open their email. Handing the browser a URL containing
+    // their own token is not a leak -- the code they are about to be shown
+    // encodes exactly the same thing, and it is their own pre-order.
+    return NextResponse.json({
+      success: true,
+      preorderId,
+      qrUrl: balancePaymentQrUrl(passToken),
+      passUrl: balancePaymentUrl(passToken),
+      preorder: mapPreorder(created),
+    });
   } catch (error: any) {
     console.error('❌ Pre-order Save Error:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });

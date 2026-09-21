@@ -74,6 +74,24 @@ function preorderShell(accent: string, title: string, body: string) {
 
 /** 1. Sent the moment a customer places a pre-order and submits their deposit proof. */
 export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
+  // The pass is issued with the pre-order, so it is already in this first
+  // email. Nothing is payable yet -- scanning it now reports where the
+  // reservation stands, and the same code turns into the payment page once we
+  // ask for the balance. One code for the whole wait, nothing to keep track of.
+  const passBlock =
+    data.qrUrl && data.paymentUrl
+      ? qrBlock({
+          qrUrl: data.qrUrl,
+          url: data.paymentUrl,
+          alt: `Pre-order pass for ${data.preorderId}`,
+          lead: `<strong style="color: #ffffff;">This is your pre-order pass.</strong><br>
+                 Scan it any time to see where your reservation stands — and when the
+                 balance is due, the very same code is how you settle it.`,
+          note: `Keep it somewhere safe. It belongs to your pre-order alone, so please do
+                 not forward or share it. You do not need to do anything with it today.`,
+        })
+      : '';
+
   const body = `
     <div style="text-align: center; margin: 30px 0;">
       <span class="badge">Pre-Order Reserved</span>
@@ -101,9 +119,11 @@ export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
       </table>
     </div>
 
+    ${passBlock}
+
     <div style="font-size: 12px; line-height: 1.7; color: #999999;">
       <p><strong style="color:#ffffff;">What happens next?</strong><br>
-      When your fragrance is ready to dispatch we will email you a secure QR code to scan and settle the remaining balance. Delivery charges are added at that stage. No further action is needed from you until then.</p>
+      We verify your transfer and confirm your reservation. When your fragrance is ready to dispatch we will email you again, and your pass above becomes the payment page for the remaining balance. Delivery charges are added at that stage. No further action is needed from you until then.</p>
       <p><strong>Reserved For:</strong> ${data.name} (${data.phone})<br>${data.address}</p>
     </div>
   `;
@@ -116,38 +136,47 @@ export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
 }
 
 /**
- * The QR code the customer scans to pay, as an email-safe block.
+ * The customer's pass, as an email-safe block.
  *
- * A table rather than a padded div, because Outlook ignores padding on a
- * block element and would print the code straight onto the black background,
- * where no scanner can read it. The white card is not decoration.
+ * A table rather than a padded div, because Outlook ignores padding on a block
+ * element and would print the code straight onto the black background, where
+ * no scanner can read it. The white card is not decoration.
  *
  * The address is still spelled out underneath. A QR is an image, and a good
  * share of mail clients refuse to load images until the reader asks -- without
- * the fallback those readers get an email with no way to pay at all.
+ * the fallback those readers get an email with a picture they cannot see and
+ * no other way through.
+ *
+ * `lead` and `note` differ per email because the same code means different
+ * things at different points: at placement it is how the customer checks where
+ * their pre-order stands, and later it is how they pay for it.
  */
-function qrPayBlock(qrUrl: string, paymentUrl: string) {
+function qrBlock(opts: {
+  qrUrl: string;
+  url: string;
+  alt: string;
+  lead: string;
+  note: string;
+}) {
   return `
     <div style="text-align: center; margin: 35px 0;">
       <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
         <tr>
           <td style="background-color: #ffffff; padding: 16px; border-radius: 16px;">
-            <img src="${qrUrl}" width="240" height="240" alt="QR code to pay your RAANAE pre-order balance"
+            <img src="${opts.qrUrl}" width="240" height="240" alt="${opts.alt}"
                  style="display: block; width: 240px; height: 240px; border: 0; outline: none;">
           </td>
         </tr>
       </table>
 
       <p style="font-size: 13px; color: #cccccc; margin-top: 22px; line-height: 1.7;">
-        <strong style="color: #ffffff;">Scan this code with your phone camera</strong><br>
-        to open your secure payment page and complete your order.
+        ${opts.lead}
       </p>
 
       <p style="font-size: 10px; color: #555555; margin-top: 16px; line-height: 1.7;">
-        This code belongs to your pre-order alone and can be used
-        <strong style="color: #888888;">once</strong>. Please do not forward or share it.<br><br>
+        ${opts.note}<br><br>
         Cannot scan it? Open this address in your browser instead:<br>
-        <span style="color: #777777; word-break: break-all;">${paymentUrl}</span>
+        <span style="color: #777777; word-break: break-all;">${opts.url}</span>
       </p>
     </div>
   `;
@@ -165,7 +194,16 @@ export async function sendPreorderBalancePaymentEmail(data: PreorderEmailData) {
   // payment request with nothing to press.
   const payBlock =
     data.qrUrl && data.paymentUrl
-      ? qrPayBlock(data.qrUrl, data.paymentUrl)
+      ? qrBlock({
+          qrUrl: data.qrUrl,
+          url: data.paymentUrl,
+          alt: 'QR code to pay your RAANAE pre-order balance',
+          lead: `<strong style="color: #ffffff;">Scan this code with your phone camera</strong><br>
+                 to open your secure payment page and complete your order.`,
+          note: `This is the same code from your original confirmation. It belongs to your
+                 pre-order alone and will take <strong style="color: #888888;">one</strong>
+                 payment. Please do not forward or share it.`,
+        })
       : `<div style="text-align: center; margin: 35px 0;">
            <a href="${data.paymentUrl}" class="cta">Pay Remaining Balance</a>
          </div>`;

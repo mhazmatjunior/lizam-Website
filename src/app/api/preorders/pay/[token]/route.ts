@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { creditedDeposit, customerBalance } from '@/lib/preorder';
+import { creditedDeposit, customerBalance, preorderStage, PAYABLE_STAGE } from '@/lib/preorder';
 
 // 'cod' settles the balance in cash at the door. It carries no screenshot --
 // there is nothing to capture until the courier is paid -- so the admin marks
@@ -9,29 +9,24 @@ const VALID_METHODS = ['bank', 'easypaisa', 'jazzcash', 'cod'];
 const PROOFLESS_METHODS = ['cod'];
 
 /**
- * How the balance page is reached: the customer scans the QR code in their
- * payment email, which resolves to /checkout?preorder=<token>.
+ * The pre-order pass: one QR, issued when the pre-order is placed, scanned
+ * through to /checkout?preorder=<token> for the rest of its life.
  *
- * The token IS the authentication -- there is no session behind a scanned code
- * -- so everything here is deliberately narrow: look up strictly by exact
- * token, refuse an expired or spent one, and return only the fields the
- * balance checkout needs to render.
+ * The token IS the authentication -- there is no session behind a scanned
+ * code -- so the lookup is deliberately narrow: strictly by exact token, and
+ * nothing else is accepted as identifying a pre-order.
  *
- * "settled" separates the two ways this can fail. A dead or unknown code is an
- * error the customer should worry about; a code they have already paid through
- * is not, and the page shows them their confirmation rather than an alarming
- * red screen. Only the pre-order reference travels with it -- the same one
- * printed in the email the code arrived in.
+ * What the pass is *for* changes as the pre-order moves along, so this no
+ * longer refuses a settled or not-yet-payable pre-order. It loads the row and
+ * lets preorderStage() say which of the two jobs applies: report progress, or
+ * take the balance. Refusing outright would have meant a customer who scanned
+ * the code the day after placing their order got an error, which is exactly
+ * the moment they are most likely to try it.
  */
-type TokenFailure = {
-  error: string;
-  status: number;
-  settled?: boolean;
-  preorderId?: string;
-};
-
-async function loadByToken(token: string): Promise<{ data: any } | TokenFailure> {
-  if (!token || token.length < 32) return { error: 'Invalid payment link', status: 404 };
+async function loadByToken(token: string) {
+  if (!token || token.length < 32) {
+    return { error: 'Invalid pre-order code', status: 404 } as const;
+  }
 
   const { data, error } = await supabaseAdmin
     .from('preorders')
@@ -40,68 +35,39 @@ async function loadByToken(token: string): Promise<{ data: any } | TokenFailure>
     .maybeSingle();
 
   if (error || !data) {
-    return { error: 'This QR code is not valid or has already been used', status: 404 };
+    return { error: 'This QR code is not valid', status: 404 } as const;
   }
-  if (data.status === 'fully_paid') {
-    return {
-      error: 'This pre-order has already been paid in full.',
-      status: 409,
-      settled: true,
-      preorderId: data.preorder_id,
-    };
-  }
-  if (data.status === 'cancelled') {
-    return { error: 'This pre-order was cancelled', status: 409 };
-  }
-  // Single use. The code may well still be inside its 30 days, but it was spent
-  // the moment the customer submitted their payment through it -- a printed or
-  // screenshotted QR outlives the email it arrived in, and re-scanning one must
-  // not reopen a payment that has already been made.
-  if (data.balance_token_used_at) {
-    return {
-      error:
-        'This QR code has already been used. We have your payment and will confirm your order once it is verified.',
-      status: 409,
-      settled: true,
-      preorderId: data.preorder_id,
-    };
-  }
-  if (data.balance_token_expires_at && new Date(data.balance_token_expires_at) < new Date()) {
-    return {
-      error: 'This QR code has expired. Please contact us for a fresh one.',
-      status: 410,
-    };
-  }
-  return { data };
+  return { data } as const;
 }
 
-/** GET - What the balance checkout page needs to render. */
+/**
+ * GET - Everything the page needs to render whichever stage the pass is at.
+ *
+ * Name, phone, address and email come back only while the balance is actually
+ * payable, because that is the only stage with a form to prefill. At every
+ * other stage the pass shows progress, which needs the reference, the product
+ * and the figures and nothing else -- so a code that goes astray after the
+ * pre-order is settled no longer hands over the customer's contact details.
+ */
 export async function GET(req: NextRequest, props: { params: Promise<{ token: string }> }) {
   try {
     const { token } = await props.params;
     const result = await loadByToken(token);
     if ('error' in result) {
-      return NextResponse.json(
-        {
-          error: result.error,
-          settled: Boolean(result.settled),
-          preorderId: result.preorderId,
-        },
-        { status: result.status }
-      );
+      return NextResponse.json({ error: result.error }, { status: result.status });
     }
 
     const p = result.data;
+    const stage = preorderStage(p);
+
     return NextResponse.json({
       preorder: {
         preorderId: p.preorder_id,
-        name: p.name,
-        email: p.email,
-        phone: p.phone,
-        address: p.address,
-        city: p.city || '',
+        stage,
         productName: p.product_name,
         quantity: p.quantity,
+        currency: p.currency || 'PKR',
+        status: p.status,
         unitPrice: Number(p.unit_price || 0),
         totalAmount: Number(p.total_amount || 0),
         // These two must agree: crediting the deposit in one and not the other
@@ -109,15 +75,19 @@ export async function GET(req: NextRequest, props: { params: Promise<{ token: st
         depositPaid: creditedDeposit(p),
         deliveryFee: Number(p.delivery_fee || 0),
         balanceAmount: customerBalance(p),
-        currency: p.currency || 'PKR',
-        status: p.status,
-        // So the page can show "we already have your proof, we're checking it"
-        // instead of inviting a second upload.
-        alreadySubmitted: Boolean(p.balance_proof_url),
+        ...(stage === PAYABLE_STAGE
+          ? {
+              name: p.name,
+              email: p.email,
+              phone: p.phone,
+              address: p.address,
+              city: p.city || '',
+            }
+          : {}),
       },
     });
   } catch (error: any) {
-    console.error('❌ Balance link read error:', error.message);
+    console.error('❌ Pre-order pass read error:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -130,27 +100,28 @@ export async function GET(req: NextRequest, props: { params: Promise<{ token: st
  * screenshot, exactly as the deposit works. Anything else would let a customer
  * confirm their own order by uploading any image at all.
  *
- * It is also where the QR code is spent -- see the update below.
+ * It is also where the pass is spent -- see the update below.
  */
 export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }) {
   try {
     const { token } = await props.params;
     const result = await loadByToken(token);
     if ('error' in result) {
-      // Carries "settled" for the same reason GET does, and this is where it
-      // usually fires: the page was opened on a good code and submitted after
-      // it was spent, which is a customer pressing the button twice.
-      return NextResponse.json(
-        {
-          error: result.error,
-          settled: Boolean(result.settled),
-          preorderId: result.preorderId,
-        },
-        { status: result.status }
-      );
+      return NextResponse.json({ error: result.error }, { status: result.status });
     }
 
     const preorder = result.data;
+    const stage = preorderStage(preorder);
+
+    // The pass exists from the day the pre-order is placed, so this guard is
+    // load-bearing in a way it was not when the token only appeared alongside
+    // a payment request. Before an admin asks for the balance the delivery fee
+    // is still 0 and unset, and a customer paying "early" off their own bat
+    // would settle goods-only and underpay by the carriage.
+    if (stage !== PAYABLE_STAGE) {
+      return NextResponse.json({ error: notPayableReason(stage), stage }, { status: 409 });
+    }
+
     const { balanceMethod, balanceProofUrl, balanceReference } = await req.json();
 
     if (!VALID_METHODS.includes(balanceMethod)) {
@@ -163,7 +134,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ token: s
       );
     }
 
-    // Spending the code in the same statement that records the payment is what
+    // Spending the pass in the same statement that records the payment is what
     // makes it single use. The two filters are a compare-and-set: they match
     // only while the code is unspent, so a second submission -- a double tap, a
     // forwarded screenshot, a replayed request racing the first -- updates no
@@ -188,9 +159,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ token: s
     if (!spent || spent.length === 0) {
       return NextResponse.json(
         {
-          error:
-            'This QR code has already been used. We have your payment and will confirm your order once it is verified.',
-          settled: true,
+          error: notPayableReason('verifying'),
+          stage: 'verifying',
           preorderId: preorder.preorder_id,
         },
         { status: 409 }
@@ -209,5 +179,23 @@ export async function POST(req: NextRequest, props: { params: Promise<{ token: s
   } catch (error: any) {
     console.error('❌ Balance payment submit error:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+/** Why a scan cannot pay right now, in the customer's terms. */
+function notPayableReason(stage: string): string {
+  switch (stage) {
+    case 'verifying':
+      return 'We already have your payment for this pre-order and are verifying it.';
+    case 'paid':
+      return 'This pre-order has already been paid in full.';
+    case 'cancelled':
+      return 'This pre-order was cancelled.';
+    case 'expired':
+      return 'This payment request has expired. Please contact us for a fresh one.';
+    case 'deposit_rejected':
+      return 'There is a problem with your deposit. Please contact us before paying the balance.';
+    default:
+      return 'There is nothing to pay on this pre-order yet. We will email you when the balance is due.';
   }
 }

@@ -337,8 +337,8 @@ export default function PreordersPage() {
                         <p className="text-[8px] text-white/25 mt-1.5 flex items-center gap-1">
                           <QrCode className="w-2.5 h-2.5" />
                           {p.balanceLinkUsedAt
-                            ? `QR used ${new Date(p.balanceLinkUsedAt).toLocaleDateString()}`
-                            : `QR sent ${new Date(p.balanceEmailSentAt).toLocaleDateString()}`}
+                            ? `Paid via pass ${new Date(p.balanceLinkUsedAt).toLocaleDateString()}`
+                            : `Balance asked ${new Date(p.balanceEmailSentAt).toLocaleDateString()}`}
                         </p>
                       )}
                     </td>
@@ -516,66 +516,77 @@ export default function PreordersPage() {
                   </section>
                 )}
 
-                {/* The QR code the customer was emailed */}
-                {selected.hasBalanceLink && selected.status !== "fully_paid" && (
+                {/* The customer's pass. Issued with the pre-order, so it is
+                    here from the moment one is placed -- not only once a
+                    payment has been requested. */}
+                {selected.hasBalanceLink && (
                   <section className="space-y-3">
                     <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white/25">
-                      Payment QR Code
+                      Pre-Order Pass
                     </p>
 
-                    {selected.balanceLinkUsedAt ? (
-                      <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 flex items-center gap-3">
-                        <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-white/70">
-                            Used
-                          </p>
-                          <p className="text-[9px] text-white/30 mt-0.5 leading-relaxed">
-                            Scanned and paid on{" "}
-                            {new Date(selected.balanceLinkUsedAt).toLocaleDateString()}. Resend to
-                            issue a fresh code.
-                          </p>
-                        </div>
+                    <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-4">
+                      {/* White card behind it: a QR read against a dark ground is
+                          an unscannable negative, on screen as much as in email. */}
+                      <div className="bg-white rounded-2xl p-4 w-fit mx-auto">
+                        <img
+                          src={adminPreorderQrUrl(selected.preorderId)}
+                          alt={`Pre-order pass for ${selected.preorderId}`}
+                          width={176}
+                          height={176}
+                          className="block w-44 h-44"
+                        />
                       </div>
-                    ) : (
-                      <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-4">
-                        {/* White card behind it: a QR read against a dark ground is
-                            an unscannable negative, on screen as much as in email. */}
-                        <div className="bg-white rounded-2xl p-4 w-fit mx-auto">
-                          {/* Keyed on the send timestamp so a resent code replaces
-                              the old picture instead of being served from cache. */}
-                          <img
-                            src={`${adminPreorderQrUrl(selected.preorderId)}?v=${encodeURIComponent(
-                              selected.balanceEmailSentAt || ""
-                            )}`}
-                            alt={`Payment QR code for ${selected.preorderId}`}
-                            width={176}
-                            height={176}
-                            className="block w-44 h-44"
-                          />
-                        </div>
 
-                        <p className="text-[9px] text-white/30 leading-relaxed text-center">
-                          The code emailed to {selected.email}
-                          {selected.balanceEmailSentAt
-                            ? ` on ${new Date(selected.balanceEmailSentAt).toLocaleDateString()}`
-                            : ""}
-                          . It works once — send it on by hand if the email did not arrive.
-                        </p>
+                      <p className="text-[9px] text-white/30 leading-relaxed text-center">
+                        {selected.email} has had this code since they ordered. It stays the same
+                        for the life of the pre-order — send it on by hand if an email did not
+                        arrive.
+                      </p>
 
-                        <a
-                          href={`${adminPreorderQrUrl(selected.preorderId)}?v=${encodeURIComponent(
-                            selected.balanceEmailSentAt || ""
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full py-3 rounded-xl text-[9px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-white/60 hover:text-gold hover:border-gold/20 transition-colors flex items-center justify-center gap-2"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          Open Full Size
-                        </a>
+                      {/* What it does if scanned right now. The same code means
+                          different things at different stages, and an admin
+                          about to forward it should know which. */}
+                      <div className="bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3 flex items-start gap-2.5">
+                        {selected.balanceLinkUsedAt ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-400 flex-shrink-0 mt-0.5" />
+                            <p className="text-[9px] text-white/40 leading-relaxed">
+                              Paid through on{" "}
+                              {new Date(selected.balanceLinkUsedAt).toLocaleDateString()} — it now
+                              reports progress only. Rejecting the balance reopens it for payment.
+                            </p>
+                          </>
+                        ) : selected.balanceEmailSentAt ? (
+                          <>
+                            <Mail className="w-3 h-3 text-gold flex-shrink-0 mt-0.5" />
+                            <p className="text-[9px] text-white/40 leading-relaxed">
+                              Balance requested{" "}
+                              {new Date(selected.balanceEmailSentAt).toLocaleDateString()} — it
+                              will take one payment of {money(selected.balanceAmount)}.
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="w-3 h-3 text-white/30 flex-shrink-0 mt-0.5" />
+                            <p className="text-[9px] text-white/40 leading-relaxed">
+                              No balance requested yet — scanning it shows the customer their
+                              progress. It cannot take a payment until you send the request.
+                            </p>
+                          </>
+                        )}
                       </div>
-                    )}
+
+                      <a
+                        href={adminPreorderQrUrl(selected.preorderId)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-3 rounded-xl text-[9px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-white/60 hover:text-gold hover:border-gold/20 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Open Full Size
+                      </a>
+                    </div>
                   </section>
                 )}
 

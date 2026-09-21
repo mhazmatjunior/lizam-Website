@@ -135,18 +135,76 @@ export function customerBalance(row: {
 }
 
 /**
- * Absolute URL of the emailed balance-payment link.
+ * What the customer sees when they scan their pass.
  *
- * Lands on the ordinary checkout page, which recognises the token and shows the
- * customer that their deposit is already paid along with what is left to
- * complete the order.
+ * The QR is issued the moment the pre-order is placed and stays the same code
+ * for its whole life, so scanning it has to mean something at every point --
+ * not just during the window when there is a balance to collect. These are
+ * those points. The page owns the wording; this owns which one applies, so the
+ * API and the page cannot disagree about what state a pre-order is in.
+ */
+export type PreorderStage =
+  | 'deposit_pending'
+  | 'deposit_rejected'
+  | 'reserved'
+  | 'pay'
+  | 'expired'
+  | 'verifying'
+  | 'paid'
+  | 'cancelled';
+
+/** The only stage at which the pass accepts a payment. */
+export const PAYABLE_STAGE: PreorderStage = 'pay';
+
+export function preorderStage(row: {
+  status?: string | null;
+  total_amount?: number | string | null;
+  delivery_fee?: number | string | null;
+  deposit_paid?: number | string | null;
+  deposit_amount?: number | string | null;
+  balance_paid?: number | string | null;
+  balance_token_used_at?: string | null;
+  balance_token_expires_at?: string | null;
+}): PreorderStage {
+  if (row.status === 'cancelled') return 'cancelled';
+  if (row.status === 'fully_paid') return 'paid';
+
+  // Spent pass or admin-recorded proof -- either way the money is claimed and
+  // we are the ones holding things up, so never re-offer the payment form.
+  if (row.balance_token_used_at || row.status === 'balance_unverified') return 'verifying';
+
+  if (row.status === 'deposit_rejected') return 'deposit_rejected';
+
+  // Only once an admin has actually asked. Before that the delivery fee is
+  // still 0 and unset, so a customer paying "early" would underpay by it.
+  if (row.status === 'balance_requested' || row.status === 'balance_rejected') {
+    if (customerBalance(row) <= 0) return 'reserved';
+    // Expiry closes the payment window, not the pass. The customer can still
+    // scan and see where their pre-order stands; they just cannot pay against
+    // a stale figure until an admin sends a fresh request.
+    if (row.balance_token_expires_at && new Date(row.balance_token_expires_at) < new Date()) {
+      return 'expired';
+    }
+    return 'pay';
+  }
+
+  if (row.status === 'deposit_paid') return 'reserved';
+  return 'deposit_pending';
+}
+
+/**
+ * Absolute URL of the customer's pre-order pass.
+ *
+ * Lands on the ordinary checkout page, which recognises the token and renders
+ * whichever stage above the pre-order is at -- a progress note early on, the
+ * balance payment form once it is due.
  */
 export function balancePaymentUrl(token: string): string {
   return `${siteUrl()}/checkout?preorder=${token}`;
 }
 
 /**
- * Absolute URL of the PNG QR code for that link.
+ * Absolute URL of the PNG QR code for that pass.
  *
  * Absolute because an email client fetches it from wherever the customer reads
  * their mail. The route behind it is stateless -- it draws whatever token it is

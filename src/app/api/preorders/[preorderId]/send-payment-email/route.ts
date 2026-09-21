@@ -19,11 +19,15 @@ import { sendPreorderBalancePaymentEmail } from '@/lib/preorder-email';
  * would otherwise let anyone mint a working payment code for someone else's
  * pre-order, and scanning it exposes that customer's details.
  *
- * Pressing it again is safe and deliberate -- it mints a *fresh* token and
- * invalidates the previous one, which is what an admin wants when a customer
- * says the email never arrived, the old code expired, or they scanned it and
- * abandoned the page halfway through. The customer scans a QR code rather
- * than following a link, and that code is good for exactly one payment.
+ * Pressing it again is safe: it re-sends the customer's existing pass and
+ * reopens the payment window on it, which is what an admin wants when the
+ * email never arrived or the old request expired.
+ *
+ * It deliberately does NOT mint a new token when one already exists. The pass
+ * is issued with the pre-order and printed in the confirmation email, so
+ * rotating it here would kill the code the customer has already saved, and
+ * they would be holding a QR that reports nothing. A token is only minted as
+ * a fallback, for pre-orders placed before passes existed.
  */
 export async function POST(req: NextRequest, props: { params: Promise<{ preorderId: string }> }) {
   try {
@@ -63,24 +67,33 @@ export async function POST(req: NextRequest, props: { params: Promise<{ preorder
       );
     }
 
-    const token = newBalanceToken();
+    // Their existing pass, kept. Only a pre-order from before passes existed
+    // arrives here without one.
+    const token = preorder.balance_token || newBalanceToken();
     const expiresAt = balanceTokenExpiry();
+    // Don't drag a pre-order backwards out of "customer has already paid,
+    // awaiting our check" just because the admin resent the request.
+    const awaitingOurCheck = preorder.status === 'balance_unverified';
+
+    const update: Record<string, unknown> = {
+      balance_token: token,
+      // The pass itself never expires; this is the deadline on the payment
+      // window it opens. Resending restarts it.
+      balance_token_expires_at: expiresAt.toISOString(),
+      balance_email_sent_at: new Date().toISOString(),
+      status: awaitingOurCheck ? preorder.status : 'balance_requested',
+      updated_at: new Date().toISOString(),
+    };
+
+    // Asking for the balance means the pass has to be able to take a payment
+    // again -- otherwise a customer whose proof was rejected is sent a request
+    // their code will refuse. Left alone when we are already holding their
+    // proof, so re-sending does not erase the record of when they paid.
+    if (!awaitingOurCheck) update.balance_token_used_at = null;
 
     const { data: updated, error: updateError } = await supabaseAdmin
       .from('preorders')
-      .update({
-        balance_token: token,
-        balance_token_expires_at: expiresAt.toISOString(),
-        // A fresh code is an unspent one. Without this a customer who used
-        // their last QR -- and then had the balance rejected, or needed the
-        // figure corrected -- would be handed a code already marked spent.
-        balance_token_used_at: null,
-        balance_email_sent_at: new Date().toISOString(),
-        // Don't drag a pre-order backwards out of "customer has already paid,
-        // awaiting our check" just because the admin resent the link.
-        status: preorder.status === 'balance_unverified' ? preorder.status : 'balance_requested',
-        updated_at: new Date().toISOString(),
-      })
+      .update(update)
       .eq('preorder_id', preorderId)
       .select('*')
       .single();
