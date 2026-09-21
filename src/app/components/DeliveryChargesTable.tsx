@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FOUNDER_DELIVERY_TIERS } from "@/data/founder-cities";
 
 /**
  * The published delivery charges.
@@ -12,8 +11,6 @@ import { FOUNDER_DELIVERY_TIERS } from "@/data/founder-cities";
  * thing a compliance review picks up. 200 is the API's own default and is used
  * until the request resolves.
  *
- * The founder tiers come straight from FOUNDER_DELIVERY_TIERS, which is what
- * checkout prices against.
  */
 export default function DeliveryChargesTable() {
   const [codFee, setCodFee] = useState<number>(200);
@@ -42,11 +39,6 @@ export default function DeliveryChargesTable() {
       charge: `Rs ${codFee.toLocaleString("en-PK")}`,
       note: "The delivery charge is paid in advance to confirm the order; the product amount is paid in cash at your door.",
     },
-    ...FOUNDER_DELIVERY_TIERS.map((tier) => ({
-      method: `Hand delivered by the founder — ${tier.cities.join(", ")}`,
-      charge: tier.priceFormatted,
-      note: "Delivered in person by RAANAE's founder, by prior arrangement.",
-    })),
   ];
 
   return (

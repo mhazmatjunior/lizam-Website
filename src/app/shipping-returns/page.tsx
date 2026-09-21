@@ -2,15 +2,12 @@ import type { Metadata } from "next";
 import LegalPage, { Section, Bullets, Callout, PolicyLink, SubHeading } from "@/app/components/LegalPage";
 import DeliveryChargesTable from "@/app/components/DeliveryChargesTable";
 import { BUSINESS, ORDER_POLICY, RESPONSE_TIMES } from "@/data/legal";
-import { FOUNDER_DELIVERY_TIERS } from "@/data/founder-cities";
 
 export const metadata: Metadata = {
   title: "Shipping, Returns & Refunds | RAANAE",
   description:
     "RAANAE's shipping, exchange, return, refund and order cancellation policies: delivery charges and timelines, how to cancel, and how refunds are paid.",
 };
-
-const FOUNDER_CITIES = FOUNDER_DELIVERY_TIERS.flatMap((tier) => tier.cities).join(", ");
 
 export default function ShippingReturnsPage() {
   return (
@@ -36,9 +33,7 @@ export default function ShippingReturnsPage() {
       <Section n={1} title="Where we deliver">
         <p>
           We deliver throughout {BUSINESS.country} using established courier partners.
-          Hand delivery by the founder is offered in selected cities only —{" "}
-          {FOUNDER_CITIES} — and is arranged with you in advance. We do not currently
-          ship outside {BUSINESS.country}.
+          We do not currently ship outside {BUSINESS.country}.
         </p>
         <p>
           If your city is not covered by a delivery method you select at checkout, you
@@ -77,10 +72,6 @@ export default function ShippingReturnsPage() {
               <strong className="text-white/90">Transit</strong> —{" "}
               {ORDER_POLICY.deliveryMajorCities} to major cities and{" "}
               {ORDER_POLICY.deliveryRemote} to smaller towns and remote areas.
-            </>,
-            <>
-              <strong className="text-white/90">Hand delivery by the founder</strong> — on
-              a date agreed directly with you.
             </>,
           ]}
         />

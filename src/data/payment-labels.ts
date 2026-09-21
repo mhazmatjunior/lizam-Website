@@ -10,12 +10,16 @@ export const PAYMENT_LABELS: Record<string, string> = {
   online: "Online Payment",
   online_manual: "Manual Transfer (Bank / Wallet)",
   cod: "Cash on Delivery",
-  founder: "Hand Delivered by Founder",
 
   // Older values kept for orders placed before the rename
   safepay: "Online Payment (Safepay)",
   bank_transfer: "Bank Transfer / Wallet (manual)",
   cod_standard: "Cash on Delivery (Standard)",
+
+  // Withdrawn: hand delivery by the founder can no longer be chosen at
+  // checkout. Orders placed under it still carry these values and must keep
+  // rendering properly in the admin and on printed receipts.
+  founder: "Hand Delivered by Founder",
   cod_founder: "Cash on Delivery (Founder Delivery)",
 };
 

@@ -14,7 +14,7 @@ export interface PricedOrder {
   summary: string;
 }
 
-const VALID_METHODS: PaymentMethod[] = ['safepay', 'bank_transfer', 'cod_standard', 'cod_founder'];
+const VALID_METHODS: PaymentMethod[] = ['safepay', 'bank_transfer', 'cod_standard'];
 
 /**
  * Price an order from product ids and quantities, using prices read from the
@@ -24,13 +24,17 @@ const VALID_METHODS: PaymentMethod[] = ['safepay', 'bank_transfer', 'cod_standar
  * stale saved cart charged an old price, and a crafted request could set any
  * amount at all. Everything here is recomputed server-side.
  *
- * Throws on an empty cart, an unknown product, or a delivery destination the
- * chosen method does not cover.
+ * Throws on an empty cart or an unknown product.
+ *
+ * `city` no longer affects the charge -- it did only while the founder hand
+ * delivered, which was priced per city. Kept in the signature because callers
+ * pass it and the next per-region rate would want it back.
  */
 export async function priceOrder(
   items: OrderLineInput[],
   method: string,
-  city: string
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  city?: string
 ): Promise<PricedOrder> {
   if (!Array.isArray(items) || items.length === 0) {
     throw new Error('Cart is empty');
@@ -67,10 +71,7 @@ export async function priceOrder(
     parts.push(`${product.name} x${qty}`);
   }
 
-  const delivery = deliveryFee(method as PaymentMethod, city || '');
-  if (delivery === null) {
-    throw new Error(`Delivery is not available in ${city || 'that city'} for this method`);
-  }
+  const delivery = deliveryFee(method as PaymentMethod);
 
   return {
     subtotal,

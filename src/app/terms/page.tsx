@@ -160,14 +160,6 @@ export default function TermsPage() {
           not refundable once the parcel has been dispatched.
         </p>
 
-        <SubHeading>Hand delivery by the founder</SubHeading>
-        <p>
-          Available in selected cities for a fixed charge per city tier, arranged with you
-          in advance. See our{" "}
-          <PolicyLink href="/shipping-returns">Shipping, Returns &amp; Refunds</PolicyLink>{" "}
-          policy for the cities covered and the charges.
-        </p>
-
         <Callout title="Never share your PIN or OTP">
           {BUSINESS.brandName} will never ask you for your card PIN, CVV, wallet PIN or a
           one-time password (OTP) by phone, email or message. If anyone claiming to

@@ -1,11 +1,9 @@
 // ---------------------------------------------------------------------------
 // Provinces and cities for the checkout address.
 //
-// These are picked from a list rather than typed for a concrete reason: founder
-// delivery is priced by city name (see src/data/pricing.ts), and free text lets
-// a customer write "Lahroe" or "LHR", which would silently fail the price
-// lookup and block their order. Every city the founder covers must appear here
-// spelled the way pricing.ts expects.
+// These are picked from a list rather than typed so the address that reaches
+// the courier is spelled consistently. Free text lets a customer write "Lahroe"
+// or "LHR", which a dispatcher then has to guess at.
 // ---------------------------------------------------------------------------
 
 export interface Province {

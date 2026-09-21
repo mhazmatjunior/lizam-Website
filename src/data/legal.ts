@@ -8,9 +8,9 @@
 // half-filled value from being rendered as a live tel:/mailto: link, and
 // LegalPage shows a warning banner in development while any remain.
 //
-// The delivery figures are NOT repeated here on purpose. They are imported
-// from src/data/founder-cities.ts and read from /api/settings, so the
-// shipping policy can never quote a price that checkout no longer charges.
+// The delivery figures are NOT repeated here on purpose. They are read from
+// /api/settings, so the shipping policy can never quote a price that checkout
+// no longer charges.
 // ---------------------------------------------------------------------------
 
 export const BUSINESS = {

@@ -20,15 +20,14 @@ import {
   AlertCircle,
   Clock,
   Sparkles,
-  Crown,
   Wallet,
   Building
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { newOrderId } from "@/lib/order-id";
-import { FOUNDER_DELIVERY_TIERS, getFounderDeliveryInfo } from "@/data/founder-cities";
 import { type PreorderStage } from "@/lib/preorder";
+import { BANK_ACCOUNTS, type PayMethod } from "@/data/bank-details";
 
 /**
  * What /api/preorders/pay/[token] returns for a scanned pre-order pass.
@@ -110,13 +109,17 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   // Payment Options State
-  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod' | 'founder'>('online');
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('online');
   // Safepay card checkout is hidden on the checkout page, so manual transfer is
   // the only reachable option and has to be the default: left on 'safepay' the
   // form would still redirect to the Safepay portal with nothing on screen
   // saying so. Re-showing the card option below is enough to undo this.
   const [subMethod, setSubMethod] = useState<'safepay' | 'manual'>('manual');
-  const [manualAccountType, setManualAccountType] = useState<'bank' | 'easypaisa' | 'jazzcash'>('bank');
+  // Seeded from the account list rather than hard-coded to 'bank', so the
+  // default stays valid whichever accounts are configured.
+  const [manualAccountType, setManualAccountType] = useState<PayMethod>(
+    BANK_ACCOUNTS[0]?.method ?? 'bank'
+  );
   
   // Screenshot Upload State
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
@@ -202,11 +205,14 @@ export default function CheckoutPage() {
       .catch((err) => console.error("Failed to load delivery fee:", err));
   }, []);
 
+  // The account whose details are on screen. Falls back to the first
+  // configured one so the box is never blank.
+  const manualAccount =
+    BANK_ACCOUNTS.find((a) => a.method === manualAccountType) ?? BANK_ACCOUNTS[0];
+
   // Calculation Logic
-  const founderInfo = getFounderDeliveryInfo(formData.city);
   const codDeliveryFee = paymentMethod === 'cod' ? standardDeliveryFee : 0;
-  const founderDeliveryFee = paymentMethod === 'founder' ? (founderInfo ? founderInfo.price : 3999) : 0;
-  const totalAmount = subtotal + codDeliveryFee + founderDeliveryFee;
+  const totalAmount = subtotal + codDeliveryFee;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -312,15 +318,6 @@ export default function CheckoutPage() {
     if (!formData.state.trim()) newErrors.state = "State is required";
     if (!formData.zipCode.trim()) newErrors.zipCode = "ZIP/Postal code is required";
 
-    // City validation for Founder Delivery
-    if (paymentMethod === 'founder') {
-      if (!formData.city.trim()) {
-        newErrors.city = "Please enter or select a supported city for Hand Delivery by Founder.";
-      } else if (!founderInfo) {
-        newErrors.city = "Hand Delivered By Founder is available only in select cities (Tier 1: Lahore, Gujranwala, Sialkot, Gujrat, Jhelum, Faisalabad | Tier 2: Islamabad, Rawalpindi | Tier 3: Multan, Bahawalpur | Tier 4: Karachi, Rahim Yar Khan).";
-      }
-    }
-
     // Manual payment screenshot validation
     if (subMethod === 'manual' && !screenshotUrl) {
       newErrors.screenshot = "Please upload proof of payment screenshot to proceed.";
@@ -397,7 +394,7 @@ export default function CheckoutPage() {
       const productSummary = cart.map(item => `${item.name} x${item.quantity}`).join(', ');
 
       const calculatedStatus = subMethod === 'manual' ? 'unverified' : (paymentMethod === 'cod' ? 'cashondelivery' : 'pending');
-      const backendPaymentMethod = paymentMethod === 'founder' ? 'cod_founder' : (paymentMethod === 'cod' ? 'cod_standard' : 'safepay');
+      const backendPaymentMethod = paymentMethod === 'cod' ? 'cod_standard' : 'safepay';
 
       const tempOrderId = newOrderId();
 
@@ -412,7 +409,7 @@ export default function CheckoutPage() {
         payment_method: backendPaymentMethod,
         payment_sub_method: subMethod === 'manual' ? manualAccountType : subMethod,
         payment_screenshot: screenshotUrl || null,
-        delivery_fee: codDeliveryFee + founderDeliveryFee,
+        delivery_fee: codDeliveryFee,
         status: calculatedStatus
       };
 
@@ -767,7 +764,7 @@ export default function CheckoutPage() {
                         Online Payment (Full Amount)
                         <span className="text-[7px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">Free Shipping</span>
                       </h4>
-                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Manual Bank / Easypaisa Transfer</p>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Manual Bank / Wallet Transfer</p>
                     </div>
                   </div>
                 </div>
@@ -789,32 +786,6 @@ export default function CheckoutPage() {
                   <span className="text-[7px] font-black uppercase tracking-widest bg-white/10 text-white/60 px-2 py-0.5 rounded border border-white/10">+ Rs {standardDeliveryFee} Delivery</span>
                 </div>
 
-                {/* Option 3: Founder Delivery */}
-                <div 
-                  onClick={() => setPaymentMethod('founder')}
-                  className={`cursor-pointer rounded-2xl p-5 border transition-all duration-300 flex items-center justify-between relative ${paymentMethod === 'founder' ? 'bg-gold/10 border-gold shadow-[0_0_25px_rgba(200,164,77,0.1)]' : 'bg-white/[0.02] border-white/10 hover:border-white/20'}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${paymentMethod === 'founder' ? 'border-gold bg-gold' : 'border-white/20'}`}>
-                      {paymentMethod === 'founder' && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-widest text-gold flex items-center gap-2">
-                        Hand Delivered By The Founder <Crown className="w-3.5 h-3.5 text-gold" />
-                      </h4>
-                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Exclusive Hand-Delivery by Founder in Limited Cities</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0 text-right">
-                    <span className="text-[7px] font-black uppercase tracking-widest bg-gold text-black px-2 py-0.5 rounded font-black border border-gold">
-                      {founderInfo ? `+ ${founderInfo.priceFormatted}` : '+ From Rs 3,999'}
-                    </span>
-                    <span className="text-[7px] font-black uppercase tracking-widest text-gold/70">
-                      Available For Limited Orders
-                    </span>
-                  </div>
-                </div>
-
               </div>
 
               {/* COD Alert Banner */}
@@ -822,60 +793,6 @@ export default function CheckoutPage() {
                 <div className="p-4 rounded-xl bg-gold/10 border border-gold/30 flex items-center gap-3 text-[10px] text-gold font-bold uppercase tracking-wider">
                   <Sparkles className="w-4 h-4 shrink-0" />
                   <span>💡 Tip: Select <strong>Online Payment</strong> to get 100% FREE delivery!</span>
-                </div>
-              )}
-
-              {/* Founder Delivery Interactive City Selector & Pricing Tier Breakdown */}
-              {paymentMethod === 'founder' && (
-                <div className="p-6 rounded-2xl bg-white/[0.02] border border-gold/30 space-y-4">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <span className="text-[11px] font-black text-gold uppercase tracking-widest flex items-center gap-2">
-                      <Crown className="w-4 h-4" /> Select Your City For Founder Delivery
-                    </span>
-                    {founderInfo && (
-                      <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                        Matched: {founderInfo.matchedCity} ({founderInfo.priceFormatted})
-                      </span>
-                    )}
-                  </div>
-
-                  {/* City Tiers Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                    {FOUNDER_DELIVERY_TIERS.map((tierObj) => (
-                      <div key={tierObj.tier} className="bg-black/40 border border-white/5 rounded-xl p-3 space-y-2">
-                        <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-wider text-gold">
-                          <span>Tier {tierObj.tier} Cities</span>
-                          <span className="bg-gold/10 px-2 py-0.5 rounded text-gold border border-gold/20">{tierObj.priceFormatted}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {tierObj.cities.map((city) => {
-                            const isSelected = formData.city.toLowerCase().trim().includes(city.toLowerCase());
-                            return (
-                              <button
-                                type="button"
-                                key={city}
-                                onClick={() => setFormData((prev) => ({ ...prev, city }))}
-                                className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all
-                                  ${isSelected 
-                                    ? 'bg-gold text-black shadow-lg shadow-gold/20' 
-                                    : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'}`}
-                              >
-                                {city}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Warning if Unsupported City Entered */}
-                  {formData.city.trim() && !founderInfo && (
-                    <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-2.5 text-[10px] text-red-400 font-bold uppercase tracking-wider">
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      <span>Hand Delivered By The Founder is not yet available in "{formData.city}". Please select a supported city above or switch to standard delivery.</span>
-                    </div>
-                  )}
                 </div>
               )}
             </section>
@@ -915,7 +832,7 @@ export default function CheckoutPage() {
                   <Building className="w-5 h-5 text-gold" />
                   <div>
                     <h5 className="text-[11px] font-black uppercase text-white">Manual Bank / Wallet Transfer</h5>
-                    <p className="text-[8px] text-white/40 uppercase">Bank, EasyPaisa or JazzCash</p>
+                    <p className="text-[8px] text-white/40 uppercase">{BANK_ACCOUNTS.map((a) => a.provider).join(' or ')}</p>
                   </div>
                 </div>
               </div>
@@ -931,111 +848,75 @@ export default function CheckoutPage() {
                     <Wallet className="w-5 h-5 text-gold" />
                     <div>
                       <h4 className="text-xs font-black uppercase tracking-widest text-gold">Manual Account Transfer Details</h4>
-                      <p className="text-[9px] uppercase text-white/40">Send payment to one of the accounts below & upload receipt screenshot</p>
+                      <p className="text-[9px] uppercase text-white/40">
+                        {BANK_ACCOUNTS.length > 1
+                          ? 'Send payment to one of the accounts below'
+                          : 'Send payment to the account below'}{' '}
+                        &amp; upload receipt screenshot
+                      </p>
                     </div>
                   </div>
 
-                  {/* Account Selector Tabs */}
-                  <div className="flex gap-2">
-                    {[
-                      { id: 'bank', label: 'Bank Account' },
-                      { id: 'easypaisa', label: 'EasyPaisa' },
-                      { id: 'jazzcash', label: 'JazzCash' },
-                    ].map((acc) => (
-                      <button
-                        key={acc.id}
-                        type="button"
-                        onClick={() => setManualAccountType(acc.id as any)}
-                        className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${manualAccountType === acc.id ? 'bg-gold text-black' : 'bg-white/5 text-white/40 hover:text-white'}`}
-                      >
-                        {acc.label}
-                      </button>
-                    ))}
-                  </div>
+                  {/* Account Selector Tabs. Only what we hold an account for --
+                      an option with no account behind it sends the customer
+                      hunting for details that are not on the page. */}
+                  {BANK_ACCOUNTS.length > 1 && (
+                    <div className="flex gap-2 flex-wrap">
+                      {BANK_ACCOUNTS.map((acc) => (
+                        <button
+                          key={acc.method}
+                          type="button"
+                          onClick={() => setManualAccountType(acc.method)}
+                          className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${manualAccountType === acc.method ? 'bg-gold text-black' : 'bg-white/5 text-white/40 hover:text-white'}`}
+                        >
+                          {acc.provider}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
-                  {/* Account Details Box */}
+                  {/* Account Details Box, rendered from the configured account
+                      so the numbers here and on the pre-order page cannot drift. */}
                   <div className="bg-black/60 border border-white/5 rounded-xl p-4 space-y-3">
-                    {manualAccountType === 'bank' && (
-                      <>
-                        <div className="flex justify-between text-[10px] font-bold uppercase">
-                          <span className="text-white/40">Bank Name</span>
-                          <span className="text-gold font-black">AL FALAH</span>
+                    <div className="flex justify-between text-[10px] font-bold uppercase">
+                      <span className="text-white/40">
+                        {manualAccount.method === 'bank' ? 'Bank Name' : 'Wallet'}
+                      </span>
+                      <span className="text-gold font-black">{manualAccount.provider}</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] font-bold uppercase">
+                      <span className="text-white/40">Account Title</span>
+                      <span className="text-gold font-black">{manualAccount.accountTitle}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] font-bold uppercase pt-2 border-t border-white/5">
+                      <span className="text-white/40">
+                        {manualAccount.method === 'bank' ? 'Account Number' : 'Mobile #'}
+                      </span>
+                      <div className="flex items-center gap-2 font-mono text-gold">
+                        <span className="break-all text-right">{manualAccount.accountNumber}</span>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(manualAccount.accountNumber, 'account')}
+                          className="p-1 hover:text-white shrink-0"
+                        >
+                          {copiedText === 'account' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                    {manualAccount.iban && (
+                      <div className="flex justify-between items-center text-[10px] font-bold uppercase pt-2 border-t border-white/5">
+                        <span className="text-white/40">IBAN</span>
+                        <div className="flex items-center gap-2 font-mono text-gold">
+                          <span className="break-all text-right">{manualAccount.iban}</span>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(manualAccount.iban!, 'iban')}
+                            className="p-1 hover:text-white shrink-0"
+                          >
+                            {copiedText === 'iban' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
                         </div>
-                        <div className="flex justify-between text-[10px] font-bold uppercase">
-                          <span className="text-white/40">Account Title</span>
-                          <span className="text-gold font-black">RAANAE</span>
-                        </div>
-                        <div className="flex justify-between items-center text-[10px] font-bold uppercase pt-2 border-t border-white/5">
-                          <span className="text-white/40">Account Number</span>
-                          <div className="flex items-center gap-2 font-mono text-gold">
-                            <span>00761011316137</span>
-                            <button 
-                              type="button"
-                              onClick={() => copyToClipboard('00761011316137', 'account')} 
-                              className="p-1 hover:text-white"
-                            >
-                              {copiedText === 'account' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center text-[10px] font-bold uppercase pt-2 border-t border-white/5">
-                          <span className="text-white/40">IBAN</span>
-                          <div className="flex items-center gap-2 font-mono text-gold">
-                            <span>PK03ALFH0076001011316137</span>
-                            <button
-                              type="button"
-                              onClick={() => copyToClipboard('PK03ALFH0076001011316137', 'iban')}
-                              className="p-1 hover:text-white"
-                            >
-                              {copiedText === 'iban' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {manualAccountType === 'easypaisa' && (
-                      <>
-                        <div className="flex justify-between text-[10px] font-bold uppercase">
-                          <span className="text-white/40">Account Title</span>
-                          <span className="text-gold font-black">RAANAE OFFICIAL</span>
-                        </div>
-                        <div className="flex justify-between items-center text-[10px] font-bold uppercase pt-2 border-t border-white/5">
-                          <span className="text-white/40">EasyPaisa Mobile #</span>
-                          <div className="flex items-center gap-2 font-mono text-gold">
-                            <span>0300 1234567</span>
-                            <button 
-                              type="button"
-                              onClick={() => copyToClipboard('03001234567', 'ep')} 
-                              className="p-1 hover:text-white"
-                            >
-                              {copiedText === 'ep' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {manualAccountType === 'jazzcash' && (
-                      <>
-                        <div className="flex justify-between text-[10px] font-bold uppercase">
-                          <span className="text-white/40">Account Title</span>
-                          <span className="text-gold font-black">RAANAE OFFICIAL</span>
-                        </div>
-                        <div className="flex justify-between items-center text-[10px] font-bold uppercase pt-2 border-t border-white/5">
-                          <span className="text-white/40">JazzCash Mobile #</span>
-                          <div className="flex items-center gap-2 font-mono text-gold">
-                            <span>0300 1234567</span>
-                            <button 
-                              type="button"
-                              onClick={() => copyToClipboard('03001234567', 'jc')} 
-                              className="p-1 hover:text-white"
-                            >
-                              {copiedText === 'jc' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        </div>
-                      </>
+                      </div>
                     )}
                   </div>
 
@@ -1150,13 +1031,6 @@ export default function CheckoutPage() {
                   <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/60 font-bold">
                     <span>COD Delivery Fee (Upfront)</span>
                     <span className="text-gold">Rs 200</span>
-                  </div>
-                )}
-
-                {!isPreorder && paymentMethod === 'founder' && (
-                  <div className="flex justify-between text-[10px] uppercase tracking-widest text-[#e2bb61] font-bold">
-                    <span>Founder Delivery ({founderInfo ? founderInfo.matchedCity : 'Select City'})</span>
-                    <span>{founderInfo ? founderInfo.priceFormatted : 'Rs 4,000'}</span>
                   </div>
                 )}
 

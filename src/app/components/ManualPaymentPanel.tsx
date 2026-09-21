@@ -7,9 +7,31 @@ import {
   VERIFICATION_WINDOW,
   PROOF_MAX_BYTES,
   PROOF_ACCEPTED_LABEL,
+  type PayMethod,
 } from "@/data/bank-details";
 
-export type ManualMethod = "bank" | "easypaisa" | "jazzcash";
+export type ManualMethod = PayMethod;
+
+const METHOD_META: Record<PayMethod, { label: string; icon: typeof Building }> = {
+  bank: { label: "Bank Transfer", icon: Building },
+  easypaisa: { label: "EasyPaisa", icon: Wallet },
+  jazzcash: { label: "JazzCash", icon: Wallet },
+};
+
+/**
+ * Only the methods we actually hold an account for.
+ *
+ * Offering EasyPaisa with no EasyPaisa number anywhere on the page sends the
+ * customer hunting for an account that is not there, and the likeliest way
+ * that ends is money transferred somewhere we will never see it. Adding a
+ * wallet to BANK_ACCOUNTS is all it takes to bring the option back.
+ */
+const METHODS = (Object.keys(METHOD_META) as PayMethod[])
+  .filter((m) => BANK_ACCOUNTS.some((a) => a.method === m))
+  .map((m) => ({ id: m, ...METHOD_META[m] }));
+
+const METHOD_COLS =
+  METHODS.length >= 3 ? "grid-cols-3" : METHODS.length === 2 ? "grid-cols-2" : "grid-cols-1";
 
 interface Props {
   /** What the customer is being asked to transfer right now. */
@@ -85,12 +107,6 @@ export default function ManualPaymentPanel({
     }
   };
 
-  const METHODS: { id: ManualMethod; label: string; icon: typeof Building }[] = [
-    { id: "bank", label: "Bank Transfer", icon: Building },
-    { id: "easypaisa", label: "EasyPaisa", icon: Wallet },
-    { id: "jazzcash", label: "JazzCash", icon: Wallet },
-  ];
-
   return (
     <div className="space-y-6">
       {/* Amount ------------------------------------------------------------ */}
@@ -104,7 +120,7 @@ export default function ManualPaymentPanel({
         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">
           How Did You Send It?
         </p>
-        <div className="grid grid-cols-3 gap-3">
+        <div className={`grid ${METHOD_COLS} gap-3`}>
           {METHODS.map((m) => (
             <button
               key={m.id}
@@ -129,7 +145,7 @@ export default function ManualPaymentPanel({
           <Wallet className="w-5 h-5 text-gold" />
           <div>
             <h4 className="text-[11px] font-black uppercase tracking-widest text-white">
-              Transfer To Any Account Below
+              {BANK_ACCOUNTS.length > 1 ? "Transfer To Any Account Below" : "Transfer To This Account"}
             </h4>
             <p className="text-[9px] text-white/40 mt-0.5">
               Then upload your receipt. We verify within {VERIFICATION_WINDOW}.
