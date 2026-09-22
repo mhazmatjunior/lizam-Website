@@ -130,13 +130,13 @@ export default function Home() {
 
               {/* Main Branding. GAP: change mb-5 for space below the headline. */}
               <h1 className="text-white ds-hero-title  tracking-tight leading-[1.0] select-none mb-2">
-                A Proud Muslim<br />
+                A Muslim<br />
                 <span className="text-white">Brand</span>
               </h1>
 
               {/* Mission Statement tagline */}
               <p className="text-white/90 ds-hero-mission tracking-wide max-w-md leading-relaxed">
-                That <span className="ds-hero-mission-em bg-gold-sweep bg-clip-text text-transparent box-decoration-clone">aims to help the oppressed</span> around the globe without asking anyone for donations
+                That <span className="ds-hero-mission-em bg-gold-sweep bg-clip-text text-transparent box-decoration-clone">Proudly helps the oppressed</span> around the globe without asking anyone for donations
               </p>
             </div>
           </div>

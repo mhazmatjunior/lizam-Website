@@ -566,7 +566,7 @@ body::after {
   font-size: clamp(24px, 4.69vw, calc(90px * var(--ds-cap)));
 }
 
-/* "A Proud Muslim / Brand" — Bw Modelica SS01 700 / 110px */
+/* "A Muslim / Brand" — Bw Modelica SS01 700 / 110px */
 .ds-hero-title {
   font-family: var(--font-heading);
   font-weight: 700;
