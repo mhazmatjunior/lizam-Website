@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage, { Section, Bullets, Callout, PolicyLink, SubHeading } from "@/app/components/LegalPage";
 import DeliveryChargesTable from "@/app/components/DeliveryChargesTable";
-import { BUSINESS, ORDER_POLICY, RESPONSE_TIMES } from "@/data/legal";
+import { BUSINESS, ORDER_POLICY, RESPONSE_TIMES, isPlaceholder } from "@/data/legal";
 
 export const metadata: Metadata = {
   title: "Shipping, Returns & Refunds | RAANAE",
@@ -10,6 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function ShippingReturnsPage() {
+  /** " or +92 ..." only once a real number exists; nothing while it is a placeholder. */
+  const orPhone = isPlaceholder(BUSINESS.phone) ? "" : ` or ${BUSINESS.phone}`;
+
   return (
     <LegalPage
       eyebrow="Orders"
@@ -39,9 +42,14 @@ export default function ShippingReturnsPage() {
           If your city is not covered by a delivery method you select at checkout, you
           will be told before your order is confirmed and can choose another method.
         </p>
+        <p>
+          Where we offer hand delivery in selected areas, its availability, charges and
+          timing vary with your location and our operational capacity at the time, and
+          will be confirmed before your order is accepted.
+        </p>
       </Section>
 
-      <Section n={2} title="Delivery charges">
+      <Section n={2} title="Delivery and COD charges">
         <p>
           Delivery is charged according to the method you choose, and the exact amount is
           shown in your order summary before you confirm. The current charges are:
@@ -76,10 +84,16 @@ export default function ShippingReturnsPage() {
           ]}
         />
         <p>
-          These are estimates, not guarantees. The final leg of delivery is carried out by
-          third-party couriers, and weather, strikes, public holidays and restrictions on
-          movement can delay a parcel. If your order is running materially late we will
-          contact you, and you may either wait or cancel it for a full refund.
+          Dispatch can take longer during public holidays, promotional campaigns, sale
+          periods, unusually high order volumes, or unforeseen operational disruption.
+        </p>
+        <p>
+          All of these are estimated periods, not guaranteed delivery dates. The final leg
+          of delivery is carried out by third-party couriers, and weather, strikes, public
+          holidays, transport problems and restrictions on movement can delay a parcel. We
+          are not responsible for delays caused by circumstances outside our reasonable
+          control, but if your order is running materially late we will contact you, and
+          you may either wait or cancel it for a full refund.
         </p>
       </Section>
 
@@ -99,13 +113,32 @@ export default function ShippingReturnsPage() {
         </p>
       </Section>
 
-      <Section n={5} title="Delivery attempts and failed deliveries">
+      <Section n={5} title="Incorrect address, failed delivery and re-delivery">
+        <p>
+          You are responsible for giving us an accurate, complete delivery address and an
+          active contact number. A parcel may be returned to us by the courier if you:
+        </p>
+        <Bullets
+          items={[
+            "Provide an incorrect or incomplete address.",
+            "Cannot be contacted on the number given.",
+            "Refuse to receive the parcel.",
+            "Are unavailable after repeated delivery attempts.",
+          ]}
+        />
+        <SubHeading>What happens next</SubHeading>
         <Bullets
           items={[
             "Please make sure the phone number on your order is reachable — couriers call before they deliver.",
             "If nobody is available, the courier will normally attempt delivery again. After repeated failed attempts the parcel is returned to us.",
+            <>
+              Where a parcel comes back to us for one of the reasons above, we will contact
+              you. If you would like it sent again, we may ask you to cover the applicable
+              re-delivery or courier charge before it is dispatched a second time, because
+              the first delivery has already been paid for.
+            </>,
             "If a Cash on Delivery parcel is refused at the door, or delivery fails because the address or phone number was incorrect, the advance delivery charge is not refundable, as the delivery cost has already been incurred.",
-            "Where a prepaid parcel is returned to us undelivered, we will contact you to arrange redelivery, or refund the product amount in full.",
+            "If you would rather not receive a returned prepaid parcel again, we refund the product amount in full.",
             "Please check the parcel in front of the courier where you can, and refuse it if the outer packaging is visibly damaged or the seal is broken.",
           ]}
         />
@@ -120,7 +153,18 @@ export default function ShippingReturnsPage() {
               your order, or at any time before it has been dispatched — whichever is
               later.
             </>,
-            "To cancel, email or call us with your order number. Please do not rely on a message sent through any other channel, as we may not see it in time.",
+            <>
+              To cancel, email{" "}
+              <a
+                href={`mailto:${BUSINESS.email}`}
+                className="text-gold hover:underline underline-offset-4"
+              >
+                {BUSINESS.email}
+              </a>
+              {orPhone ? <> or call us</> : null} with your order number. Please do not
+              rely on a message sent through any other channel, as we may not see it in
+              time.
+            </>,
             "Once a parcel has been handed to the courier it can no longer be cancelled. You can instead refuse it at the door, or return it under the returns section below.",
             <>
               Where you cancel in time, any amount you have paid — including the advance
@@ -147,7 +191,50 @@ export default function ShippingReturnsPage() {
         </p>
       </Section>
 
-      <Section n={7} title="Returns">
+      <Section n={7} title="Report a problem within 48 hours">
+        <p>
+          So that we can investigate with the courier while the evidence is still
+          available, please tell us within {ORDER_POLICY.claimWindow} of delivery if your
+          order arrives with any of the following:
+        </p>
+        <Bullets
+          items={[
+            "Damaged or leaking products.",
+            "Incorrect products.",
+            "Missing products, or an incomplete order.",
+            "Serious packaging problems.",
+            "Any other delivery-related problem.",
+          ]}
+        />
+        <p>
+          Claims raised after this window are harder to verify with the courier and may not
+          qualify for a replacement or refund. A manufacturing fault that only becomes
+          apparent with use is an exception: tell us as soon as you notice it, and in any
+          case within {ORDER_POLICY.returnWindow} of delivery.
+        </p>
+
+        <SubHeading>Evidence we may ask for</SubHeading>
+        <p>
+          To assess a damage, incorrect-item, missing-item or fault claim, we may ask you
+          for:
+        </p>
+        <Bullets
+          items={[
+            "Your order number, name and contact number.",
+            "Clear photographs of the product and of the packaging.",
+            "An unboxing video, or a video showing the condition of the parcel.",
+            "Product or batch details.",
+            "Courier or shipping information.",
+          ]}
+        />
+        <p>
+          Please keep the packaging until the claim is settled. Clear evidence is usually
+          the difference between a claim we can resolve the same day and one that has to go
+          back and forth with the courier.
+        </p>
+      </Section>
+
+      <Section n={8} title="Returns">
         <SubHeading>When you can return an item</SubHeading>
         <Bullets
           items={[
@@ -155,19 +242,21 @@ export default function ShippingReturnsPage() {
               <strong className="text-white/90">
                 Damaged, leaking, incorrect or incomplete
               </strong>{" "}
-              — report it within {ORDER_POLICY.claimWindow} of delivery and we will replace
-              the item or refund you in full, including any delivery charge you paid. Keep
-              the packaging and send us photographs.
+              — report it within {ORDER_POLICY.claimWindow} of delivery, as set out above,
+              and we will replace the item or refund you in full, including any delivery
+              charge you paid.
             </>,
             <>
               <strong className="text-white/90">Faulty</strong> — if a bottle, atomiser or
-              cap does not work as it should, tell us within{" "}
-              {ORDER_POLICY.returnWindow} of delivery and we will replace it or refund you.
+              cap does not work as it should, tell us within {ORDER_POLICY.claimWindow} of
+              delivery, or as soon as the fault appears and within{" "}
+              {ORDER_POLICY.returnWindow} of delivery, and we will replace it or refund you.
             </>,
             <>
               <strong className="text-white/90">Unopened and unused</strong> — you may
               return an order within {ORDER_POLICY.returnWindow} of delivery if the product
-              is still sealed, unused, and in its original box with all packaging intact.
+              is still sealed, unused, unsprayed, and in its original box with all
+              packaging intact.
             </>,
           ]}
         />
@@ -188,7 +277,7 @@ export default function ShippingReturnsPage() {
           ]}
         />
 
-        <SubHeading>How to make a return</SubHeading>
+        <SubHeading>How to request a return, replacement or refund</SubHeading>
         <Bullets
           items={[
             <>
@@ -198,12 +287,13 @@ export default function ShippingReturnsPage() {
                 className="text-gold hover:underline underline-offset-4"
               >
                 {BUSINESS.email}
-              </a>{" "}
-              or {BUSINESS.phone}, with your order number, what is wrong, and photographs
-              where relevant. Please do not send anything back before we have confirmed the
-              return, as we cannot process unannounced parcels.
+              </a>
+              {orPhone}, with your name, order number, contact number, the reason for the
+              request, and photographs or video where relevant. Please do not send anything
+              back before we have confirmed the return, as we cannot process unannounced
+              parcels.
             </>,
-            "We will confirm whether your return is approved, and give you the return address and instructions.",
+            "We will review the request, confirm whether it is approved, and give you the return address and instructions.",
             "Pack the item securely, in its original box where you still have it. Perfume is fragile and flammable, so it must be well protected.",
             "Once we receive and inspect the item, we will notify you of the outcome and issue any refund or replacement due.",
           ]}
@@ -218,7 +308,7 @@ export default function ShippingReturnsPage() {
         />
       </Section>
 
-      <Section n={8} title="Exchanges">
+      <Section n={9} title="Exchanges">
         <p>
           You may ask to exchange an item within {ORDER_POLICY.exchangeWindow} of delivery,
           on the same conditions as a return: the product must be sealed and unused, or the
@@ -234,18 +324,17 @@ export default function ShippingReturnsPage() {
         />
       </Section>
 
-      <Section n={9} title="Refunds">
+      <Section n={10} title="Refunds">
         <p>
-          Once a refund is approved, we process it within{" "}
-          {ORDER_POLICY.refundProcessing} and issue it to the method you paid with wherever
-          possible.
+          A refund is processed once the relevant order, return or claim has been reviewed
+          and approved. We then issue it within {ORDER_POLICY.refundProcessing}, to the
+          method you paid with wherever possible.
         </p>
         <Bullets
           items={[
             <>
               <strong className="text-white/90">Card or wallet payment</strong> — refunded
-              through our payment provider to the same card or wallet. Your bank may take a
-              further few working days to show it on your statement.
+              through our payment provider to the same card or wallet.
             </>,
             <>
               <strong className="text-white/90">Bank transfer or mobile wallet</strong> —
@@ -259,6 +348,13 @@ export default function ShippingReturnsPage() {
             </>,
           ]}
         />
+        <p>
+          How long the money then takes to appear in your account depends on your payment
+          method, your bank&apos;s processing times, the payment gateway and your financial
+          institution&apos;s own procedures. Delays introduced by banks, payment providers
+          or other third parties at that stage are outside our control.
+        </p>
+
         <SubHeading>What is refunded</SubHeading>
         <Bullets
           items={[
@@ -268,13 +364,33 @@ export default function ShippingReturnsPage() {
             "Nothing is deducted as a handling or restocking fee. We do not charge one.",
           ]}
         />
+
+        <SubHeading>Non-refundable charges</SubHeading>
+        <p>
+          Delivery, Cash on Delivery, advance courier and similar service charges are not
+          refundable where the service has already been provided, or where the order came
+          back to us for a reason attributable to you — an incorrect address, an
+          unreachable number, refusal at the door, or repeated failed delivery attempts. We
+          will tell you about any such charge before it is applied wherever we reasonably
+          can.
+        </p>
         <p>
           We will always tell you the exact amount being refunded, and why, before we
           process it.
         </p>
       </Section>
 
-      <Section n={10} title="If something goes wrong">
+      <Section n={11} title="Unavailable or cancelled orders">
+        <p>
+          If we cancel an order because a product is unavailable or the order cannot
+          reasonably be fulfilled, and you have already paid, you are entitled to a refund
+          of the amount paid for that order. Where only part of an order is affected, we
+          will contact you to agree whether to send the rest, substitute the item or refund
+          it.
+        </p>
+      </Section>
+
+      <Section n={12} title="If something goes wrong">
         <p>
           If you are unhappy with how a delivery, return, exchange or refund has been
           handled, please raise it with us. We acknowledge every complaint within{" "}
@@ -289,10 +405,18 @@ export default function ShippingReturnsPage() {
             className="text-gold hover:underline underline-offset-4"
           >
             {BUSINESS.email}
-          </a>{" "}
-          or call {BUSINESS.phone} during {BUSINESS.hours}. Please have your order number
-          ready.
+          </a>
+          {orPhone} during {BUSINESS.hours}. Please have your order number ready.
         </Callout>
+      </Section>
+
+      <Section n={13} title="Changes to this policy">
+        <p>
+          We may update this Shipping, Returns &amp; Refunds Policy from time to time. The
+          updated version is published on this page with a revised &ldquo;Last
+          updated&rdquo; date. The version published when you place an order is the version
+          that applies to that order.
+        </p>
       </Section>
     </LegalPage>
   );

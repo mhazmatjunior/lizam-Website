@@ -17,11 +17,14 @@ export default function LegalPage({
   eyebrow,
   title,
   intro,
+  updated = POLICY_UPDATED,
   children,
 }: {
   eyebrow: string;
   title: string;
   intro?: React.ReactNode;
+  /** This page's own revision date, where it differs from the site-wide one. */
+  updated?: string;
   children: React.ReactNode;
 }) {
   // Values the client still has to supply. Shown only in development so the
@@ -59,7 +62,7 @@ export default function LegalPage({
               {title}
             </h1>
             <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-white/30">
-              Last updated: {POLICY_UPDATED}
+              Last updated: {updated}
             </p>
           </div>
 

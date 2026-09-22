@@ -13,7 +13,7 @@ import {
 export const metadata: Metadata = {
   title: "Contact Us | RAANAE",
   description:
-    "Reach RAANAE by email, phone or WhatsApp. Support hours, our address, and how to get help with an order, a return or a complaint.",
+    "Reach RAANAE by email. Support hours, response times, and how to get help with an order, a return, a payment or a complaint.",
 };
 
 /**
@@ -69,16 +69,23 @@ function ContactCard({
 }
 
 export default function ContactPage() {
+  // A placeholder number is left off the page entirely rather than printed as
+  // plain text. Publishing "+92 3XX XXX XXXX" tells a customer we are not open
+  // for business; showing email and hours alone does not.
+  const hasPhone = !isPlaceholder(BUSINESS.phone);
+  const hasWhatsapp = !isPlaceholder(BUSINESS.whatsapp);
+  const hasAddress = !isPlaceholder(BUSINESS.address);
+
   return (
     <LegalPage
       eyebrow="Customer Care"
       title="Contact Us"
       intro={
         <p>
-          A real person answers every message. Whether it is a question before you buy, a
-          query about an order on its way, or something that has gone wrong, use whichever
-          of the channels below suits you and we will get back to you within{" "}
-          {RESPONSE_TIMES.enquiry}.
+          A real person answers every message. Whether it is a question about our products
+          before you buy, a query about an order on its way, or something that has gone
+          wrong, use whichever of the channels below suits you and we will get back to you
+          within {RESPONSE_TIMES.enquiry}.
         </p>
       }
     >
@@ -92,28 +99,32 @@ export default function ContactPage() {
             note="Best for order queries, returns and anything needing a written record."
           />
           <ContactCard
-            icon={Phone}
-            label="Phone"
-            value={BUSINESS.phone}
-            href={telHref(BUSINESS.phone)}
-            note={`Available ${BUSINESS.hours}.`}
-          />
-          <ContactCard
-            icon={MessageCircle}
-            label="WhatsApp"
-            value={BUSINESS.whatsapp}
-            href={whatsappHref(BUSINESS.whatsapp)}
-            note="Message us for a quick update or to send a photograph of an item."
-          />
-          <ContactCard
             icon={Clock}
             label="Support Hours"
             value={BUSINESS.hours}
             note="Messages received outside these hours are answered the next working day."
           />
+          {hasPhone && (
+            <ContactCard
+              icon={Phone}
+              label="Phone"
+              value={BUSINESS.phone}
+              href={telHref(BUSINESS.phone)}
+              note={`Available ${BUSINESS.hours}.`}
+            />
+          )}
+          {hasWhatsapp && (
+            <ContactCard
+              icon={MessageCircle}
+              label="WhatsApp"
+              value={BUSINESS.whatsapp}
+              href={whatsappHref(BUSINESS.whatsapp)}
+              note="Message us for a quick update or to send a photograph of an item."
+            />
+          )}
         </div>
 
-        {!isPlaceholder(BUSINESS.address) && (
+        {hasAddress && (
           <div className="pt-4">
             <ContactCard
               icon={MapPin}
@@ -144,8 +155,13 @@ export default function ContactPage() {
         <Bullets
           items={[
             <>
-              <strong className="text-white/90">Before you order</strong> — questions about
-              a fragrance, its longevity, ingredients, stock, or delivery to your city.
+              <strong className="text-white/90">Product information</strong> — questions
+              about a fragrance, its longevity, ingredients, stock, or delivery to your
+              city.
+            </>,
+            <>
+              <strong className="text-white/90">Order status and confirmation</strong> — to
+              check that an order was received, or to find out where it has got to.
             </>,
             <>
               <strong className="text-white/90">Payment</strong> — if a payment failed, was
@@ -154,17 +170,23 @@ export default function ContactPage() {
             </>,
             <>
               <strong className="text-white/90">Delivery</strong> — to change an address
-              before dispatch, to chase a delayed parcel, or to arrange redelivery. See our{" "}
+              before dispatch, to chase a delayed parcel, or to arrange re-delivery. See our{" "}
               <PolicyLink href="/shipping-returns">
                 Shipping, Returns &amp; Refunds
               </PolicyLink>{" "}
               policy.
             </>,
             <>
-              <strong className="text-white/90">Cancellations and returns</strong> — to
-              cancel within {ORDER_POLICY.cancellation}, report a damaged or incorrect item
-              within {ORDER_POLICY.claimWindow} of delivery, or return an unopened order
-              within {ORDER_POLICY.returnWindow}.
+              <strong className="text-white/90">
+                Damaged, incorrect or missing items
+              </strong>{" "}
+              — report these within {ORDER_POLICY.claimWindow} of delivery so we can
+              investigate with the courier.
+            </>,
+            <>
+              <strong className="text-white/90">Cancellations, returns and refunds</strong>{" "}
+              — to cancel within {ORDER_POLICY.cancellation}, or return an unopened order
+              within {ORDER_POLICY.returnWindow} of delivery.
             </>,
             <>
               <strong className="text-white/90">Complaints</strong> — anything you are
@@ -194,10 +216,17 @@ export default function ContactPage() {
           ]}
         />
         <Callout title="Beware of impersonation">
-          We will never ask you for your card PIN, CVV, wallet PIN or a one-time password
-          (OTP), and we will never ask you to send money to a personal account other than
-          the account details shown at checkout. If in doubt, call us on the number on
-          this page before paying anyone.
+          We will never ask you for your card PIN, CVV, wallet PIN, online banking password
+          or a one-time password (OTP), and we will never ask you to send money to a
+          personal account other than the account details shown at checkout. If you are in
+          any doubt about a message claiming to come from us, do not pay it — email us at{" "}
+          <a
+            href={`mailto:${BUSINESS.email}`}
+            className="text-gold hover:underline underline-offset-4"
+          >
+            {BUSINESS.email}
+          </a>{" "}
+          and we will confirm whether it is genuine.
         </Callout>
       </Section>
     </LegalPage>

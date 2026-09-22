@@ -93,8 +93,17 @@ export const ORDER_POLICY = {
   refundProcessing: "7–10 working days",
 } as const;
 
-/** Shown as "Last updated" on every legal page. Bump when the text changes. */
-export const POLICY_UPDATED = "9 September 2026";
+/**
+ * Default "Last updated" date, shown on any legal page that does not pass its
+ * own. Bump when the text changes.
+ *
+ * All five legal pages have now been revised against the client's policy
+ * documents of this date, so they all inherit it. If a future revision touches
+ * only some of them, give the untouched pages their own earlier `updated` date
+ * rather than letting them claim a review that never happened — a legal page
+ * must not claim to be newer than its text.
+ */
+export const POLICY_UPDATED = "20 September 2026";
 
 /**
  * Third parties that receive customer data, for the privacy policy's

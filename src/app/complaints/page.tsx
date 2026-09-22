@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import LegalPage, { Section, Bullets, Callout, Steps, PolicyLink } from "@/app/components/LegalPage";
-import { BUSINESS, RESPONSE_TIMES, ORDER_POLICY } from "@/data/legal";
+import { BUSINESS, RESPONSE_TIMES, ORDER_POLICY, isPlaceholder } from "@/data/legal";
 
 export const metadata: Metadata = {
   title: "Complaint Handling | RAANAE",
   description:
-    "How to lodge a complaint with RAANAE, what happens once you do, the timelines we commit to, and how to escalate if you are not satisfied.",
+    "How to submit a complaint to RAANAE, what to include, how long we take to acknowledge and resolve it, how we investigate, and how to escalate if you are not satisfied.",
 };
 
 export default function ComplaintsPage() {
@@ -16,10 +16,11 @@ export default function ComplaintsPage() {
       intro={
         <>
           <p>
-            We would rather hear from you than have you go away unhappy. This page sets
-            out exactly how to raise a complaint with {BUSINESS.brandName}, what we do
-            once we receive it, how long each stage takes, and what you can do if you are
-            not satisfied with our answer.
+            {BUSINESS.brandName} is committed to providing customers with reliable
+            products, delivery services and customer support. If you experience an issue
+            with an order, product, delivery, payment or our service, we encourage you to
+            contact us so that we can review the matter and work towards an appropriate
+            resolution.
           </p>
           <p>
             Raising a complaint is free. It does not affect any other right you have,
@@ -32,10 +33,11 @@ export default function ComplaintsPage() {
         </>
       }
     >
-      <Section n={1} title="How to lodge a complaint">
+      <Section n={1} title="How to submit a complaint">
         <p>
-          Use whichever channel is easiest for you. All of them reach the same team, and
-          every complaint is logged the moment it arrives, however it arrives.
+          Email is the quickest way to reach the team that handles complaints, and it
+          leaves you with a written record. Please put the word &ldquo;Complaint&rdquo; in
+          the subject line so that it is routed straight away:
         </p>
         <Bullets
           items={[
@@ -47,46 +49,45 @@ export default function ComplaintsPage() {
               >
                 {BUSINESS.email}
               </a>
-              . Please put the word &ldquo;Complaint&rdquo; in the subject line so it is
-              routed straight away.
-            </>,
-            <>
-              <strong className="text-white/90">Telephone</strong> — {BUSINESS.phone},
-              during {BUSINESS.hours}.
-            </>,
-            <>
-              <strong className="text-white/90">WhatsApp</strong> — {BUSINESS.whatsapp}.
-              Useful when you need to send a photograph of an item or its packaging.
-            </>,
-            <>
-              <strong className="text-white/90">Post</strong> — {BUSINESS.address}.
             </>,
           ]}
         />
-        <p>
-          If you telephone us, we will confirm the complaint and its reference number to
-          you in writing by email, so that you have a record of it too.
-        </p>
+        {/* The telephone sentence is dropped whole while the numbers are still
+            placeholders, rather than printed with "+92 3XX XXX XXXX" in it —
+            see the note in src/data/legal.ts. */}
+        {!isPlaceholder(BUSINESS.phone) && (
+          <p>
+            You can also reach the same team by telephone on {BUSINESS.phone}
+            {isPlaceholder(BUSINESS.whatsapp) ? "" : ` or on WhatsApp at ${BUSINESS.whatsapp}`}{" "}
+            during {BUSINESS.hours}
+            {isPlaceholder(BUSINESS.address) ? "" : `, or by post at ${BUSINESS.address}`}. If
+            you telephone us, we will confirm the complaint and its reference number to you
+            in writing by email, so that you have a record of it too.
+          </p>
+        )}
+        <p>Every complaint is logged the moment it arrives, however it arrives.</p>
       </Section>
 
       <Section n={2} title="What to tell us">
         <p>
-          You do not need to use any particular form or wording. To let us investigate
-          without having to come back to you, please include what you can of:
+          You do not need to use any particular form or wording. Providing complete
+          information helps us review and resolve your complaint more efficiently, so
+          please include what you can of:
         </p>
         <Bullets
           items={[
-            "Your name, and the email address and phone number the order was placed under.",
+            "Your full name, and the email address and contact number the order was placed under.",
             "Your order number.",
             "The date of the order, and the payment method used.",
-            "What went wrong, in your own words, and when it happened.",
-            "Photographs, if the complaint concerns a damaged, leaking, incorrect or incomplete delivery.",
+            "A description of the issue, in your own words, and when it happened.",
+            "Relevant photographs or videos, where applicable — particularly for a damaged, leaking, incorrect or incomplete delivery.",
             "What outcome you are looking for — a replacement, an exchange, a refund, or an explanation.",
+            "Any other information that may help us investigate the complaint.",
           ]}
         />
       </Section>
 
-      <Section n={3} title="What happens next">
+      <Section n={3} title="Complaint response time">
         <p>
           Every complaint follows the same four stages, and we will tell you which stage
           yours is at whenever you ask.
@@ -111,10 +112,9 @@ export default function ComplaintsPage() {
               body: (
                 <>
                   We examine the order record, the payment record, the dispatch and
-                  tracking history, and any photographs you have sent. Where the courier
-                  or our payment provider needs to be involved, we open the matter with
-                  them and tell you that we have done so. If we need anything further from
-                  you, we ask for it in a single request rather than piecemeal.
+                  tracking history, and any photographs or videos you have sent. Where the
+                  courier or our payment provider needs to be involved, we open the matter
+                  with them and tell you that we have done so.
                 </>
               ),
             },
@@ -133,15 +133,15 @@ export default function ComplaintsPage() {
               ),
             },
             {
-              title: "Escalated, if it is complex",
+              title: "Extended, where more time is needed",
               meta: `Outer limit ${RESPONSE_TIMES.escalated}`,
               body: (
                 <>
-                  Some cases cannot be closed within the standard window — typically a
-                  parcel a courier has to trace, or a payment a provider has to
-                  investigate. Where that happens we tell you before the{" "}
-                  {RESPONSE_TIMES.resolution} point, explain what we are waiting for, give
-                  you a revised date, and update you as it progresses. These cases are
+                  Some matters require additional time — where investigation, courier
+                  verification, product inspection, payment-provider confirmation or other
+                  third-party information is needed. Where that happens we tell you before
+                  the {RESPONSE_TIMES.resolution} point, explain what we are waiting for,
+                  give you a revised date, and update you as it progresses. These cases are
                   reviewed personally by the founder.
                 </>
               ),
@@ -150,7 +150,30 @@ export default function ComplaintsPage() {
         />
       </Section>
 
-      <Section n={4} title="If you are not satisfied with our answer">
+      <Section n={4} title="Complaint investigation">
+        <p>
+          Depending on the nature of the complaint, {BUSINESS.brandName} may request
+          additional information or evidence. This may include:
+        </p>
+        <Bullets
+          items={[
+            "Order details.",
+            "Photographs.",
+            "Videos.",
+            "Delivery information.",
+            "Payment information.",
+            "Product or packaging details.",
+            "Courier information.",
+          ]}
+        />
+        <p>
+          If we need anything further from you, we ask for it in a single request rather
+          than piecemeal. We then review the available information and communicate the
+          outcome, or the next steps, to you.
+        </p>
+      </Section>
+
+      <Section n={5} title="If you are not satisfied with our answer">
         <p>
           Tell us. Reply to our decision quoting your complaint reference and say why you
           disagree, and it will be reviewed again by the founder of{" "}
@@ -175,7 +198,7 @@ export default function ComplaintsPage() {
         </p>
       </Section>
 
-      <Section n={5} title="Our records">
+      <Section n={6} title="Our records">
         <p>
           We keep a register of every complaint we receive, recording the reference
           number, the date received, the customer and order it relates to, the nature of
@@ -189,7 +212,7 @@ export default function ComplaintsPage() {
         </p>
       </Section>
 
-      <Section n={6} title="Common issues you do not need to complain about">
+      <Section n={7} title="Common issues you do not need to complain about">
         <p>
           Some things are quicker to resolve as an ordinary request. Contact us by email
           or phone and we will simply deal with them:
@@ -213,15 +236,17 @@ export default function ComplaintsPage() {
       </Section>
 
       <Callout title="Contact for complaints">
-        Email{" "}
+        {BUSINESS.legalName} — email{" "}
         <a
           href={`mailto:${BUSINESS.email}?subject=Complaint`}
           className="text-gold hover:underline underline-offset-4"
         >
           {BUSINESS.email}
-        </a>{" "}
-        or call {BUSINESS.phone} during {BUSINESS.hours}. Acknowledged within{" "}
-        {RESPONSE_TIMES.acknowledgement}, resolved within {RESPONSE_TIMES.resolution}.
+        </a>
+        {isPlaceholder(BUSINESS.phone) ? "" : ` or call ${BUSINESS.phone}`}. Customer
+        support hours are {BUSINESS.hours}. Acknowledged within{" "}
+        {RESPONSE_TIMES.acknowledgement}, resolved within{" "}
+        {RESPONSE_TIMES.resolution}.
       </Callout>
     </LegalPage>
   );

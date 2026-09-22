@@ -60,16 +60,15 @@ export default function SiteFooter({ variant = "dark" }: { variant?: "dark" | "o
               <Mail className="w-3.5 h-3.5 shrink-0" />
               {BUSINESS.email}
             </a>
-            {tel ? (
+            {/* Omitted entirely while the number is a placeholder, the same way
+                the address below is. A dimmed "+92 3XX XXX XXXX" on every page
+                of the site reads as an unfinished shop, and the customer has
+                the email and the contact page either way. */}
+            {tel && (
               <a href={tel} className={`flex items-center gap-2.5 text-[11px] tracking-wide ${link}`}>
                 <Phone className="w-3.5 h-3.5 shrink-0" />
                 {BUSINESS.phone}
               </a>
-            ) : (
-              <span className="flex items-center gap-2.5 text-[11px] tracking-wide opacity-70">
-                <Phone className="w-3.5 h-3.5 shrink-0" />
-                {BUSINESS.phone}
-              </span>
             )}
             <span className="text-[10px] tracking-wide opacity-70">{BUSINESS.hours}</span>
 

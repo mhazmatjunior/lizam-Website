@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import LegalPage, { Section, Bullets, Callout, PolicyLink, SubHeading } from "@/app/components/LegalPage";
-import { BUSINESS, DATA_PROCESSORS, RESPONSE_TIMES } from "@/data/legal";
+import { BUSINESS, DATA_PROCESSORS, RESPONSE_TIMES, isPlaceholder } from "@/data/legal";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | RAANAE",
   description:
-    "How RAANAE collects, uses, shares, stores and protects your personal information, and the choices and rights you have over it.",
+    "What information RAANAE collects when you use this website, place an order or contact us, how we use and share it, how long we keep it, and the choices available to you.",
 };
 
 export default function PrivacyPage() {
@@ -16,34 +16,28 @@ export default function PrivacyPage() {
       intro={
         <>
           <p>
-            {BUSINESS.brandName} ({BUSINESS.legalName}) respects your privacy. This policy
-            explains what personal information we collect when you visit this website or
-            place an order, why we collect it, who we share it with, how long we keep it,
-            and what you can ask us to do with it.
+            At {BUSINESS.brandName} / {BUSINESS.legalName}, we respect your privacy and we
+            are committed to protecting the personal information you provide when using
+            our website, placing orders, or communicating with us.
           </p>
           <p>
-            We collect only what we need to take your order, deliver it, answer your
-            questions and meet our legal obligations. We do not sell your personal
-            information to anyone.
+            This policy explains what information we may collect, how we use it, how it may
+            be shared, and the choices available to you. We collect only what is reasonably
+            necessary to take your order, deliver it, answer your questions and meet our
+            legal obligations, and we do not sell your personal information to anyone.
           </p>
         </>
       }
     >
-      <Section n={1} title="Who is responsible for your information">
+      <Section n={1} title="Information we collect">
         <p>
-          {BUSINESS.legalName} is responsible for the personal information described in
-          this policy. If you have a question or request about your data, contact us at{" "}
-          <a
-            href={`mailto:${BUSINESS.email}`}
-            className="text-gold hover:underline underline-offset-4"
-          >
-            {BUSINESS.email}
-          </a>{" "}
-          or {BUSINESS.phone}. Our postal address is {BUSINESS.address}.
+          Depending on how you interact with our website, we may collect your full name,
+          phone number, email address, billing and delivery address, order details, product
+          preferences and purchase history, payment-related information, customer service
+          communications, website usage information, device and browser information, and
+          your IP address and general technical information.
         </p>
-      </Section>
 
-      <Section n={2} title="Information we collect">
         <SubHeading>Information you give us</SubHeading>
         <Bullets
           items={[
@@ -78,24 +72,26 @@ export default function PrivacyPage() {
           ]}
         />
 
-        <Callout title="What we never collect">
-          We never receive or store your full card number, card expiry, CVV or wallet PIN.
-          When you pay online, those details are entered directly on the secure page of
-          our payment partner, Safepay, and stay with them. We are told only whether the
-          payment succeeded, along with a reference for the transaction.
-        </Callout>
+        <p>
+          We only seek to collect information that is reasonably necessary for operating
+          our website, processing orders, providing services, and communicating with
+          customers.
+        </p>
       </Section>
 
-      <Section n={3} title="Why we use your information">
+      <Section n={2} title="How we use your information">
+        <p>We may use your information to:</p>
         <Bullets
           items={[
-            "To confirm, price, process and deliver your order, and to keep you informed about its progress.",
-            "To verify a payment you have made, and to detect and prevent fraudulent or duplicate transactions.",
-            "To answer your enquiries and to investigate and resolve complaints.",
-            "To publish product reviews you have chosen to submit, after moderation.",
-            "To keep records of sales and payments, as required for accounting, tax and regulatory purposes.",
-            "To protect the security and integrity of this website.",
-            "To send you marketing messages about new fragrances and offers, but only where you have asked to receive them. You can opt out at any time.",
+            "Process and fulfil orders, confirm them, arrange delivery, and keep you informed about the progress of your order.",
+            "Respond to customer enquiries and complaints.",
+            "Process payments and refunds, and prevent fraud, duplicate transactions and misuse.",
+            "Publish product reviews you have chosen to submit, after moderation.",
+            "Improve our products and website, and analyse website performance.",
+            "Maintain website security.",
+            "Keep records of sales and payments, as required for accounting, tax and regulatory purposes.",
+            "Send marketing communications where permitted and appropriate, and only where you have asked to receive them.",
+            "Comply with applicable legal requirements.",
           ]}
         />
         <p>
@@ -106,10 +102,65 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section n={4} title="Who we share it with">
+      <Section n={3} title="Order and payment information">
         <p>
-          We share your information only with the parties below, only to the extent they
-          need it, and only for the purposes described.
+          When you place an order, we collect the information necessary to process and
+          fulfil that order. This may include your name, contact number, delivery address,
+          order details and payment-related information.
+        </p>
+        <p>
+          Where payment is processed by a third-party payment provider, that provider may
+          collect and process payment information according to its own privacy policy and
+          terms.
+        </p>
+        <Callout title="What we never collect">
+          {BUSINESS.brandName} does not store sensitive payment credentials — your full
+          card number, card expiry, CVV, card PIN, wallet PIN or online banking password.
+          When you pay online, those details are entered directly on the secure page of our
+          payment partner, Safepay, and stay with them. We are told only whether the
+          payment succeeded, along with a reference for the transaction.
+        </Callout>
+      </Section>
+
+      <Section n={4} title="Delivery information">
+        <p>
+          We share the information necessary with courier and logistics providers so that
+          orders can be delivered. This may include your name, phone number, delivery
+          address, and order or shipment information.
+        </p>
+        <p>
+          Such information is shared only to the extent reasonably necessary to provide
+          delivery services.
+        </p>
+      </Section>
+
+      <Section n={5} title="Cookies and website analytics">
+        <p>
+          Our website may use cookies, browser storage and similar technologies to improve
+          how the website works and to understand how visitors use it — to remember certain
+          preferences, keep website features functioning, understand website traffic,
+          improve performance and analyse customer interactions.
+        </p>
+        <p>
+          We keep this to a minimum. We use your browser&apos;s local storage to remember
+          your shopping bag, and a secure session cookie is set when a member of our team
+          signs in to the administrative area. We do not use cookies to build advertising
+          profiles of visitors.
+        </p>
+        <p>
+          You may control or disable cookies through your browser settings. Disabling
+          certain cookies may affect website functionality: the site will still work, but
+          your shopping bag will not be remembered between visits.
+        </p>
+      </Section>
+
+      <Section n={6} title="Third-party service providers">
+        <p>
+          We use trusted third-party providers for payment processing, courier and delivery
+          services, website hosting, website analytics, marketing and communication
+          services, and technical support. These providers may process information on our
+          behalf or independently according to their own terms and privacy policies. They
+          receive only what they need, and only for the purposes described below.
         </p>
         <Bullets
           items={DATA_PROCESSORS.map((processor) => (
@@ -120,10 +171,22 @@ export default function PrivacyPage() {
           ))}
         />
         <p>
-          We may also disclose information where we are required to do so by law, by a
-          court order, or by a regulator or law-enforcement authority, and where necessary
-          to establish or defend legal claims. If our business is ever transferred to
-          another owner, customer records may transfer with it, subject to this policy.
+          Our website and database are hosted on servers operated by our hosting and
+          database providers, which may be located outside {BUSINESS.country}. Where your
+          information is transferred abroad, we take reasonable steps to ensure it remains
+          protected to the standard described in this policy and is held only by providers
+          bound to keep it confidential and secure.
+        </p>
+        <p>
+          Our pages may also link to other websites, including our payment partner and our
+          social media profiles. Those websites have their own privacy policies, and we are
+          not responsible for how they handle your information.
+        </p>
+        <p>
+          We may disclose information where we are required to do so by law, by a court
+          order, or by a regulator or law-enforcement authority, and where necessary to
+          establish or defend legal claims. If our business is ever transferred to another
+          owner, customer records may transfer with it, subject to this policy.
         </p>
         <p className="text-white/90">
           We do not sell, rent or trade your personal information, and we do not share it
@@ -131,17 +194,12 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section n={5} title="Where your information is stored">
+      <Section n={7} title="Data security">
         <p>
-          Our website and database are hosted on servers operated by our hosting and
-          database providers, which may be located outside {BUSINESS.country}. Where your
-          information is transferred abroad, we take reasonable steps to ensure it remains
-          protected to the standard described in this policy and is held only by providers
-          bound to keep it confidential and secure.
+          {BUSINESS.brandName} takes reasonable administrative, technical and
+          organisational measures to protect personal information against unauthorised
+          access, loss, misuse, alteration or disclosure.
         </p>
-      </Section>
-
-      <Section n={6} title="How we protect it">
         <Bullets
           items={[
             "The website is served over an encrypted HTTPS connection.",
@@ -151,14 +209,19 @@ export default function PrivacyPage() {
           ]}
         />
         <p>
-          No method of transmission or storage is completely secure, so we cannot
-          guarantee absolute security. If a breach ever affects your information in a way
-          likely to cause you harm, we will tell you and the relevant authority without
-          undue delay.
+          However, no method of transmitting or storing information electronically can be
+          guaranteed to be completely secure. If a breach ever affects your information in
+          a way likely to cause you harm, we will tell you and the relevant authority
+          without undue delay.
         </p>
       </Section>
 
-      <Section n={7} title="How long we keep it">
+      <Section n={8} title="Data retention">
+        <p>
+          We retain personal information only for as long as reasonably necessary for the
+          purposes described in this policy, including order fulfilment, customer support,
+          accounting, legal, security and dispute-resolution purposes.
+        </p>
         <Bullets
           items={[
             "Order records, including payment references and delivery details, are kept for as long as needed to serve you and then for the period required by tax and accounting rules.",
@@ -168,45 +231,34 @@ export default function PrivacyPage() {
             "Marketing contact details are removed promptly once you opt out.",
           ]}
         />
-      </Section>
-
-      <Section n={8} title="Cookies and browser storage">
         <p>
-          We keep this to a minimum. We use your browser&apos;s local storage to remember
-          your shopping bag, and a secure session cookie is set when a member of our team
-          signs in to the administrative area. We do not use cookies to build advertising
-          profiles of visitors.
-        </p>
-        <p>
-          You can clear or block cookies and local storage in your browser settings. If
-          you do, the site will still work, but your shopping bag will not be remembered
-          between visits.
+          When information is no longer reasonably required, we may delete, anonymise or
+          securely dispose of it, subject to applicable legal or operational requirements.
         </p>
       </Section>
 
-      <Section n={9} title="Your rights and choices">
-        <p>You may ask us to:</p>
+      <Section n={9} title="Your privacy rights">
+        <p>
+          Depending on applicable law, you may have rights regarding your personal
+          information, including the right to:
+        </p>
         <Bullets
           items={[
-            "Tell you what personal information we hold about you, and give you a copy of it.",
-            "Correct information that is wrong or out of date.",
-            "Delete information we no longer need to keep — for example, to remove a review you have published.",
-            "Stop sending you marketing messages, at any time.",
-            "Withdraw a consent you previously gave, without affecting anything already done on the basis of it.",
+            "Request access to the personal information we hold about you, and a copy of it.",
+            "Request correction of information that is inaccurate or out of date.",
+            "Request deletion where legally applicable — for example, to remove a review you have published.",
+            "Withdraw consent where processing is based on consent, without affecting anything already done on the basis of it.",
+            "Object to certain uses of your information, including marketing, at any time.",
+            "Request information about how your data is used.",
           ]}
         />
         <p>
-          Write to{" "}
-          <a
-            href={`mailto:${BUSINESS.email}`}
-            className="text-gold hover:underline underline-offset-4"
-          >
-            {BUSINESS.email}
-          </a>{" "}
-          with your request and enough detail for us to find your records, such as your
-          order number. We respond within {RESPONSE_TIMES.enquiry} and complete verified
-          requests as quickly as we reasonably can. We may need to keep certain order and
-          payment records even after a deletion request, where the law requires it.
+          Requests can be submitted using the contact details below. Please include enough
+          detail for us to find your records, such as your order number. We aim to respond
+          to privacy-related enquiries within {RESPONSE_TIMES.enquiry}, and we may need to
+          verify your identity before processing certain requests. We may also need to keep
+          certain order and payment records even after a deletion request, where the law
+          requires it.
         </p>
         <p>
           If you are unhappy with how we have handled your information, you can raise it
@@ -215,44 +267,62 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section n={10} title="Children">
+      <Section n={10} title="Marketing communications">
         <p>
-          This website is not directed at children, and we do not knowingly collect
-          personal information from anyone under 18. If you believe a child has given us
-          their information, contact us and we will delete it.
+          Where permitted, {BUSINESS.brandName} may send customers promotional
+          communications about new fragrances, product launches, special offers, discounts,
+          promotions and brand updates.
+        </p>
+        <p>
+          You may ask us to stop sending marketing communications at any time, by
+          contacting us or by using the unsubscribe option in the message. Even after you
+          opt out of marketing, we will still send the essential transactional messages
+          relating to your orders or customer service requests.
         </p>
       </Section>
 
-      <Section n={11} title="Links to other websites">
+      <Section n={11} title="Children’s privacy">
         <p>
-          Our pages may link to other websites, including our payment partner and our
-          social media profiles. Those websites have their own privacy policies, and we
-          are not responsible for how they handle your information. Please read their
-          policies before providing them with your details.
+          Our website is not intended to be used independently by children, and we do not
+          knowingly collect personal information from children for marketing purposes.
+        </p>
+        <p>
+          If you believe that a child has provided personal information to us without
+          appropriate parental or guardian involvement, please contact us so that we can
+          review the matter and take appropriate action.
         </p>
       </Section>
 
       <Section n={12} title="Changes to this policy">
         <p>
-          We may update this policy to reflect changes in our practices or in the law.
-          The date at the top of this page shows when it was last revised. Where a change
-          materially affects how we use information you have already given us, we will
-          take reasonable steps to tell you.
+          {BUSINESS.brandName} may update this Privacy Policy from time to time. Any
+          changes will be posted on this page together with an updated &ldquo;Last
+          updated&rdquo; date.
+        </p>
+        <p>
+          We encourage customers to review this page periodically to remain informed about
+          how we handle personal information. Where a change materially affects how we use
+          information you have already given us, we will take reasonable steps to tell you.
         </p>
       </Section>
 
-      <Section n={13} title="Contact us about privacy">
+      <Section n={13} title="Contact us">
         <p>
-          Email{" "}
+          If you have questions, concerns or requests regarding this policy, contact{" "}
+          {BUSINESS.legalName} by email at{" "}
           <a
             href={`mailto:${BUSINESS.email}`}
             className="text-gold hover:underline underline-offset-4"
           >
             {BUSINESS.email}
           </a>
-          , call {BUSINESS.phone} during {BUSINESS.hours}, or write to us at{" "}
-          {BUSINESS.address}. More ways to reach us are on our{" "}
-          <PolicyLink href="/contact">Contact Us</PolicyLink> page.
+          {isPlaceholder(BUSINESS.phone) ? "" : `, by phone on ${BUSINESS.phone}`}
+          {isPlaceholder(BUSINESS.address) ? "" : `, or by post at ${BUSINESS.address}`}.
+        </p>
+        <p>
+          Customer support hours are {BUSINESS.hours}. We aim to respond to
+          privacy-related enquiries within {RESPONSE_TIMES.enquiry}. More ways to reach us
+          are on our <PolicyLink href="/contact">Contact Us</PolicyLink> page.
         </p>
       </Section>
     </LegalPage>
