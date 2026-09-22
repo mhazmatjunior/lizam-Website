@@ -130,8 +130,8 @@ export default function Home() {
 
               {/* Main Branding. GAP: change mb-5 for space below the headline. */}
               <h1 className="text-white ds-hero-title  tracking-tight leading-[1.0] select-none mb-2">
-                Proud Muslim<br />
-                <span className="text-white">Perfume Brand</span>
+                A Proud Muslim<br />
+                <span className="text-white">Brand</span>
               </h1>
 
               {/* Mission Statement tagline */}
@@ -147,7 +147,7 @@ export default function Home() {
               touching layout. NUDGE: translate-y-1 = 4px, translate-y-2 = 8px. */}
           <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16 mt-auto translate-y-2 md:translate-y-8">
             <div className="text-white ds-hero-boycott sm:text-xs space-y-0">
-              <p>Boycott Is Just First Step</p>
+              <p>Boycott Is Just The First Step</p>
               <p>Boycott Is Not The Destination</p>
             </div>
           </div>
@@ -474,7 +474,7 @@ export default function Home() {
             {/* Social Icons Links */}
             <div className="flex gap-8 items-center justify-center mb-10">
               <a 
-                href="https://instagram.com" 
+                href="https://www.instagram.com/raanae.official?stkn=bm5rZndhanlmNjZn" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-white/70 hover:text-[#e2bb61] hover:scale-110 transition-all"
@@ -483,7 +483,7 @@ export default function Home() {
                 <Instagram className="w-5 h-5" />
               </a>
               <a 
-                href="https://facebook.com" 
+                href="https://www.facebook.com/share/1BzEu2hYFS/" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-white/70 hover:text-[#e2bb61] hover:scale-110 transition-all"

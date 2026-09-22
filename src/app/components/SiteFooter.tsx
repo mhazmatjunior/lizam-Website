@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Instagram, Facebook } from "lucide-react";
 import { BUSINESS, LEGAL_PAGES, isPlaceholder, telHref } from "@/data/legal";
 
 /**
@@ -72,6 +72,28 @@ export default function SiteFooter({ variant = "dark" }: { variant?: "dark" | "o
               </span>
             )}
             <span className="text-[10px] tracking-wide opacity-70">{BUSINESS.hours}</span>
+
+            {/* Social Links */}
+            <div className="flex items-center gap-4 pt-1">
+              <a 
+                href={BUSINESS.instagram} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className={`flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest ${link}`}
+                aria-label="Instagram"
+              >
+                <Instagram className="w-4 h-4 shrink-0" /> Instagram
+              </a>
+              <a 
+                href={BUSINESS.facebook} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className={`flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest ${link}`}
+                aria-label="Facebook"
+              >
+                <Facebook className="w-4 h-4 shrink-0" /> Facebook
+              </a>
+            </div>
           </div>
         </div>
 

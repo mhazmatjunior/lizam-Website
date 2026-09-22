@@ -36,6 +36,15 @@ export const BUSINESS = {
   hours: "Monday to Saturday, 10:00 AM – 7:00 PM (PKT)",
 
   country: "Pakistan",
+
+  /** Official Social Media Links */
+  instagram: "https://www.instagram.com/raanae.official?stkn=bm5rZndhanlmNjZn",
+  facebook: "https://www.facebook.com/share/1BzEu2hYFS/",
+} as const;
+
+export const SOCIAL_LINKS = {
+  instagram: BUSINESS.instagram,
+  facebook: BUSINESS.facebook,
 } as const;
 
 /**
