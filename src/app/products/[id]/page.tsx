@@ -19,7 +19,8 @@ import {
   Info,
   Star,
   ChevronDown,
-  Clock
+  Clock,
+  Mail
 } from "lucide-react";
 import { type Product } from "@/data/products";
 import {
@@ -34,6 +35,7 @@ import {
   CHARACTERISTICS_HEADING, DEFAULT_CHARACTERISTICS,
   PRODUCT_GALLERY,
 } from "@/data/brand";
+import { BUSINESS } from "@/data/legal";
 import ProductGallery from "@/app/components/ProductGallery";
 import ReviewSection from "@/app/components/ReviewSection";
 import SiteFooter from "@/app/components/SiteFooter";
@@ -537,6 +539,28 @@ export default function ProductDetailPage() {
           </div>
         </section>
       )}
+
+      {/* Product-page support note. The footer already carries the support
+          address, but a customer deciding on a bottle is the one most likely
+          to want it, so it is repeated here in full rather than as a link. */}
+      <section className="px-8 md:px-24 pb-16 border-t border-white/5 pt-16">
+        <div className="max-w-3xl mx-auto text-center space-y-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gold/70">
+            Need Help?
+          </p>
+          <p className="text-[13px] leading-relaxed text-white/50">
+            If you face any issue with this product or your order, please contact us at:
+          </p>
+          <a
+            href={`mailto:${BUSINESS.email}`}
+            className="inline-flex items-center gap-2.5 text-[14px] font-bold text-white hover:text-gold transition-colors break-all"
+          >
+            <Mail className="w-4 h-4 shrink-0 text-gold" />
+            {BUSINESS.email}
+          </a>
+          <p className="text-[11px] text-white/30">{BUSINESS.hours}</p>
+        </div>
+      </section>
 
       <SiteFooter />
     </main>
