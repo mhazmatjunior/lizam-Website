@@ -427,16 +427,16 @@ export default function PreorderPage() {
                   </span>
                 </div>
               )}
-              <div className="flex justify-between text-white/50">
-                <span>Product Total</span>
-                <span className="text-white/80 font-bold">Rs {total.toLocaleString()}</span>
-              </div>
               {onOffer && saving > 0 && (
                 <div className="flex justify-between text-emerald-400">
                   <span className="font-bold">Launch Offer</span>
                   <span className="font-black">&minus; Rs {saving.toLocaleString()}</span>
                 </div>
               )}
+              <div className="flex justify-between text-white/50">
+                <span>Product Total</span>
+                <span className="text-white/80 font-bold">Rs {total.toLocaleString()}</span>
+              </div>
               <div className="flex justify-between text-gold">
                 <span className="font-bold">Deposit Due Now</span>
                 <span className="font-black">Rs {deposit.toLocaleString()}</span>
