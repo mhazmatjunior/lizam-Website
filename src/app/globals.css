@@ -566,7 +566,7 @@ body::after {
   font-size: clamp(24px, 4.69vw, calc(90px * var(--ds-cap)));
 }
 
-/* "Proud Muslim / Perfume Brand" — Bw Modelica SS01 700 / 110px */
+/* "A Proud Muslim / Brand" — Bw Modelica SS01 700 / 110px */
 .ds-hero-title {
   font-family: var(--font-heading);
   font-weight: 700;
@@ -587,7 +587,7 @@ body::after {
   font-size: 1em;
 }
 
-/* "Boycott Is Just First Step / Not The Destination" — Montserrat 500 / 33px */
+/* "Boycott Is Just The First Step / Not The Destination" — Montserrat 500 / 33px */
 .ds-hero-boycott {
   font-family: var(--font-body);
   font-weight: 500;

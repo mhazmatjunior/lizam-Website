@@ -130,8 +130,8 @@ export default function Home() {
 
               {/* Main Branding. GAP: change mb-5 for space below the headline. */}
               <h1 className="text-white ds-hero-title  tracking-tight leading-[1.0] select-none mb-2">
-                Proud Muslim<br />
-                <span className="text-white">Perfume Brand</span>
+                A Proud Muslim<br />
+                <span className="text-white">Brand</span>
               </h1>
 
               {/* Mission Statement tagline */}
@@ -147,7 +147,7 @@ export default function Home() {
               touching layout. NUDGE: translate-y-1 = 4px, translate-y-2 = 8px. */}
           <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16 mt-auto translate-y-2 md:translate-y-8">
             <div className="text-white ds-hero-boycott sm:text-xs space-y-0">
-              <p>Boycott Is Just First Step</p>
+              <p>Boycott Is Just The First Step</p>
               <p>Boycott Is Not The Destination</p>
             </div>
           </div>
