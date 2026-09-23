@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronLeft, Clock, Check, Loader2, AlertCircle, Package } from "lucide-react";
+import { ChevronLeft, Clock, Check, Copy, Loader2, AlertCircle, Package } from "lucide-react";
 import { useProducts } from "@/context/ProductContext";
 import { type Product } from "@/data/products";
 import SiteFooter from "@/app/components/SiteFooter";
@@ -44,14 +44,14 @@ export default function PreorderPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // The placed pre-order, with the pass the server minted for it. Held as an
-  // object rather than just the reference because the thank-you screen shows
-  // the QR immediately -- before the confirmation email has even arrived.
+  // The placed pre-order, with the coupon code the server minted for it. Held
+  // as an object rather than just the reference because the thank-you screen
+  // shows the code immediately -- before the confirmation email has arrived.
   const [placed, setPlaced] = useState<{
     preorderId: string;
-    qrUrl: string;
-    passUrl: string;
+    couponCode: string;
   } | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
@@ -155,7 +155,7 @@ export default function PreorderPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not place your pre-order");
-      setPlaced({ preorderId: data.preorderId, qrUrl: data.qrUrl, passUrl: data.passUrl });
+      setPlaced({ preorderId: data.preorderId, couponCode: data.couponCode || "" });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       setSubmitError(err?.message || "Something went wrong. Please try again.");
@@ -178,30 +178,34 @@ export default function PreorderPage() {
             </p>
           </div>
 
-          {/* The pass, on screen before the email has even landed. Save-able
-              right now by long-pressing or screenshotting it, which is what
-              most people will do on a phone. */}
-          {placed.qrUrl && (
+          {/* The coupon code, on screen before the email has even landed, so
+              the customer can copy or screenshot it right away. */}
+          {placed.couponCode && (
             <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-7 space-y-5">
-              {/* White card: a QR against black is an unscannable negative. */}
-              <div className="bg-white rounded-2xl p-4 w-fit mx-auto">
-                <img
-                  src={placed.qrUrl}
-                  alt={`Pre-order pass for ${placed.preorderId}`}
-                  width={200}
-                  height={200}
-                  className="block w-50 h-50"
-                />
+              <p className="text-white font-bold text-[11px] uppercase tracking-widest">
+                Your Pre-Order Coupon Code
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <span className="font-mono text-xl md:text-2xl font-bold tracking-[0.18em] text-gold border-2 border-dashed border-gold/60 rounded-xl px-5 py-3 select-all">
+                  {placed.couponCode}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(placed.couponCode);
+                    setCodeCopied(true);
+                    setTimeout(() => setCodeCopied(false), 2000);
+                  }}
+                  className="p-3 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-gold transition-colors"
+                  aria-label="Copy coupon code"
+                >
+                  {codeCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                </button>
               </div>
-              <div className="space-y-2 text-xs text-white/60 leading-relaxed">
-                <p className="text-white font-bold text-[11px] uppercase tracking-widest">
-                  Your Pre-Order Pass
-                </p>
-                <p>
-                  Save this code. Scan it any time to see where your reservation stands — and
-                  when the balance is due, the same code becomes your payment page.
-                </p>
-              </div>
+              <p className="text-xs text-white/60 leading-relaxed">
+                Save this code. When the balance is due, enter it on our checkout page with your
+                payment screenshot to complete your order. Please do not share it.
+              </p>
             </div>
           )}
 
@@ -209,7 +213,7 @@ export default function PreorderPage() {
             <p>
               Thank you. We have your deposit receipt for{" "}
               <strong className="text-white">{product.name} &times; {quantity}</strong> and a confirmation
-              email — with the same pass — is on its way to{" "}
+              email — with the same coupon code — is on its way to{" "}
               <strong className="text-white">{form.email}</strong>.
             </p>
             <p>
@@ -255,8 +259,8 @@ export default function PreorderPage() {
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-3">Reserve Yours</h1>
         <p className="text-xs text-white/40 mb-12 max-w-xl leading-relaxed">
           Pay a deposit today to secure your bottle. The balance
-          {onOffer && PROMO_FREE_DELIVERY ? "" : " and delivery"} is settled later by scanning the
-          code we email you when it is ready to dispatch.
+          {onOffer && PROMO_FREE_DELIVERY ? "" : " and delivery"} is settled later at checkout with the
+          coupon code we give you — we email you when it is ready to dispatch.
         </p>
 
         {onOffer && (
