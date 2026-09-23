@@ -142,10 +142,33 @@ export default function PrivacyPage() {
           improve performance and analyse customer interactions.
         </p>
         <p>
-          We keep this to a minimum. We use your browser&apos;s local storage to remember
-          your shopping bag, and a secure session cookie is set when a member of our team
-          signs in to the administrative area. We do not use cookies to build advertising
-          profiles of visitors.
+          We use your browser&apos;s local storage to remember your shopping bag, and a
+          secure session cookie is set when a member of our team signs in to the
+          administrative area.
+        </p>
+        <SubHeading>Advertising and measurement</SubHeading>
+        <p>
+          We use the Meta Pixel, a measurement tool provided by Meta Platforms (Facebook
+          and Instagram). It sets cookies in your browser and tells Meta which of our
+          pages you viewed and which actions you took, such as adding an item to your bag
+          or completing an order. We use it to measure how well our advertising works and
+          to show our adverts to people likely to be interested in our fragrances.
+        </p>
+        <p>
+          This means Meta receives information about your visit to this website and may
+          combine it with information it already holds about you, including for
+          advertising purposes. Meta processes that information as an independent
+          controller under its own{" "}
+          <a
+            href="https://www.facebook.com/privacy/policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gold hover:underline underline-offset-4"
+          >
+            Privacy Policy
+          </a>
+          . You can limit this through your Meta account&apos;s advert settings, through
+          your browser&apos;s cookie controls, or by using a tracker-blocking extension.
         </p>
         <p>
           You may control or disable cookies through your browser settings. Disabling

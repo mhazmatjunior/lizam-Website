@@ -115,6 +115,7 @@ export const DATA_PROCESSORS: Array<{ name: string; purpose: string }> = [
   { name: "Vercel", purpose: "Hosting and serving this website." },
   { name: "Email delivery providers", purpose: "Sending order confirmations, dispatch notices and replies to your enquiries." },
   { name: "Courier and delivery partners", purpose: "Delivering your order. They receive your name, address and phone number only." },
+  { name: "Meta Platforms (Facebook, Instagram)", purpose: "Measuring how well our advertising works, through the Meta Pixel on this website. Meta is told which pages you viewed and which actions you took, and may combine that with information it already holds about you for advertising purposes." },
 ];
 
 /** Every legal page, in the order they appear in the site footer. */

@@ -31,6 +31,7 @@ export const metadata: Metadata = {
 import { CartProvider } from "@/context/CartContext";
 import { ProductProvider } from "@/context/ProductContext";
 import CartDrawer from "./components/CartDrawer";
+import MetaPixel from "./components/MetaPixel";
 
 export default function RootLayout({
   children,
@@ -47,6 +48,7 @@ export default function RootLayout({
       <body
         className="antialiased selection:bg-gold selection:text-black"
       >
+        <MetaPixel />
         <ProductProvider>
           <CartProvider>
             {children}
