@@ -22,14 +22,13 @@ export interface PreorderEmailData {
   /** Still owed, delivery included. */
   balanceAmount: number;
   deliveryFee?: number;
-  /** Absolute URL of the unique balance-payment link. */
-  paymentUrl?: string;
-  /**
-   * Absolute URL of the PNG QR code for that link. When present the email
-   * leads with the code and the address becomes the fallback beneath it.
-   */
-  qrUrl?: string;
+  /** The pre-order's unique coupon code, entered at checkout to complete it. */
+  couponCode?: string;
+  /** Absolute URL of the checkout page the code is entered on. */
+  checkoutUrl?: string;
   orderId?: string;
+  /** Completed email only: the balance is being paid in cash on delivery. */
+  isCod?: boolean;
   /**
    * Set when the pre-order was taken under the launch offer. Carries what
    * the same bottles would have cost at list, so the receipt can show the
@@ -96,23 +95,21 @@ export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
     ? `<tr class="row"><td style="color:#10b981;">Delivery</td><td class="val" style="color:#10b981;">Included</td></tr>`
     : '';
 
-  // The pass is issued with the pre-order, so it is already in this first
-  // email. Nothing is payable yet -- scanning it now reports where the
-  // reservation stands, and the same code turns into the payment page once we
-  // ask for the balance. One code for the whole wait, nothing to keep track of.
-  const passBlock =
-    data.qrUrl && data.paymentUrl
-      ? qrBlock({
-          qrUrl: data.qrUrl,
-          url: data.paymentUrl,
-          alt: `Pre-order pass for ${data.preorderId}`,
-          lead: `<strong style="color: #ffffff;">This is your pre-order pass.</strong><br>
-                 Scan it any time to see where your reservation stands — and when the
-                 balance is due, the very same code is how you settle it.`,
-          note: `Keep it somewhere safe. It belongs to your pre-order alone, so please do
-                 not forward or share it. You do not need to do anything with it today.`,
-        })
-      : '';
+  // The code is issued with the pre-order, so it is already in this first
+  // email. Nothing is payable yet -- entering it now reports where the
+  // reservation stands, and the same code completes the order once we ask for
+  // the balance. One code for the whole wait, nothing to keep track of.
+  const passBlock = data.couponCode
+    ? couponBlock({
+        code: data.couponCode,
+        url: data.checkoutUrl,
+        lead: `<strong style="color: #ffffff;">This is your pre-order coupon code.</strong><br>
+               When the balance is due, enter it on our checkout page with your payment
+               screenshot to complete your order.`,
+        note: `Keep it somewhere safe. It belongs to your pre-order alone, so please do
+               not forward or share it. You do not need to do anything with it today.`,
+      })
+    : '';
 
   const body = `
     <div style="text-align: center; margin: 30px 0;">
@@ -147,7 +144,7 @@ export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
 
     <div style="font-size: 12px; line-height: 1.7; color: #999999;">
       <p><strong style="color:#ffffff;">What happens next?</strong><br>
-      We verify your transfer and confirm your reservation. When your fragrance is ready to dispatch we will email you again, and your pass above becomes the payment page for the remaining balance. ${data.promo?.freeDelivery ? 'Delivery is included in your launch-offer price, so the balance above is all that is left to pay.' : 'Delivery charges are added at that stage.'} No further action is needed from you until then.</p>
+      We verify your transfer and confirm your reservation. When your fragrance is ready to dispatch we will email you again, and you complete your order by entering the coupon code above at checkout. ${data.promo?.freeDelivery ? 'Delivery is included in your launch-offer price, so the balance above is all that is left to pay.' : 'Delivery charges are added at that stage.'} No further action is needed from you until then.</p>
       <p><strong>Reserved For:</strong> ${data.name} (${data.phone})<br>${data.address}</p>
     </div>
   `;
@@ -160,35 +157,31 @@ export async function sendPreorderConfirmationEmail(data: PreorderEmailData) {
 }
 
 /**
- * The customer's pass, as an email-safe block.
+ * The customer's coupon code, as an email-safe block.
  *
- * A table rather than a padded div, because Outlook ignores padding on a block
- * element and would print the code straight onto the black background, where
- * no scanner can read it. The white card is not decoration.
- *
- * The address is still spelled out underneath. A QR is an image, and a good
- * share of mail clients refuse to load images until the reader asks -- without
- * the fallback those readers get an email with a picture they cannot see and
- * no other way through.
+ * Plain text in a bordered table cell rather than an image, so it shows in
+ * every mail client -- including the many that block images until asked --
+ * and can be selected and copied straight into the checkout page. Monospace
+ * and letter-spaced so similar characters are easy to tell apart.
  *
  * `lead` and `note` differ per email because the same code means different
- * things at different points: at placement it is how the customer checks where
- * their pre-order stands, and later it is how they pay for it.
+ * things at different points: at placement it is something to keep, and later
+ * it is how the customer completes their order.
  */
-function qrBlock(opts: {
-  qrUrl: string;
-  url: string;
-  alt: string;
-  lead: string;
-  note: string;
-}) {
+function couponBlock(opts: { code: string; url?: string; lead: string; note: string }) {
+  const button = opts.url
+    ? `<div style="margin-top: 26px;"><a href="${opts.url}" class="cta">Go To Checkout</a></div>`
+    : '';
+
   return `
     <div style="text-align: center; margin: 35px 0;">
+      <p style="font-size: 9px; font-weight: 900; letter-spacing: 0.35em; color: #777777; text-transform: uppercase; margin: 0 0 12px;">
+        Your Coupon Code
+      </p>
       <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
         <tr>
-          <td style="background-color: #ffffff; padding: 16px; border-radius: 16px;">
-            <img src="${opts.qrUrl}" width="240" height="240" alt="${opts.alt}"
-                 style="display: block; width: 240px; height: 240px; border: 0; outline: none;">
+          <td style="background-color: #0b0b0b; border: 2px dashed #e2bb61; border-radius: 14px; padding: 18px 26px;">
+            <span style="font-family: 'Courier New', Courier, monospace; font-size: 24px; font-weight: 700; letter-spacing: 0.18em; color: #e2bb61; white-space: nowrap;">${opts.code}</span>
           </td>
         </tr>
       </table>
@@ -197,40 +190,41 @@ function qrBlock(opts: {
         ${opts.lead}
       </p>
 
-      <p style="font-size: 10px; color: #555555; margin-top: 16px; line-height: 1.7;">
-        ${opts.note}<br><br>
-        Cannot scan it? Open this address in your browser instead:<br>
-        <span style="color: #777777; word-break: break-all;">${opts.url}</span>
+      ${button}
+
+      <p style="font-size: 10px; color: #555555; margin-top: 22px; line-height: 1.7;">
+        ${opts.note}
       </p>
     </div>
   `;
 }
 
-/** 2. Sent when the admin presses "Send Payment Email". Carries the unique QR code. */
+/** 2. Sent when the admin presses "Send Payment Email". Carries the unique coupon code. */
 export async function sendPreorderBalancePaymentEmail(data: PreorderEmailData) {
   const deliveryRow =
     data.deliveryFee && data.deliveryFee > 0
       ? `<tr class="row"><td>Delivery</td><td class="val">${money(data.deliveryFee)}</td></tr>`
       : '';
 
-  // The QR is the whole point of this email, but it is built from a token the
-  // caller supplies -- so fall back to the plain button rather than sending a
-  // payment request with nothing to press.
-  const payBlock =
-    data.qrUrl && data.paymentUrl
-      ? qrBlock({
-          qrUrl: data.qrUrl,
-          url: data.paymentUrl,
-          alt: 'QR code to pay your RAANAE pre-order balance',
-          lead: `<strong style="color: #ffffff;">Scan this code with your phone camera</strong><br>
-                 to open your secure payment page and complete your order.`,
-          note: `This is the same code from your original confirmation. It belongs to your
-                 pre-order alone and will take <strong style="color: #888888;">one</strong>
-                 payment. Please do not forward or share it.`,
-        })
-      : `<div style="text-align: center; margin: 35px 0;">
-           <a href="${data.paymentUrl}" class="cta">Pay Remaining Balance</a>
-         </div>`;
+  // The code is the whole point of this email. Should a caller ever omit it,
+  // still send the customer to checkout rather than a request with nothing
+  // to act on -- they can reply and ask for it.
+  const payBlock = data.couponCode
+    ? couponBlock({
+        code: data.couponCode,
+        url: data.checkoutUrl,
+        lead: `<strong style="color: #ffffff;">How to complete your order:</strong><br>
+               1. Open our checkout page and enter this coupon code.<br>
+               2. Transfer ${money(data.balanceAmount)} and upload your payment screenshot
+               (or choose cash on delivery).<br>
+               3. Press <strong style="color: #ffffff;">Complete My Order</strong> — done.`,
+        note: `This is the same code from your original confirmation. It belongs to your
+               pre-order alone and completes <strong style="color: #888888;">one</strong>
+               order. Please do not forward or share it.`,
+      })
+    : `<div style="text-align: center; margin: 35px 0;">
+         <a href="${data.checkoutUrl || 'https://www.raanae.com/checkout'}" class="cta">Pay Remaining Balance</a>
+       </div>`;
 
   const body = `
     <div style="text-align: center; margin: 30px 0;">
@@ -239,7 +233,7 @@ export async function sendPreorderBalancePaymentEmail(data: PreorderEmailData) {
 
     <div style="font-size: 14px; line-height: 1.6; color: #cccccc;">
       <p>Dear ${data.name},</p>
-      <p>Your pre-order <strong>${data.preorderId}</strong> is ready. To complete your purchase and release it for dispatch, please settle the remaining balance by scanning the code below.</p>
+      <p>Your pre-order <strong>${data.preorderId}</strong> is ready. To complete your purchase and release it for dispatch, please settle the remaining balance using your coupon code below.</p>
     </div>
 
     <div class="receipt-card">
@@ -262,20 +256,33 @@ export async function sendPreorderBalancePaymentEmail(data: PreorderEmailData) {
   );
 }
 
-/** 3. Sent when the admin verifies the balance payment and the pre-order becomes an order. */
+/**
+ * 3. Sent when the pre-order becomes an order: the moment the customer
+ * completes it with their coupon code at checkout, or when an admin verifies
+ * a balance paid some other way.
+ */
 export async function sendPreorderCompletedEmail(data: PreorderEmailData) {
   const orderLine = data.orderId
     ? `<tr class="row"><td>Order Reference</td><td class="val">${data.orderId}</td></tr>`
     : '';
 
+  // Cash on delivery has not been paid yet, so the email must not say it has.
+  const intro = data.isCod
+    ? `Your pre-order <strong>${data.preorderId}</strong> is complete and confirmed. Please keep <strong>${money(data.balanceAmount)}</strong> ready in cash for the courier — your fragrance is being prepared for dispatch.`
+    : `Your pre-order <strong>${data.preorderId}</strong> is complete and your balance payment has been received. Your fragrance is being prepared for dispatch with our premium white-glove shipping service.`;
+
+  const totalRow = data.isCod
+    ? `<tr class="row"><td style="font-weight:900; color:#ffffff;">Due On Delivery (Cash)</td><td class="val" style="color:#e2bb61;">${money(data.balanceAmount)}</td></tr>`
+    : `<tr class="row"><td style="font-weight:900; color:#ffffff;">Paid In Full</td><td class="val" style="color:#10b981;">${money(Number(data.totalAmount) + Number(data.deliveryFee || 0))}</td></tr>`;
+
   const body = `
     <div style="text-align: center; margin: 30px 0;">
-      <span class="badge">Pre-Order Fully Paid</span>
+      <span class="badge">Order Complete</span>
     </div>
 
     <div style="font-size: 14px; line-height: 1.6; color: #cccccc;">
       <p>Dear ${data.name},</p>
-      <p>Your balance has been received in full and your pre-order <strong>${data.preorderId}</strong> is now confirmed. Your fragrance is being prepared for dispatch with our premium white-glove shipping service.</p>
+      <p>${intro}</p>
     </div>
 
     <div class="receipt-card">
@@ -284,7 +291,8 @@ export async function sendPreorderCompletedEmail(data: PreorderEmailData) {
         ${data.deliveryFee && data.deliveryFee > 0 ? `<tr class="row"><td>Delivery</td><td class="val">${money(data.deliveryFee)}</td></tr>` : ''}
         ${orderLine}
         <tr><td colspan="2" style="border-top:1px solid #222222; padding-top:10px;"></td></tr>
-        <tr class="row"><td style="font-weight:900; color:#ffffff;">Paid In Full</td><td class="val" style="color:#10b981;">${money(Number(data.totalAmount) + Number(data.deliveryFee || 0))}</td></tr>
+        ${data.isCod ? `<tr class="row"><td style="color:#e2bb61;">Deposit Paid</td><td class="val" style="color:#e2bb61;">- ${money(data.depositAmount)}</td></tr>` : ''}
+        ${totalRow}
       </table>
     </div>
 
@@ -296,7 +304,7 @@ export async function sendPreorderCompletedEmail(data: PreorderEmailData) {
 
   return sendMailHelper(
     data.email,
-    `RAANAE Pre-Order ${data.preorderId} - Paid In Full & Confirmed`,
-    preorderShell('#10b981', 'Pre-Order Confirmed', body)
+    `RAANAE Pre-Order ${data.preorderId} - Order Complete`,
+    preorderShell('#10b981', 'Order Complete', body)
   );
 }

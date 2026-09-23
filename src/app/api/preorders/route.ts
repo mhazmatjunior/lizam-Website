@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { isAdminRequest } from '@/lib/auth';
-import {
-  newPreorderId,
-  mapPreorder,
-  newBalanceToken,
-  balancePaymentUrl,
-  balancePaymentQrUrl,
-} from '@/lib/preorder';
+import { newPreorderId, mapPreorder, newCouponCode, couponCheckoutUrl } from '@/lib/preorder';
 import { sendPreorderConfirmationEmail } from '@/lib/preorder-email';
 import { preorderUnitPrice, promoApplies } from '@/data/preorder-promo';
 
@@ -100,46 +94,53 @@ export async function POST(req: NextRequest) {
     const totalAmount = unitPrice * qty;
     const depositAmount = unitDeposit * qty;
 
-    // The customer's pass, minted here rather than when the balance is later
-    // requested, so the QR on the thank-you screen and in the confirmation
-    // email is the same code they will eventually pay with. It carries no
-    // expiry: a pre-order can sit for months, and a pass that died before the
-    // stock arrived would be worse than useless. What expires is the payment
-    // window, which opens with its own deadline when an admin asks for the
-    // balance -- until then preorderStage() will not offer a payment form.
-    const passToken = newBalanceToken();
+    // The customer's coupon code, minted here rather than when the balance is
+    // later requested, so the code on the thank-you screen and in the
+    // confirmation email is the same one they will complete the order with. It
+    // carries no expiry: a pre-order can sit for months. What expires is the
+    // payment window, which opens with its own deadline when an admin asks for
+    // the balance -- until then preorderStage() will not accept the code.
+    const row = {
+      preorder_id: preorderId,
+      name,
+      email,
+      phone,
+      address,
+      city: city || null,
+      product_id: product.id,
+      product_name: product.name,
+      quantity: qty,
+      unit_price: unitPrice,
+      total_amount: totalAmount,
+      deposit_amount: depositAmount,
+      // deposit_paid stays 0 until an admin verifies the screenshot, so the
+      // generated balance_amount only ever counts money actually confirmed.
+      deposit_paid: 0,
+      delivery_fee: 0,
+      status: 'deposit_unverified',
+      deposit_method: depositMethod,
+      deposit_proof_url: depositProofUrl,
+      deposit_reference: depositReference || null,
+    };
 
-    const { data: created, error } = await supabaseAdmin
-      .from('preorders')
-      .insert([
-        {
-          preorder_id: preorderId,
-          name,
-          email,
-          phone,
-          address,
-          city: city || null,
-          product_id: product.id,
-          product_name: product.name,
-          quantity: qty,
-          unit_price: unitPrice,
-          total_amount: totalAmount,
-          deposit_amount: depositAmount,
-          // deposit_paid stays 0 until an admin verifies the screenshot, so the
-          // generated balance_amount only ever counts money actually confirmed.
-          deposit_paid: 0,
-          delivery_fee: 0,
-          status: 'deposit_unverified',
-          deposit_method: depositMethod,
-          deposit_proof_url: depositProofUrl,
-          deposit_reference: depositReference || null,
-          balance_token: passToken,
-        },
-      ])
-      .select('*')
-      .single();
-
-    if (error) throw error;
+    // A collision on ~59 bits is vanishingly unlikely, but the unique index
+    // would turn one into a lost reservation -- so draw again rather than fail.
+    let created: any = null;
+    let couponCode = '';
+    for (let attempt = 0; attempt < 3 && !created; attempt += 1) {
+      couponCode = newCouponCode();
+      const { data, error } = await supabaseAdmin
+        .from('preorders')
+        .insert([{ ...row, coupon_code: couponCode }])
+        .select('*')
+        .single();
+      if (!error) {
+        created = data;
+      } else if (error.code !== '23505' || !String(error.message).includes('coupon')) {
+        throw error;
+      }
+    }
+    if (!created) throw new Error('Could not issue a coupon code. Please try again.');
 
     // A failed email must not lose a paid-for reservation, so this is logged
     // rather than thrown -- the admin can resend from the pre-orders screen.
@@ -155,8 +156,8 @@ export async function POST(req: NextRequest) {
         totalAmount,
         depositAmount,
         balanceAmount: totalAmount - depositAmount,
-        paymentUrl: balancePaymentUrl(passToken),
-        qrUrl: balancePaymentQrUrl(passToken),
+        couponCode,
+        checkoutUrl: couponCheckoutUrl(),
         // So the email can promise free delivery only where it is actually
         // owed, and say what the reservation saved against the list price.
         promo: promoApplies(listPrice)
@@ -167,16 +168,13 @@ export async function POST(req: NextRequest) {
       console.error('❌ Failed to send pre-order confirmation email:', err.message);
     }
 
-    // The QR goes back to the thank-you screen so the customer can save it
-    // before they ever open their email. Handing the browser a URL containing
-    // their own token is not a leak -- the code they are about to be shown
-    // encodes exactly the same thing, and it is their own pre-order.
+    // The code goes back to the thank-you screen so the customer can save it
+    // before they ever open their email. Only the reference and the code:
+    // mapPreorder is the admin shape and is not for a public response.
     return NextResponse.json({
       success: true,
       preorderId,
-      qrUrl: balancePaymentQrUrl(passToken),
-      passUrl: balancePaymentUrl(passToken),
-      preorder: mapPreorder(created),
+      couponCode,
     });
   } catch (error: any) {
     console.error('❌ Pre-order Save Error:', error.message);

@@ -234,14 +234,14 @@ export default function ProductDetailPage() {
                     {onOffer && PROMO_FREE_DELIVERY ? (
                       <>
                         {" "}
-                        is payable later by scanning the code we email you when your fragrance is
+                        is payable later at checkout with your pre-order coupon code once your fragrance is
                         ready to dispatch. Delivery is included &mdash; pre-order before{" "}
                         {PROMO_ENDS_ON_LABEL} and there is nothing more to pay.
                       </>
                     ) : (
                       <>
                         {" "}
-                        plus delivery is payable later by scanning the code we email you when your
+                        plus delivery is payable later at checkout with your pre-order coupon code once your
                         fragrance is ready to dispatch.
                       </>
                     )}

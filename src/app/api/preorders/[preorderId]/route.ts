@@ -105,12 +105,11 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ preorde
         update.balance_paid = Number(current.balance_paid || 0) + due;
         update.balance_verified_at = new Date().toISOString();
         update.status = 'fully_paid';
-        // The payment window closes, but the pass stays. It is the customer's
-        // record of the whole pre-order, and scanning it now reports
-        // "confirmed" rather than dying on them the moment they are paid up.
-        // Nothing can be paid through it again: preorderStage() reads
-        // fully_paid before anything else, so the pay route refuses it and the
-        // page stops returning their name, phone and address entirely.
+        // The payment window closes, but the code stays. Entering it now
+        // reports "complete" rather than "not valid". Nothing can be paid
+        // through it again: preorderStage() reads fully_paid before anything
+        // else, so the redeem route refuses it and the lookup stops returning
+        // their name, phone and address entirely.
         update.balance_token_expires_at = null;
 
         // A fully paid pre-order becomes a real order, so it flows through the
@@ -150,9 +149,9 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ preorde
       case 'reject_balance': {
         update.status = 'balance_rejected';
         // Their proof did not check out, so they have to pay again -- which
-        // means un-spending the pass they paid through. Without this the
-        // customer is told to try again while holding a code that refuses.
-        update.balance_token_used_at = null;
+        // means un-spending their coupon code. Without this the customer is
+        // told to try again while holding a code that refuses.
+        update.coupon_used_at = null;
         break;
       }
 

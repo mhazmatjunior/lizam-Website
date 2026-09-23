@@ -30,13 +30,14 @@ import { type PreorderStage } from "@/lib/preorder";
 import { BANK_ACCOUNTS, type PayMethod } from "@/data/bank-details";
 
 /**
- * What /api/preorders/pay/[token] returns for a scanned pre-order pass.
+ * What /api/preorders/coupon returns for an applied pre-order coupon code.
  *
  * The contact fields are present only at the "pay" stage, because that is the
  * only one with a form to prefill — everywhere else the API withholds them.
  */
 interface PreorderPass {
   preorderId: string;
+  couponCode: string;
   stage: PreorderStage;
   productName: string;
   quantity: number;
@@ -52,7 +53,7 @@ interface PreorderPass {
 }
 
 /**
- * How each stage reads to the customer who just scanned their code.
+ * How each stage reads to the customer who just entered their coupon code.
  *
  * "pay" is absent on purpose: that stage renders the checkout form below
  * rather than a progress note, so a missing entry here is a real bug and a
@@ -71,7 +72,7 @@ const STAGE_COPY: Record<Exclude<PreorderStage, "pay">, {
   reserved: {
     tone: "good",
     title: "Reserved",
-    body: "Your deposit is confirmed and your piece is set aside. When it is ready to dispatch we will email you — and this same code becomes your payment page.",
+    body: "Your deposit is confirmed and your piece is set aside. When it is ready to dispatch we will email you — then enter this same coupon code here to complete your order.",
   },
   deposit_rejected: {
     tone: "bad",
@@ -85,8 +86,8 @@ const STAGE_COPY: Record<Exclude<PreorderStage, "pay">, {
   },
   paid: {
     tone: "good",
-    title: "Paid In Full",
-    body: "Your pre-order is confirmed and being prepared for dispatch. You will get tracking details as soon as it leaves us.",
+    title: "Order Complete",
+    body: "This coupon code has already been used and your order is complete. You will get tracking details as soon as it leaves us.",
   },
   expired: {
     tone: "bad",
@@ -140,59 +141,74 @@ export default function CheckoutPage() {
 
   const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(200);
 
-  // --- Pre-order pass ------------------------------------------------------
-  // Reached by scanning the QR issued when the pre-order was placed. The cart
-  // is irrelevant here: the order already exists.
+  // --- Pre-order coupon code -----------------------------------------------
+  // Every pre-order is issued a unique coupon code, shown on its thank-you
+  // screen and in every pre-order email. Entering it here switches this page
+  // from the cart to that pre-order's balance. The cart is irrelevant then:
+  // the order already exists.
   //
-  // The same code is scanned throughout the pre-order's life, so landing here
-  // does not mean there is anything to pay. The server says which stage it is
-  // at; only "pay" puts the checkout form on screen, and every other stage
-  // renders a progress note instead. Treating a scan as a payment attempt was
-  // the old behaviour and would now greet a customer with an error the day
-  // after they ordered -- exactly when they are most likely to try the code.
-  //
-  // The token is read from window.location rather than useSearchParams so this
-  // page keeps prerendering without needing a Suspense boundary.
+  // The same code works throughout the pre-order's life, so applying it does
+  // not mean there is anything to pay. The server says which stage it is at;
+  // only "pay" puts the balance form on screen, and every other stage renders
+  // a progress note instead.
   const [preorder, setPreorder] = useState<PreorderPass | null>(null);
   const [passStage, setPassStage] = useState<PreorderPass | null>(null);
-  const [preorderToken, setPreorderToken] = useState<string | null>(null);
-  const [preorderError, setPreorderError] = useState<string | null>(null);
-  const [balanceDone, setBalanceDone] = useState<{ ref: string; isCod: boolean } | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [balanceDone, setBalanceDone] = useState<{ ref: string; orderId: string | null; isCod: boolean } | null>(null);
   const isPreorder = Boolean(preorder);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const token = new URLSearchParams(window.location.search).get("preorder");
-    if (!token) return;
-    setPreorderToken(token);
+  const applyCoupon = async () => {
+    if (!couponInput.trim()) {
+      setCouponError("Enter the coupon code from your pre-order email.");
+      return;
+    }
+    setCouponError(null);
+    setIsApplyingCoupon(true);
+    try {
+      const res = await fetch("/api/preorders/coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ couponCode: couponInput }),
+      });
+      const data = await res.json();
+      // A non-OK response means the code itself is unknown. Anything the
+      // server recognises comes back 200 with a stage, however far along.
+      if (!res.ok) throw new Error(data.error || "This coupon code is not valid");
 
-    fetch(`/api/preorders/pay/${token}`)
-      .then(async (res) => {
-        const data = await res.json();
-        // A non-OK response now means the code itself is unknown. Anything the
-        // server recognises comes back 200 with a stage, however far along.
-        if (!res.ok) throw new Error(data.error || "This pre-order code is not valid");
+      const pass: PreorderPass = data.preorder;
+      if (pass.stage !== "pay") {
+        setPassStage(pass);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
 
-        const pass: PreorderPass = data.preorder;
-        if (pass.stage !== "pay") {
-          setPassStage(pass);
-          return;
-        }
+      setPreorder(pass);
+      setCouponInput(pass.couponCode);
+      // Their details came with the pre-order. Re-typing them invites a
+      // mismatch between where the deposit was taken and where it ships.
+      setFormData((prev) => ({
+        ...prev,
+        email: pass.email || prev.email,
+        fullName: pass.name || prev.fullName,
+        phone: pass.phone || prev.phone,
+        address: pass.address || prev.address,
+        city: pass.city || prev.city,
+      }));
+    } catch (err: any) {
+      setCouponError(err.message);
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
 
-        setPreorder(pass);
-        // Their details came with the pre-order. Re-typing them invites a
-        // mismatch between where the deposit was taken and where it ships.
-        setFormData((prev) => ({
-          ...prev,
-          email: pass.email || prev.email,
-          fullName: pass.name || prev.fullName,
-          phone: pass.phone || prev.phone,
-          address: pass.address || prev.address,
-          city: pass.city || prev.city,
-        }));
-      })
-      .catch((err) => setPreorderError(err.message));
-  }, []);
+  const removeCoupon = () => {
+    setPreorder(null);
+    setCouponInput("");
+    setCouponError(null);
+    setPaymentMethod("online");
+  };
 
   useEffect(() => {
     fetch("/api/settings")
@@ -328,11 +344,11 @@ export default function CheckoutPage() {
   };
 
   /**
-   * Settle the balance on an existing pre-order.
+   * Complete an existing pre-order with its coupon code.
    *
-   * Separate from handlePlaceOrder because no new order is raised here: the
-   * pre-order already exists, and verifying this payment is what turns it into
-   * one. Paying by cash on delivery needs no screenshot.
+   * Separate from handlePlaceOrder because the server raises the order here:
+   * a matching coupon code plus the payment screenshot (or cash on delivery,
+   * which needs none) completes the pre-order and emails the customer.
    */
   const handleCompletePreorder = async () => {
     const payingCash = paymentMethod === 'cod';
@@ -344,10 +360,11 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch(`/api/preorders/pay/${preorderToken}`, {
+      const res = await fetch('/api/preorders/coupon/redeem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          couponCode: preorder?.couponCode,
           balanceMethod: payingCash ? 'cod' : manualAccountType,
           balanceProofUrl: payingCash ? null : screenshotUrl,
           balanceReference: null,
@@ -355,10 +372,9 @@ export default function CheckoutPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        // The pass stopped being payable between loading this page and
-        // pressing the button -- almost always their own double submission.
-        // Fall through to that stage's note rather than an alert: the payment
-        // is recorded either way, and "we have it" is the honest answer.
+        // The code stopped being usable between applying it and pressing the
+        // button -- almost always their own double submission. Fall through to
+        // that stage's note rather than an alert.
         if (data.stage && preorder) {
           setPassStage({ ...preorder, stage: data.stage });
           setPreorder(null);
@@ -368,7 +384,7 @@ export default function CheckoutPage() {
         throw new Error(data.error || 'Could not complete your order');
       }
 
-      setBalanceDone({ ref: data.preorderId, isCod: Boolean(data.isCod) });
+      setBalanceDone({ ref: data.preorderId, orderId: data.orderId || null, isCod: Boolean(data.isCod) });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       console.error('❌ Pre-order completion failed:', err.message);
@@ -465,23 +481,25 @@ export default function CheckoutPage() {
     }
   };
 
-  // Three things land here: a payment just submitted, a scanned pass that is
-  // not at the paying stage, and a code we do not recognise. None of them has
-  // anything to check out, so each replaces the form rather than rendering an
-  // order the customer cannot place.
-  if (balanceDone || preorderError || passStage) {
+  // Two things land here: a pre-order just completed, and a coupon code whose
+  // pre-order is not at the paying stage. Neither has anything to check out,
+  // so each replaces the form rather than rendering an order the customer
+  // cannot place. (An unknown code is reported inline, next to the input.)
+  if (balanceDone || passStage) {
     const copy = passStage && passStage.stage !== "pay" ? STAGE_COPY[passStage.stage] : null;
 
     const tone = balanceDone ? "good" : copy ? copy.tone : "bad";
     const title = balanceDone ? "Order Complete" : copy ? copy.title : "Code Not Valid";
-    const reference = balanceDone?.ref || passStage?.preorderId || "";
+    const reference = balanceDone
+      ? [balanceDone.ref, balanceDone.orderId].filter(Boolean).join(" · ")
+      : passStage?.preorderId || "";
     const body = balanceDone
       ? balanceDone.isCod
-        ? "Thank you. Your order is confirmed — pay the remaining balance in cash when it arrives."
-        : "Thank you. We have your payment and will confirm your order as soon as it is verified."
+        ? "Thank you — your coupon code matched and your order is complete. Pay the remaining balance in cash when it arrives. An order confirmation email is on its way."
+        : "Thank you — your coupon code matched and your order is complete. An order confirmation email is on its way, and we will send tracking details once it ships."
       : copy
         ? copy.body
-        : preorderError || "We could not find a pre-order for this code.";
+        : "We could not find a pre-order for this code.";
 
     const TONES = {
       good: { ring: "bg-emerald-50 border-emerald-200", icon: <CheckCircle className="w-7 h-7 text-emerald-600" /> },
@@ -552,6 +570,19 @@ export default function CheckoutPage() {
           >
             Continue Browsing
           </Link>
+
+          {passStage && (
+            <button
+              type="button"
+              onClick={() => {
+                setPassStage(null);
+                setCouponInput("");
+              }}
+              className="block mx-auto text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-gold transition-colors"
+            >
+              Use A Different Code
+            </button>
+          )}
         </div>
       </main>
     );
@@ -588,18 +619,79 @@ export default function CheckoutPage() {
             {isPreorder && preorder && (
               <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex gap-4">
                 <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="space-y-1">
+                <div className="space-y-2 min-w-0 flex-1">
                   <h2 className="text-sm font-black uppercase tracking-tight text-emerald-900">
-                    You have already paid your pre-order
+                    Coupon code matched — you have already paid your deposit
                   </h2>
                   <p className="text-xs text-emerald-800/80 leading-relaxed">
                     Rs {preorder.depositPaid.toLocaleString()} received for{" "}
                     <strong>{preorder.preorderId}</strong> ({preorder.productName} &times;{" "}
-                    {preorder.quantity}). Please complete your order by paying the remaining{" "}
-                    <strong>Rs {preorder.balanceAmount.toLocaleString()}</strong>.
+                    {preorder.quantity}). Pay the remaining{" "}
+                    <strong>Rs {preorder.balanceAmount.toLocaleString()}</strong>, upload your
+                    screenshot below and press <strong>Complete My Order</strong>.
                   </p>
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    <span className="font-mono text-xs font-bold tracking-widest text-emerald-900 bg-white border border-emerald-200 rounded-lg px-3 py-1.5">
+                      {preorder.couponCode}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="text-[10px] font-black uppercase tracking-widest text-emerald-700/70 hover:text-rose-500 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
+            )}
+
+            {/* Pre-order coupon code. Every pre-order is issued one; entering it
+                here switches the page from the cart to that pre-order's
+                balance. */}
+            {!isPreorder && (
+              <section className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
+                <div>
+                  <h2 className="text-sm font-black uppercase tracking-tight text-slate-900">
+                    Completing a pre-order?
+                  </h2>
+                  <p className="text-xs text-slate-500 leading-relaxed mt-1">
+                    Enter the coupon code from your pre-order email to pay the remaining balance.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => {
+                      setCouponInput(e.target.value.toUpperCase());
+                      if (couponError) setCouponError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        applyCoupon();
+                      }
+                    }}
+                    placeholder="RAN-XXXX-XXXX-XXXX"
+                    autoComplete="off"
+                    spellCheck={false}
+                    className={`flex-1 min-w-0 bg-white border rounded-xl py-4 px-5 font-mono text-sm font-bold tracking-widest focus:outline-none focus:border-gold/50 transition-all placeholder:text-slate-300 ${couponError ? 'border-red-400' : 'border-slate-200'}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={applyCoupon}
+                    disabled={isApplyingCoupon}
+                    className="btn-premium-gold px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isApplyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    Apply Code
+                  </button>
+                </div>
+                {couponError && (
+                  <span className="text-[10px] text-red-500 font-bold block">{couponError}</span>
+                )}
+              </section>
             )}
 
             {/* Contact Info */}

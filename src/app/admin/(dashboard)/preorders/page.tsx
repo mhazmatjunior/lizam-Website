@@ -14,9 +14,10 @@ import {
   Truck,
   Ban,
   RefreshCw,
-  QrCode,
+  Ticket,
+  Copy,
 } from "lucide-react";
-import { adminPreorderQrUrl, preorderStatusLabel, type PreorderStatus } from "@/lib/preorder";
+import { preorderStatusLabel, type PreorderStatus } from "@/lib/preorder";
 
 interface Preorder {
   preorderId: string;
@@ -42,9 +43,10 @@ interface Preorder {
   depositVerifiedAt: string | null;
   /** Taken under the launch offer, so delivery is already paid for. */
   freeDelivery: boolean;
-  hasBalanceLink: boolean;
-  /** Set once the customer has paid through the QR. A spent code opens nothing. */
-  balanceLinkUsedAt: string | null;
+  /** The customer's unique coupon code, entered at checkout to complete the order. */
+  couponCode: string;
+  /** Set once the code has completed the order. A spent code cannot be used again. */
+  couponUsedAt: string | null;
   balanceEmailSentAt: string | null;
   balanceMethod: string;
   balanceProofUrl: string;
@@ -87,6 +89,7 @@ export default function PreordersPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [feeDraft, setFeeDraft] = useState("");
+  const [codeCopied, setCodeCopied] = useState(false);
 
   const load = async () => {
     try {
@@ -128,7 +131,8 @@ export default function PreordersPage() {
         p.name.toLowerCase().includes(q) ||
         p.email.toLowerCase().includes(q) ||
         p.phone.toLowerCase().includes(q) ||
-        p.productName.toLowerCase().includes(q)
+        p.productName.toLowerCase().includes(q) ||
+        p.couponCode.toLowerCase().includes(q)
       );
     });
   }, [preorders, search, filter]);
@@ -177,7 +181,7 @@ export default function PreordersPage() {
       await load();
       setToast({
         kind: "ok",
-        text: `Payment link for ${money(data.balanceAmount)} sent to ${data.sentTo}`,
+        text: `Coupon code for ${money(data.balanceAmount)} sent to ${data.sentTo}`,
       });
     } catch (err: any) {
       setToast({ kind: "err", text: err?.message || "Could not send the payment email" });
@@ -192,7 +196,7 @@ export default function PreordersPage() {
         <div>
           <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Pre-Orders</h1>
           <p className="text-[10px] text-white/30 mt-2 tracking-wide">
-            Deposits taken, balances owed, and the payment links you have sent.
+            Deposits taken, balances owed, and the coupon codes you have sent.
           </p>
         </div>
         <button
@@ -230,7 +234,7 @@ export default function PreordersPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by reference, customer, email, phone or product…"
+            placeholder="Search by reference, coupon code, customer, email, phone or product…"
             className="w-full bg-white/[0.02] border border-white/10 focus:border-gold/30 rounded-2xl pl-13 pr-5 py-4 text-xs text-white outline-none font-medium"
             style={{ paddingLeft: "3.25rem" }}
           />
@@ -335,12 +339,12 @@ export default function PreordersPage() {
                       >
                         {preorderStatusLabel(p.status)}
                       </span>
-                      {p.balanceEmailSentAt && p.status !== "fully_paid" && (
+                      {(p.couponUsedAt || (p.balanceEmailSentAt && p.status !== "fully_paid")) && (
                         <p className="text-[8px] text-white/25 mt-1.5 flex items-center gap-1">
-                          <QrCode className="w-2.5 h-2.5" />
-                          {p.balanceLinkUsedAt
-                            ? `Paid via pass ${new Date(p.balanceLinkUsedAt).toLocaleDateString()}`
-                            : `Balance asked ${new Date(p.balanceEmailSentAt).toLocaleDateString()}`}
+                          <Ticket className="w-2.5 h-2.5" />
+                          {p.couponUsedAt
+                            ? `Completed via coupon ${new Date(p.couponUsedAt).toLocaleDateString()}`
+                            : `Balance asked ${new Date(p.balanceEmailSentAt!).toLocaleDateString()}`}
                         </p>
                       )}
                     </td>
@@ -383,7 +387,7 @@ export default function PreordersPage() {
                             ) : (
                               <Mail className="w-2.5 h-2.5" />
                             )}
-                            {p.hasBalanceLink ? "Resend" : "Send"} Payment Email
+                            {p.balanceEmailSentAt ? "Resend" : "Send"} Payment Email
                           </button>
                         )}
                       </div>
@@ -536,26 +540,31 @@ export default function PreordersPage() {
                   </section>
                 )}
 
-                {/* The customer's pass. Issued with the pre-order, so it is
-                    here from the moment one is placed -- not only once a
+                {/* The customer's coupon code. Issued with the pre-order, so it
+                    is here from the moment one is placed -- not only once a
                     payment has been requested. */}
-                {selected.hasBalanceLink && (
+                {selected.couponCode && (
                   <section className="space-y-3">
                     <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white/25">
-                      Pre-Order Pass
+                      Coupon Code
                     </p>
 
                     <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-4">
-                      {/* White card behind it: a QR read against a dark ground is
-                          an unscannable negative, on screen as much as in email. */}
-                      <div className="bg-white rounded-2xl p-4 w-fit mx-auto">
-                        <img
-                          src={adminPreorderQrUrl(selected.preorderId)}
-                          alt={`Pre-order pass for ${selected.preorderId}`}
-                          width={176}
-                          height={176}
-                          className="block w-44 h-44"
-                        />
+                      <div className="flex items-center justify-center gap-3">
+                        <span className="font-mono text-lg font-bold tracking-[0.18em] text-gold border border-dashed border-gold/50 rounded-xl px-4 py-2.5 select-all">
+                          {selected.couponCode}
+                        </span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard?.writeText(selected.couponCode);
+                            setCodeCopied(true);
+                            setTimeout(() => setCodeCopied(false), 2000);
+                          }}
+                          className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 hover:text-gold transition-colors"
+                          aria-label="Copy coupon code"
+                        >
+                          {codeCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
                       </div>
 
                       <p className="text-[9px] text-white/30 leading-relaxed text-center">
@@ -564,17 +573,17 @@ export default function PreordersPage() {
                         arrive.
                       </p>
 
-                      {/* What it does if scanned right now. The same code means
+                      {/* What it does if entered right now. The same code means
                           different things at different stages, and an admin
                           about to forward it should know which. */}
                       <div className="bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3 flex items-start gap-2.5">
-                        {selected.balanceLinkUsedAt ? (
+                        {selected.couponUsedAt ? (
                           <>
                             <Check className="w-3 h-3 text-emerald-400 flex-shrink-0 mt-0.5" />
                             <p className="text-[9px] text-white/40 leading-relaxed">
-                              Paid through on{" "}
-                              {new Date(selected.balanceLinkUsedAt).toLocaleDateString()} — it now
-                              reports progress only. Rejecting the balance reopens it for payment.
+                              Used on {new Date(selected.couponUsedAt).toLocaleDateString()} — the
+                              order is complete and the code cannot be used again. Check the
+                              balance screenshot on the linked order in Orders.
                             </p>
                           </>
                         ) : selected.balanceEmailSentAt ? (
@@ -582,30 +591,21 @@ export default function PreordersPage() {
                             <Mail className="w-3 h-3 text-gold flex-shrink-0 mt-0.5" />
                             <p className="text-[9px] text-white/40 leading-relaxed">
                               Balance requested{" "}
-                              {new Date(selected.balanceEmailSentAt).toLocaleDateString()} — it
-                              will take one payment of {money(selected.balanceAmount)}.
+                              {new Date(selected.balanceEmailSentAt).toLocaleDateString()} — entered
+                              at checkout with a payment of {money(selected.balanceAmount)}, it
+                              completes the order.
                             </p>
                           </>
                         ) : (
                           <>
                             <Clock className="w-3 h-3 text-white/30 flex-shrink-0 mt-0.5" />
                             <p className="text-[9px] text-white/40 leading-relaxed">
-                              No balance requested yet — scanning it shows the customer their
-                              progress. It cannot take a payment until you send the request.
+                              No balance requested yet — entering it shows the customer their
+                              progress. It cannot complete the order until you send the request.
                             </p>
                           </>
                         )}
                       </div>
-
-                      <a
-                        href={adminPreorderQrUrl(selected.preorderId)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full py-3 rounded-xl text-[9px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-white/60 hover:text-gold hover:border-gold/20 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        Open Full Size
-                      </a>
                     </div>
                   </section>
                 )}
@@ -704,7 +704,7 @@ export default function PreordersPage() {
                           ) : (
                             <Mail className="w-3.5 h-3.5" />
                           )}
-                          {selected.hasBalanceLink ? "Resend" : "Send"} Payment Email
+                          {selected.balanceEmailSentAt ? "Resend" : "Send"} Payment Email
                         </button>
                       )}
 

@@ -16,26 +16,60 @@ export function newPreorderId(): string {
 }
 
 /**
- * The secret in the emailed balance-payment link.
+ * The customer's coupon code, e.g. "RAN-7KQ2-M9XW-4HTP".
  *
- * 32 random bytes, so it cannot be guessed or walked: the link is the only
- * thing standing between a stranger and a customer's name, phone and address.
+ * Issued with the pre-order and shown on the thank-you screen and in every
+ * pre-order email. At checkout it is the only thing that identifies the
+ * pre-order -- there is no session behind it -- so it has to be unguessable:
+ * 12 characters from a 31-letter alphabet is ~59 bits of randomness.
+ *
+ * The alphabet leaves out 0/O and 1/I/L, which customers misread when they
+ * copy a code out of an email by hand.
  *
  * Web Crypto rather than node:crypto, because the admin screen imports the
  * status labels from this module and a node: import would break the browser
  * bundle. getRandomValues is cryptographically secure on both sides.
  */
-export function newBalanceToken(): string {
-  const bytes = new Uint8Array(32);
-  globalThis.crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+const COUPON_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+const COUPON_PREFIX = 'RAN';
+const COUPON_LENGTH = 12;
+
+export function newCouponCode(): string {
+  const chars: string[] = [];
+  const bytes = new Uint8Array(COUPON_LENGTH * 2);
+  while (chars.length < COUPON_LENGTH) {
+    globalThis.crypto.getRandomValues(bytes);
+    for (const b of bytes) {
+      if (chars.length === COUPON_LENGTH) break;
+      // 248 = 31 * 8. Rejecting the top of the byte range keeps every letter
+      // equally likely instead of biasing a modulo toward the first few.
+      if (b < 248) chars.push(COUPON_ALPHABET[b % COUPON_ALPHABET.length]);
+    }
+  }
+  return formatCoupon(chars.join(''));
 }
 
-/** How long an emailed payment link stays usable. */
-export const BALANCE_TOKEN_TTL_DAYS = 30;
+function formatCoupon(body: string): string {
+  return `${COUPON_PREFIX}-${body.slice(0, 4)}-${body.slice(4, 8)}-${body.slice(8, 12)}`;
+}
 
-export function balanceTokenExpiry(from: Date = new Date()): Date {
-  return new Date(from.getTime() + BALANCE_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
+/**
+ * A code as typed by a customer, in the form it is stored.
+ *
+ * People paste it with stray spaces, type it in lower case, or leave out the
+ * dashes -- none of that should turn a correct code into "not valid".
+ */
+export function normalizeCouponCode(input: unknown): string {
+  const raw = String(input ?? '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+  const body = raw.startsWith(COUPON_PREFIX) ? raw.slice(COUPON_PREFIX.length) : raw;
+  return body.length === COUPON_LENGTH ? formatCoupon(body) : '';
+}
+
+/** How long the payment window opened by "Send Payment Email" stays open. */
+export const PAYMENT_WINDOW_DAYS = 30;
+
+export function paymentWindowExpiry(from: Date = new Date()): Date {
+  return new Date(from.getTime() + PAYMENT_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 }
 
 export type PreorderStatus =
@@ -136,10 +170,10 @@ export function customerBalance(row: {
 }
 
 /**
- * What the customer sees when they scan their pass.
+ * What the customer sees when they enter their coupon code at checkout.
  *
- * The QR is issued the moment the pre-order is placed and stays the same code
- * for its whole life, so scanning it has to mean something at every point --
+ * The code is issued the moment the pre-order is placed and stays the same
+ * for its whole life, so entering it has to mean something at every point --
  * not just during the window when there is a balance to collect. These are
  * those points. The page owns the wording; this owns which one applies, so the
  * API and the page cannot disagree about what state a pre-order is in.
@@ -154,7 +188,7 @@ export type PreorderStage =
   | 'paid'
   | 'cancelled';
 
-/** The only stage at which the pass accepts a payment. */
+/** The only stage at which the coupon code can complete the order. */
 export const PAYABLE_STAGE: PreorderStage = 'pay';
 
 export function preorderStage(row: {
@@ -164,15 +198,15 @@ export function preorderStage(row: {
   deposit_paid?: number | string | null;
   deposit_amount?: number | string | null;
   balance_paid?: number | string | null;
-  balance_token_used_at?: string | null;
+  coupon_used_at?: string | null;
   balance_token_expires_at?: string | null;
 }): PreorderStage {
   if (row.status === 'cancelled') return 'cancelled';
-  if (row.status === 'fully_paid') return 'paid';
+  if (row.status === 'fully_paid' || row.coupon_used_at) return 'paid';
 
-  // Spent pass or admin-recorded proof -- either way the money is claimed and
-  // we are the ones holding things up, so never re-offer the payment form.
-  if (row.balance_token_used_at || row.status === 'balance_unverified') return 'verifying';
+  // Admin-recorded proof -- the money is claimed and we are the ones holding
+  // things up, so never re-offer the payment form.
+  if (row.status === 'balance_unverified') return 'verifying';
 
   if (row.status === 'deposit_rejected') return 'deposit_rejected';
 
@@ -180,8 +214,8 @@ export function preorderStage(row: {
   // still 0 and unset, so a customer paying "early" would underpay by it.
   if (row.status === 'balance_requested' || row.status === 'balance_rejected') {
     if (customerBalance(row) <= 0) return 'reserved';
-    // Expiry closes the payment window, not the pass. The customer can still
-    // scan and see where their pre-order stands; they just cannot pay against
+    // Expiry closes the payment window, not the code. The customer can still
+    // enter it and see where their pre-order stands; they just cannot pay against
     // a stale figure until an admin sends a fresh request.
     if (row.balance_token_expires_at && new Date(row.balance_token_expires_at) < new Date()) {
       return 'expired';
@@ -194,33 +228,14 @@ export function preorderStage(row: {
 }
 
 /**
- * Absolute URL of the customer's pre-order pass.
+ * Where the customer enters their coupon code. Absolute, for emails.
  *
- * Lands on the ordinary checkout page, which recognises the token and renders
- * whichever stage above the pre-order is at -- a progress note early on, the
- * balance payment form once it is due.
+ * Deliberately the bare checkout page with no code in the URL: the code is
+ * the customer's secret, and a link carrying it would end up in browser
+ * history and forwarded emails.
  */
-export function balancePaymentUrl(token: string): string {
-  return `${siteUrl()}/checkout?preorder=${token}`;
-}
-
-/**
- * Absolute URL of the PNG QR code for that pass.
- *
- * Absolute because an email client fetches it from wherever the customer reads
- * their mail. The route behind it is stateless -- it draws whatever token it is
- * handed without touching the database -- so this is safe to build anywhere.
- */
-export function balancePaymentQrUrl(token: string): string {
-  return `${siteUrl()}/api/preorders/qr/${token}`;
-}
-
-/**
- * The same QR for the admin screen, which has a session but not the token.
- * Relative, because it is only ever loaded from one of our own pages.
- */
-export function adminPreorderQrUrl(preorderId: string): string {
-  return `/api/preorders/${encodeURIComponent(preorderId)}/qr`;
+export function couponCheckoutUrl(): string {
+  return `${siteUrl()}/checkout`;
 }
 
 /** Database row -> the camelCase shape the admin screen and pages consume. */
@@ -255,12 +270,10 @@ export function mapPreorder(p: any) {
     // snapshotted unit price rather than stored, so it cannot drift from what
     // the customer was actually charged.
     freeDelivery: preorderHasFreeDelivery(p),
-    // The token itself is deliberately never mapped out to the client. Only
-    // whether a link is currently outstanding, and whether it has been spent:
-    // the QR is single use, so a link that exists is not necessarily one the
-    // customer can still pay through.
-    hasBalanceLink: Boolean(p.balance_token),
-    balanceLinkUsedAt: p.balance_token_used_at || null,
+    // Every caller of mapPreorder is admin-only, so the code is included: an
+    // admin may need to read it out to a customer whose email never arrived.
+    couponCode: p.coupon_code || '',
+    couponUsedAt: p.coupon_used_at || null,
     balanceEmailSentAt: p.balance_email_sent_at,
     balanceMethod: p.balance_method || '',
     balanceProofUrl: p.balance_proof_url || '',
