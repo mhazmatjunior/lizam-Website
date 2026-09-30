@@ -23,6 +23,40 @@ interface Summary {
 
 const MAX_PHOTOS = 3;
 
+// The host rejects request bodies over ~4.5 MB with a plain-text "Request
+// Entity Too Large" page, and two straight-off-the-camera phone photos are
+// already past that. So photos are shrunk in the browser before upload.
+const PHOTO_MAX_EDGE = 1600;
+const PHOTO_QUALITY = 0.82;
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+/** Downscales an image to a JPEG. Falls back to the original if the browser cannot decode it. */
+async function shrinkPhoto(file: File): Promise<File> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    // JPEG has no transparency; without this a transparent PNG turns black.
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", PHOTO_QUALITY));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" });
+  } catch {
+    return file;
+  }
+}
+
 /** Row of stars. Interactive when onPick is supplied. */
 const Stars = ({
   value, size = 14, onPick,
@@ -124,11 +158,23 @@ export default function ReviewSection({ productId }: { productId: number }) {
       if (title.trim()) fd.append("title", title.trim());
       if (body.trim()) fd.append("body", body.trim());
       if (orderId.trim()) fd.append("orderId", orderId.trim());
-      photos.forEach((p) => fd.append("photos", p));
+      const shrunk = await Promise.all(photos.map(shrinkPhoto));
+      if (shrunk.reduce((s, p) => s + p.size, 0) > MAX_UPLOAD_BYTES) {
+        throw new Error("Your photos are too large. Please remove one or choose smaller images.");
+      }
+      shrunk.forEach((p) => fd.append("photos", p));
 
       const res = await fetch("/api/reviews", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Could not submit your review");
+      // Errors from the host itself (e.g. 413) come back as text, not JSON.
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          data.error ||
+            (res.status === 413
+              ? "Your photos are too large. Please remove one or choose smaller images."
+              : "Could not submit your review. Please try again.")
+        );
+      }
 
       setSubmitted(true);
       setFormOpen(false);

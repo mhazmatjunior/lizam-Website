@@ -10,18 +10,42 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const MAX_BODY_CHARS = 2000;
 const MAX_NAME_CHARS = 60;
 
+const VISITOR_COOKIE = 'lz_rv';
+const VISITOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
 /**
- * Coarse per-visitor marker, used only to stop one person rating the same
- * product over and over. Hashed so no raw IP is stored, and deliberately not
- * treated as an identity — it is best-effort spam friction, nothing more.
+ * Coarse per-browser marker, used only to stop one person rating the same
+ * product over and over. Deliberately not treated as an identity — it is
+ * best-effort spam friction, nothing more; moderation is the real gate.
+ *
+ * It used to be a hash of IP + user agent, but that blocked different people
+ * who share a network (a household on one Wi-Fi, a mobile carrier putting
+ * thousands of phones behind one IP) and happen to have the same browser.
+ * A random id in a cookie belongs to one browser only.
  */
-function visitorFingerprint(req: NextRequest): string {
-  const ip =
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown';
-  const ua = req.headers.get('user-agent') || '';
-  return createHash('sha256').update(`${ip}|${ua}`).digest('hex').slice(0, 32);
+function visitorId(req: NextRequest): { id: string; isNew: boolean } {
+  const existing = req.cookies.get(VISITOR_COOKIE)?.value;
+  if (existing && /^[0-9a-f-]{36}$/.test(existing)) return { id: existing, isNew: false };
+  return { id: crypto.randomUUID(), isNew: true };
+}
+
+/** Stored value; hashed so the cookie itself never sits in the database. */
+function fingerprintOf(id: string): string {
+  return createHash('sha256').update(`visitor|${id}`).digest('hex').slice(0, 32);
+}
+
+/** Sets the visitor cookie on a response. Only needed once a review is stored under the id. */
+function withVisitor(res: NextResponse, visitor: { id: string; isNew: boolean }): NextResponse {
+  if (visitor.isNew) {
+    res.cookies.set(VISITOR_COOKIE, visitor.id, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/api/reviews',
+      maxAge: VISITOR_COOKIE_MAX_AGE,
+    });
+  }
+  return res;
 }
 
 /**
@@ -144,9 +168,28 @@ export async function POST(req: NextRequest) {
         .maybeSingle();
 
       isVerified = Boolean(order && ['paid', 'shipped'].includes(order.status));
+
+      // One review per order per product, whichever device it comes from.
+      if (isVerified) {
+        const { data: prior } = await supabaseAdmin
+          .from('reviews')
+          .select('id')
+          .eq('product_id', productId)
+          .eq('order_id', orderId)
+          .neq('status', 'rejected')
+          .limit(1);
+
+        if (prior?.length) {
+          return NextResponse.json(
+            { error: 'This order has already been used to review this product' },
+            { status: 409 }
+          );
+        }
+      }
     }
 
-    const fingerprint = visitorFingerprint(req);
+    const visitor = visitorId(req);
+    const fingerprint = fingerprintOf(visitor.id);
 
     // Photos: validated by content, not by filename or the declared MIME type.
     const files = form.getAll('photos').filter((f): f is File => f instanceof File && f.size > 0);
@@ -202,7 +245,7 @@ export async function POST(req: NextRequest) {
       // The partial unique index on (product_id, fingerprint).
       if (error.code === '23505' || /duplicate key/i.test(error.message)) {
         return NextResponse.json(
-          { error: 'You have already reviewed this product' },
+          { error: 'You have already reviewed this product from this browser' },
           { status: 409 }
         );
       }
@@ -210,7 +253,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`⭐ Review ${created.id} submitted for product ${productId} (${rating}/5)`);
-    return NextResponse.json({ success: true, verified: isVerified });
+    return withVisitor(NextResponse.json({ success: true, verified: isVerified }), visitor);
   } catch (error: any) {
     console.error('❌ Review submit error:', error.message);
     return NextResponse.json({ error: 'Could not submit your review' }, { status: 500 });
