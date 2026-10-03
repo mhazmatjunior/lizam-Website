@@ -13,7 +13,7 @@ import {
 export const metadata: Metadata = {
   title: "Contact Us | RAANAE",
   description:
-    "Reach RAANAE by email. Support hours, response times, and how to get help with an order, a return, a payment or a complaint.",
+    "Reach RAANAE by phone, WhatsApp or email. Support hours, response times, and how to get help with an order, a return, a payment or a complaint.",
 };
 
 /**

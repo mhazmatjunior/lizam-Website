@@ -4,10 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Instagram, Facebook, ShoppingBag } from "lucide-react";
+import { Instagram, Facebook, ShoppingBag, Phone, MessageCircle } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import CheckoutModal from "./components/CheckoutModal";
-import { LEGAL_PAGES } from "@/data/legal";
+import { BUSINESS, LEGAL_PAGES, telHref, whatsappHref } from "@/data/legal";
 
 export default function Home() {
   const { setIsCartOpen, itemsCount } = useCart();
@@ -471,6 +471,45 @@ export default function Home() {
 
             </div>
 
+            {/* Highlighted contact block. The number and its tel:/wa.me links
+                come from BUSINESS, so it only ever changes in src/data/legal.ts. */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="w-full max-w-3xl mb-12 sm:mb-16 rounded-[20px] border border-[#e2bb61]/50 bg-gradient-to-br from-[#e2bb61]/15 via-black/40 to-[#e2bb61]/5 px-6 py-8 md:px-10 md:py-10 flex flex-col items-center text-center shadow-[0_0_40px_rgba(226,187,97,0.15)]"
+            >
+              <span className="text-[10px] md:text-[11px] uppercase tracking-[0.35em] font-black text-[#e2bb61] mb-3">
+                Contact Us
+              </span>
+              <a
+                href={telHref(BUSINESS.phone) ?? undefined}
+                className="text-white text-2xl md:text-4xl font-bold tracking-wider hover:text-[#e2bb61] transition-colors mb-2"
+              >
+                {BUSINESS.phone}
+              </a>
+              <p className="text-white/60 text-xs md:text-sm tracking-wide mb-6">
+                {BUSINESS.hours}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center w-full sm:w-auto">
+                <a
+                  href={telHref(BUSINESS.phone) ?? undefined}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#e2bb61] text-black px-7 py-3 text-[11px] uppercase font-black tracking-[0.2em] hover:bg-white transition-colors"
+                >
+                  <Phone className="w-4 h-4" /> Call Now
+                </a>
+                <a
+                  href={whatsappHref(BUSINESS.whatsapp) ?? undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-[#e2bb61] text-[#e2bb61] px-7 py-3 text-[11px] uppercase font-black tracking-[0.2em] hover:bg-[#e2bb61] hover:text-black transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" /> WhatsApp
+                </a>
+              </div>
+            </motion.div>
+
             {/* Social Icons Links */}
             <div className="flex gap-8 items-center justify-center mb-10">
               <a 
@@ -504,6 +543,8 @@ export default function Home() {
                 </p>
                 <p className="ds-footer-body whitespace-nowrap text-[#3d2e13]">
                   Our Touch Point: <a href="mailto:raanae980@gmail.com" className="underline hover:text-black transition-colors">raanae980@gmail.com</a>
+                  <br />
+                  Call / WhatsApp: <a href={telHref(BUSINESS.phone) ?? undefined} className="underline hover:text-black transition-colors">{BUSINESS.phone}</a>
                 </p>
               </div>
 
