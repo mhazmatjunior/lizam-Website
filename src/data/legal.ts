@@ -23,11 +23,11 @@ export const BUSINESS = {
   /** Confirmed: set as the site's contact address in commit 6c08fc0. */
   email: "raanae980@gmail.com",
 
-  /** Confirmed: customer-service mobile (0347 4006780). */
-  phone: "+92 347 4006780",
+  /** Confirmed: customer-service mobile (0337 4006780). */
+  phone: "+92 337 4006780",
 
   /** WhatsApp number for order support — the same line as `phone`. */
-  whatsapp: "+92 347 4006780",
+  whatsapp: "+92 337 4006780",
 
   /** PLACEHOLDER — registered/business address required on a contact page. */
   address: "PLACEHOLDER — registered business address, City, Pakistan",
