@@ -28,6 +28,7 @@ import { useProducts } from "@/context/ProductContext";
 import { newOrderId } from "@/lib/order-id";
 import { type PreorderStage } from "@/lib/preorder";
 import { BANK_ACCOUNTS, type PayMethod } from "@/data/bank-details";
+import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
 
 /**
  * What /api/preorders/coupon returns for an applied pre-order coupon code.
@@ -139,7 +140,7 @@ export default function CheckoutPage() {
     phone: "",
   });
 
-  const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(250);
+  const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(COD_DELIVERY_FEE);
 
   // --- Pre-order coupon code -----------------------------------------------
   // Every pre-order is issued a unique coupon code, shown on its thank-you
@@ -229,6 +230,14 @@ export default function CheckoutPage() {
   // Calculation Logic
   const codDeliveryFee = paymentMethod === 'cod' ? standardDeliveryFee : 0;
   const totalAmount = subtotal + codDeliveryFee;
+
+  // What each option costs, shown on both cards whichever is selected.
+  const codTotal = subtotal + standardDeliveryFee;
+  // COD is booked with a fixed advance; the rest is paid in cash at the door.
+  const codAdvance = Math.min(COD_ADVANCE, codTotal);
+  const codCashDue = codTotal - codAdvance;
+  // What the customer sends by bank / wallet transfer right now.
+  const amountToTransfer = paymentMethod === 'cod' ? codAdvance : totalAmount;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -852,13 +861,16 @@ export default function CheckoutPage() {
                       {paymentMethod === 'online' && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
                     </div>
                     <div>
-                      <h4 className="text-xs font-black uppercase tracking-widest text-white flex items-center gap-2">
-                        Online Payment (Full Amount)
-                        <span className="text-[7px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">Free Shipping</span>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-white flex flex-wrap items-center gap-2">
+                        Online Payment
+                        <span className="text-[7px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">{ONLINE_DISCOUNT_PERCENT}% Off + Free Delivery</span>
                       </h4>
-                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Manual Bank / Wallet Transfer</p>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">
+                        Pay the full Rs {subtotal.toLocaleString()} by bank / wallet transfer. You get {ONLINE_DISCOUNT_PERCENT}% discount and free delivery.
+                      </p>
                     </div>
                   </div>
+                  <span className="text-sm font-black text-gold whitespace-nowrap pl-3">Rs {subtotal.toLocaleString()}</span>
                 </div>
 
                 {/* Option 2: Cash on Delivery (COD) */}
@@ -872,10 +884,12 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <h4 className="text-xs font-black uppercase tracking-widest text-white">Cash on Delivery</h4>
-                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">Pay Rs {standardDeliveryFee} advance payment for delivery charges. Pay product amount on doorstep.</p>
+                      <p className="text-[9px] uppercase tracking-wider text-white/40 mt-0.5">
+                        Pay Rs {codAdvance.toLocaleString()} in advance to book your order, then pay the remaining Rs {codCashDue.toLocaleString()} in cash on delivery.
+                      </p>
                     </div>
                   </div>
-                  <span className="text-[7px] font-black uppercase tracking-widest bg-white/10 text-white/60 px-2 py-0.5 rounded border border-white/10">+ Rs {standardDeliveryFee} Delivery</span>
+                  <span className="text-sm font-black text-white/70 whitespace-nowrap pl-3">Rs {codTotal.toLocaleString()}</span>
                 </div>
 
               </div>
@@ -884,7 +898,7 @@ export default function CheckoutPage() {
               {paymentMethod === 'cod' && (
                 <div className="p-4 rounded-xl bg-gold/10 border border-gold/30 flex items-center gap-3 text-[10px] text-gold font-bold uppercase tracking-wider">
                   <Sparkles className="w-4 h-4 shrink-0" />
-                  <span>💡 Tip: Select <strong>Online Payment</strong> to get 100% FREE delivery!</span>
+                  <span>💡 Tip: Pay <strong>online</strong> to save Rs {standardDeliveryFee.toLocaleString()} &mdash; {ONLINE_DISCOUNT_PERCENT}% discount + FREE delivery!</span>
                 </div>
               )}
             </section>
@@ -970,6 +984,14 @@ export default function CheckoutPage() {
                   {/* Account Details Box, rendered from the configured account
                       so the numbers here and on the pre-order page cannot drift. */}
                   <div className="bg-black/60 border border-white/5 rounded-xl p-4 space-y-3">
+                    <div className="flex justify-between text-[10px] font-bold uppercase pb-2 border-b border-white/5">
+                      <span className="text-white/40">
+                        {!isPreorder && paymentMethod === 'cod' ? 'Advance To Send' : 'Amount To Send'}
+                      </span>
+                      <span className="text-gold font-black">
+                        Rs {(isPreorder && preorder ? preorder.balanceAmount : amountToTransfer).toLocaleString()}
+                      </span>
+                    </div>
                     <div className="flex justify-between text-[10px] font-bold uppercase">
                       <span className="text-white/40">
                         {manualAccount.method === 'bank' ? 'Bank Name' : 'Wallet'}
@@ -1121,15 +1143,15 @@ export default function CheckoutPage() {
 
                 {!isPreorder && paymentMethod === 'cod' && (
                   <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/60 font-bold">
-                    <span>COD Delivery Fee (Upfront)</span>
-                    <span className="text-gold">Rs {standardDeliveryFee}</span>
+                    <span>Cash On Delivery Charges</span>
+                    <span className="text-gold">Rs {standardDeliveryFee.toLocaleString()}</span>
                   </div>
                 )}
 
                 {!isPreorder && (
                   <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold">
                     <span>Shipping</span>
-                    <span className="text-gold">{paymentMethod === 'online' ? 'FREE (ONLINE PROMO)' : 'STANDARD'}</span>
+                    <span className="text-gold">{paymentMethod === 'online' ? `FREE + ${ONLINE_DISCOUNT_PERCENT}% OFF (ONLINE)` : 'STANDARD'}</span>
                   </div>
                 )}
 
@@ -1141,6 +1163,19 @@ export default function CheckoutPage() {
                     Rs {(isPreorder && preorder ? preorder.balanceAmount : totalAmount).toLocaleString()}
                   </span>
                 </div>
+
+                {!isPreorder && paymentMethod === 'cod' && (
+                  <div className="space-y-2 rounded-xl bg-gold/5 border border-gold/20 p-4">
+                    <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold">
+                      <span>Pay Now (Advance)</span>
+                      <span className="text-gold">Rs {codAdvance.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold text-white/60">
+                      <span>Pay In Cash On Delivery</span>
+                      <span>Rs {codCashDue.toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Guarantees */}

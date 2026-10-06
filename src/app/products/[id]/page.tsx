@@ -28,6 +28,7 @@ import {
   PRODUCT_GALLERY,
 } from "@/data/brand";
 import { BUSINESS } from "@/data/legal";
+import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
 import ProductGallery from "@/app/components/ProductGallery";
 import ReviewSection from "@/app/components/ReviewSection";
 import SiteFooter from "@/app/components/SiteFooter";
@@ -43,6 +44,19 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [activeNote, setActiveNote] = useState<"top" | "heart" | "base">("top");
   const [activeTab, setActiveTab] = useState<"details" | "reviews">("details");
+  // Admin-editable COD charge, fetched the way checkout fetches it.
+  const [codFee, setCodFee] = useState<number>(COD_DELIVERY_FEE);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings?.deliveryFee !== undefined) setCodFee(data.settings.deliveryFee);
+      })
+      .catch(() => {
+        /* Keep the default. */
+      });
+  }, []);
 
   useEffect(() => {
     // Wait for the catalogue to arrive; redirecting while it is still empty
@@ -169,8 +183,24 @@ export default function ProductDetailPage() {
                 })()}
               </div>
 
-              {/* Price sits under the highlight block, not beside the title. */}
-              <p className="text-2xl font-black text-white/90">Rs {product.price.toLocaleString()}</p>
+              {/* Price sits under the highlight block, not beside the title.
+                  Online and COD prices differ, so both are spelled out. */}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40">Pay Online</p>
+                  <p className="text-2xl font-black text-white/90">Rs {product.price.toLocaleString()}</p>
+                  <p className="text-[11px] text-emerald-500 font-bold">
+                    {ONLINE_DISCOUNT_PERCENT}% discount + free delivery when you pay online
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40">Cash On Delivery</p>
+                  <p className="text-lg font-black text-white/70">Rs {(product.price + codFee).toLocaleString()}</p>
+                  <p className="text-[11px] text-white/50">
+                    Pay Rs {COD_ADVANCE.toLocaleString()} in advance to book your order, then pay the rest in cash.
+                  </p>
+                </div>
+              </div>
 
             </motion.div>
 

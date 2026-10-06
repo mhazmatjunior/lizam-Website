@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { COD_ADVANCE, COD_DELIVERY_FEE } from "@/data/pricing";
 
 /**
  * The published delivery charges.
@@ -8,12 +9,12 @@ import { useEffect, useState } from "react";
  * The standard COD fee is admin-editable (app_settings.delivery_fee), so it is
  * fetched the same way checkout fetches it rather than hard-coded here -- a
  * policy page quoting a fee the shop no longer charges is exactly the sort of
- * thing a compliance review picks up. 200 is the API's own default and is used
- * until the request resolves.
+ * thing a compliance review picks up. COD_DELIVERY_FEE is the API's own default
+ * and is used until the request resolves.
  *
  */
 export default function DeliveryChargesTable() {
-  const [codFee, setCodFee] = useState<number>(250);
+  const [codFee, setCodFee] = useState<number>(COD_DELIVERY_FEE);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -32,12 +33,12 @@ export default function DeliveryChargesTable() {
     {
       method: "Paid in advance (card, wallet or bank transfer)",
       charge: "Free",
-      note: "Delivery is free nationwide when the full amount is paid before dispatch.",
+      note: "Delivery is free nationwide, plus a 10% discount, when the full amount is paid before dispatch.",
     },
     {
       method: "Cash on Delivery",
       charge: `Rs ${codFee.toLocaleString("en-PK")}`,
-      note: "The delivery charge is paid in advance to confirm the order; the product amount is paid in cash at your door.",
+      note: `Rs ${COD_ADVANCE.toLocaleString("en-PK")} is paid in advance to book the order; the rest of the total is paid in cash at your door.`,
     },
   ];
 

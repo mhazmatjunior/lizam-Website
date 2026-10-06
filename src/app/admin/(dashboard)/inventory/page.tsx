@@ -79,9 +79,9 @@ export default function InventoryPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Global Delivery Fee Modal State
-  const [globalDeliveryFee, setGlobalDeliveryFee] = useState<number>(250);
+  const [globalDeliveryFee, setGlobalDeliveryFee] = useState<number>(400);
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
-  const [newDeliveryFeeInput, setNewDeliveryFeeInput] = useState<string>("250");
+  const [newDeliveryFeeInput, setNewDeliveryFeeInput] = useState<string>("400");
   const [isSavingFee, setIsSavingFee] = useState(false);
 
   React.useEffect(() => {
@@ -618,7 +618,7 @@ export default function InventoryPage() {
                       min="0"
                       value={newDeliveryFeeInput}
                       onChange={(e) => setNewDeliveryFeeInput(e.target.value)}
-                      placeholder="e.g. 250"
+                      placeholder="e.g. 400"
                       className="w-full bg-white/[0.03] border border-white/10 focus:border-gold/50 rounded-2xl pl-12 pr-4 py-3.5 text-sm text-white font-bold outline-none"
                     />
                   </div>

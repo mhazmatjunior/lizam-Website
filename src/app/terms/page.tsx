@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage, { Section, Bullets, Callout, PolicyLink, SubHeading } from "@/app/components/LegalPage";
 import { BUSINESS, ORDER_POLICY, RESPONSE_TIMES, isPlaceholder } from "@/data/legal";
+import { COD_ADVANCE } from "@/data/pricing";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions | RAANAE",
@@ -180,7 +181,7 @@ export default function TermsPage() {
           not a concluded contract. An order may be verified before it is accepted and
           dispatched. A contract between you and {BUSINESS.brandName} comes into effect
           only when we confirm your order &mdash; that is, once payment is received or
-          verified (or, for Cash on Delivery, once the advance delivery charge is
+          verified (or, for Cash on Delivery, once the advance is
           received) and we have sent you an order confirmation.
         </p>
         <p>We may contact you, using the details you gave us, to confirm:</p>
@@ -229,9 +230,9 @@ export default function TermsPage() {
 
         <SubHeading>Cash on Delivery</SubHeading>
         <p>
-          The delivery charge is paid in advance to confirm the order, and the product
-          amount is paid in cash to the courier at your door. Please have the exact amount
-          ready. The advance delivery charge covers the cost of sending the parcel and is
+          An advance of Rs {COD_ADVANCE.toLocaleString("en-PK")} is paid to book the order,
+          and the rest of the total is paid in cash to the courier at your door. Please have
+          the exact amount ready. The advance covers the cost of sending the parcel and is
           not refundable once the parcel has been dispatched.
         </p>
       </Section>

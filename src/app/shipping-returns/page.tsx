@@ -57,8 +57,8 @@ export default function ShippingReturnsPage() {
         <DeliveryChargesTable />
         <Callout title="Free delivery when you pay in advance">
           Pay the full amount up front — by card, mobile wallet or bank transfer — and we
-          deliver anywhere in {BUSINESS.country} at no delivery cost. The delivery charge
-          applies only where payment is collected at your door.
+          deliver anywhere in {BUSINESS.country} at no delivery cost, with a 10% discount.
+          The COD charge applies only where payment is collected at your door.
         </Callout>
       </Section>
 
@@ -137,7 +137,7 @@ export default function ShippingReturnsPage() {
               re-delivery or courier charge before it is dispatched a second time, because
               the first delivery has already been paid for.
             </>,
-            "If a Cash on Delivery parcel is refused at the door, or delivery fails because the address or phone number was incorrect, the advance delivery charge is not refundable, as the delivery cost has already been incurred.",
+            "If a Cash on Delivery parcel is refused at the door, or delivery fails because the address or phone number was incorrect, the advance payment is not refundable, as the delivery cost has already been incurred.",
             "If you would rather not receive a returned prepaid parcel again, we refund the product amount in full.",
             "Please check the parcel in front of the courier where you can, and refuse it if the outer packaging is visibly damaged or the seal is broken.",
           ]}
