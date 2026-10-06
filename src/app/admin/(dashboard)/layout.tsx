@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
-import { 
+import {
   LayoutDashboard,
   Package,
   ShoppingCart,
@@ -16,14 +16,12 @@ import {
   Menu,
   ArrowLeft,
   TrendingUp,
-  Clock
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Audit", href: "/admin/audit", icon: Calculator },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
-  { name: "Pre-Orders", href: "/admin/preorders", icon: Clock },
   { name: "Approvals", href: "/admin/approvals", icon: ShieldCheck },
   { name: "Inventory", href: "/admin/inventory", icon: Package },
   { name: "Profit & Loss", href: "/admin/profit-loss", icon: TrendingUp },

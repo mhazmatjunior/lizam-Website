@@ -11,7 +11,7 @@ import { isAdminRequest } from "@/lib/auth";
  * fees. It has to live in the database.
  */
 
-const DEFAULT_DELIVERY_FEE = 200;
+const DEFAULT_DELIVERY_FEE = 250;
 
 async function readDeliveryFee(): Promise<number> {
   const { data, error } = await supabaseAdmin

@@ -139,7 +139,7 @@ export default function CheckoutPage() {
     phone: "",
   });
 
-  const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(200);
+  const [standardDeliveryFee, setStandardDeliveryFee] = useState<number>(250);
 
   // --- Pre-order coupon code -----------------------------------------------
   // Every pre-order is issued a unique coupon code, shown on its thank-you
@@ -1122,7 +1122,7 @@ export default function CheckoutPage() {
                 {!isPreorder && paymentMethod === 'cod' && (
                   <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/60 font-bold">
                     <span>COD Delivery Fee (Upfront)</span>
-                    <span className="text-gold">Rs 200</span>
+                    <span className="text-gold">Rs {standardDeliveryFee}</span>
                   </div>
                 )}
 

@@ -3,7 +3,7 @@
 // the product price. The product price itself lives in the database.
 //
 // The rule is: pay the full amount up front and delivery is free; pay at the
-// door and delivery costs Rs 200. Bank transfer is also payment in advance,
+// door and delivery costs Rs 250. Bank transfer is also payment in advance,
 // so it gets free delivery too.
 //
 // Hand delivery by the founder used to be a third option, priced by city.
@@ -16,7 +16,7 @@
 export type PaymentMethod = 'safepay' | 'bank_transfer' | 'cod_standard';
 
 /** Delivery charged when the customer pays cash at the door. */
-export const COD_DELIVERY_FEE = 200;
+export const COD_DELIVERY_FEE = 250;
 
 /** Delivery charge for a given payment method. */
 export function deliveryFee(method: PaymentMethod): number {

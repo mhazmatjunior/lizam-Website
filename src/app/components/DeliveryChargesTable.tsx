@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
  *
  */
 export default function DeliveryChargesTable() {
-  const [codFee, setCodFee] = useState<number>(200);
+  const [codFee, setCodFee] = useState<number>(250);
 
   useEffect(() => {
     fetch("/api/settings")

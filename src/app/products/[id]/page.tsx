@@ -19,17 +19,9 @@ import {
   Info,
   Star,
   ChevronDown,
-  Clock,
   Mail
 } from "lucide-react";
 import { type Product } from "@/data/products";
-import {
-  preorderUnitPrice,
-  promoApplies,
-  PROMO_ENDS_ON_LABEL,
-  PROMO_HEADLINE,
-  PROMO_FREE_DELIVERY,
-} from "@/data/preorder-promo";
 import {
   BRAND_USPS,
   CHARACTERISTICS_HEADING, DEFAULT_CHARACTERISTICS,
@@ -98,17 +90,6 @@ export default function ProductDetailPage() {
     }
     setIsCartOpen(true);
   };
-
-  // A product only counts as pre-orderable when it has a usable deposit set —
-  // the flag alone, with no amount, would render a "pay Rs 0" button.
-  const preorderAmount = Number(product.preorderAmount || 0);
-  // The launch offer, from the same helper the pre-order page and the API use,
-  // so the price quoted here is the one that gets charged.
-  const onOffer = promoApplies(product.price);
-  const preorderPrice = preorderUnitPrice(product.price);
-  const isPreorder =
-    Boolean(product.preorderEnabled) && preorderAmount > 0 && preorderAmount < preorderPrice;
-  const preorderBalance = preorderPrice - preorderAmount;
 
   return (
     <main className="min-h-screen bg-black text-white font-sans selection:bg-gold/30">
@@ -189,65 +170,8 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Price sits under the highlight block, not beside the title. */}
-              {isPreorder && onOffer ? (
-                <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1">
-                  <p className="text-2xl font-black text-gold">
-                    Rs {preorderPrice.toLocaleString()}
-                  </p>
-                  <p className="text-base font-bold text-white/30 line-through">
-                    Rs {product.price.toLocaleString()}
-                  </p>
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 rounded-full">
-                    {PROMO_HEADLINE}
-                  </span>
-                </div>
-              ) : (
-                <p className="text-2xl font-black text-white/90">Rs {product.price.toLocaleString()}</p>
-              )}
+              <p className="text-2xl font-black text-white/90">Rs {product.price.toLocaleString()}</p>
 
-              {/* Pre-order terms, stated before the customer commits: what they
-                  pay now, and what is left to pay later. */}
-              {isPreorder && (
-                <div className="bg-gold/[0.07] border border-gold/25 rounded-2xl p-5 space-y-3">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-gold" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.25em] text-gold">
-                        Available for Pre-Order
-                      </span>
-                    </div>
-                    {onOffer && (
-                      <span className="text-[9px] font-black uppercase tracking-[0.15em] text-emerald-400">
-                        Until {PROMO_ENDS_ON_LABEL}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Pay now</span>
-                    <span className="text-xl font-black text-gold">
-                      Rs {preorderAmount.toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="text-[10px] leading-relaxed text-white/50">
-                    Reserve yours with a Rs {preorderAmount.toLocaleString()} deposit. The remaining{" "}
-                    <strong className="text-white/70">Rs {preorderBalance.toLocaleString()}</strong>
-                    {onOffer && PROMO_FREE_DELIVERY ? (
-                      <>
-                        {" "}
-                        is payable later at checkout with your pre-order coupon code once your fragrance is
-                        ready to dispatch. Delivery is included &mdash; pre-order before{" "}
-                        {PROMO_ENDS_ON_LABEL} and there is nothing more to pay.
-                      </>
-                    ) : (
-                      <>
-                        {" "}
-                        plus delivery is payable later at checkout with your pre-order coupon code once your
-                        fragrance is ready to dispatch.
-                      </>
-                    )}
-                  </p>
-                </div>
-              )}
             </motion.div>
 
             {/* Olfactory Pyramid (Notes) */}
@@ -318,26 +242,13 @@ export default function ProductDetailPage() {
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            {/* A pre-order is a deposit against a single product, so it goes
-                straight to its own checkout rather than into the bag, where it
-                would be indistinguishable from a full-price item. */}
-            {isPreorder ? (
-              <Link
-                href={`/preorder/${product.id}?qty=${quantity}`}
-                className="flex-grow btn-premium-gold h-16 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] group shadow-[0_20px_40px_rgba(200,164,77,0.2)]"
-              >
-                Pre-Order &mdash; Pay Rs {(preorderAmount * quantity).toLocaleString()}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            ) : (
-              <button
-                onClick={handleAddToCart}
-                className="flex-grow btn-premium-gold h-16 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] group shadow-[0_20px_40px_rgba(200, 164, 77,0.2)]"
-              >
-                Add to Bag
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-            )}
+            <button
+              onClick={handleAddToCart}
+              className="flex-grow btn-premium-gold h-16 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] group shadow-[0_20px_40px_rgba(200, 164, 77,0.2)]"
+            >
+              Add to Bag
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
 
           {/* Tabs for the content below. Details is shown by default; picking a
