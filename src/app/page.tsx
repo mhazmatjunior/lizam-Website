@@ -179,7 +179,7 @@ export default function Home() {
       <header className="header">
         <div className="wrap nav">
           <a className="logo" href="#" aria-label="Raanae home">
-            <Image className="logo-image" src="/home/raanae-logo.webp" alt="Raanae" width={216} height={132} priority />
+            <Image className="logo-image" src="/raanae-logo.webp" alt="Raanae" width={1538} height={2176} priority />
           </a>
           <nav className="desktop-links" aria-label="Main navigation">
             {NAV.map((l) => (
@@ -533,7 +533,7 @@ export default function Home() {
           <div className="footer-grid">
             <div className="footer-brand">
               <a className="logo" href="#" aria-label="Raanae home">
-                <Image className="logo-image" src="/home/raanae-logo.webp" alt="Raanae" width={296} height={216} />
+                <Image className="logo-image" src="/raanae-logo.webp" alt="Raanae" width={1538} height={2176} />
               </a>
               <p>A Pakistani fragrance house.<br />Inspired by freedom. Carried with purpose.</p>
               <div className="footer-contact">
