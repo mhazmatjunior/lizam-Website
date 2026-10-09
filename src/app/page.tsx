@@ -504,6 +504,9 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Closing call-to-action and contact card, hidden for now. To bring it
+            back, remove this comment wrapper. The number and its links come
+            from BUSINESS, so they only ever change in src/data/legal.ts.
         <section className="final-cta" aria-labelledby="final-title">
           <div className="wrap reveal">
             <div className="eyebrow gold">Raanae · Chapter 01</div>
@@ -511,8 +514,6 @@ export default function Home() {
             <p>7th October. The beginning of a lasting story.</p>
             <a className="button" href="#fragrance">Discover 7th October</a>
 
-            {/* Support line. The number and its links come from BUSINESS, so it
-                only ever changes in src/data/legal.ts. */}
             <div>
               <div className="contact-card">
                 <span className="eyebrow gold">Contact us</span>
@@ -526,6 +527,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        */}
       </main>
 
       <footer className="footer">
