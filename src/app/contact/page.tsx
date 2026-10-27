@@ -11,7 +11,8 @@ import {
 } from "@/data/legal";
 
 export const metadata: Metadata = {
-  title: "Contact Us | RAANAE",
+  title: "Contact Us",
+  alternates: { canonical: "/contact" },
   description:
     "Reach RAANAE by phone, WhatsApp or email. Support hours, response times, and how to get help with an order, a return, a payment or a complaint.",
 };

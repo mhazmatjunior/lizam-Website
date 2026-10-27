@@ -3,7 +3,8 @@ import LegalPage, { Section, Bullets, Callout, Steps, PolicyLink } from "@/app/c
 import { BUSINESS, RESPONSE_TIMES, ORDER_POLICY, isPlaceholder } from "@/data/legal";
 
 export const metadata: Metadata = {
-  title: "Complaint Handling | RAANAE",
+  title: "Complaint Handling",
+  alternates: { canonical: "/complaints" },
   description:
     "How to submit a complaint to RAANAE, what to include, how long we take to acknowledge and resolve it, how we investigate, and how to escalate if you are not satisfied.",
 };

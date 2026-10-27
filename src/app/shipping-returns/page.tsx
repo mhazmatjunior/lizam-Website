@@ -4,7 +4,8 @@ import DeliveryChargesTable from "@/app/components/DeliveryChargesTable";
 import { BUSINESS, ORDER_POLICY, RESPONSE_TIMES, isPlaceholder } from "@/data/legal";
 
 export const metadata: Metadata = {
-  title: "Shipping, Returns & Refunds | RAANAE",
+  title: "Shipping, Returns & Refunds",
+  alternates: { canonical: "/shipping-returns" },
   description:
     "RAANAE's shipping, exchange, return, refund and order cancellation policies: delivery charges and timelines, how to cancel, and how refunds are paid.",
 };

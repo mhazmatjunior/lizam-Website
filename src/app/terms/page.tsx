@@ -4,7 +4,8 @@ import { BUSINESS, ORDER_POLICY, RESPONSE_TIMES, isPlaceholder } from "@/data/le
 import { COD_ADVANCE } from "@/data/pricing";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions | RAANAE",
+  title: "Terms & Conditions",
+  alternates: { canonical: "/terms" },
   description:
     "The terms on which RAANAE sells fragrances through this website, including orders, pricing, payment, delivery, returns and liability.",
 };

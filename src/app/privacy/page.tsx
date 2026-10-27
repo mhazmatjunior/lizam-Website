@@ -3,7 +3,8 @@ import LegalPage, { Section, Bullets, Callout, PolicyLink, SubHeading } from "@/
 import { BUSINESS, DATA_PROCESSORS, RESPONSE_TIMES, isPlaceholder } from "@/data/legal";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | RAANAE",
+  title: "Privacy Policy",
+  alternates: { canonical: "/privacy" },
   description:
     "What information RAANAE collects when you use this website, place an order or contact us, how we use and share it, how long we keep it, and the choices available to you.",
 };
