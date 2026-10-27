@@ -9,6 +9,7 @@ import { BUSINESS, LEGAL_PAGES, telHref, whatsappHref } from "@/data/legal";
 import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
 import { trackViewItem } from "@/lib/analytics";
 import { TRUST_POINTS } from "@/data/trust";
+import { factsFor } from "@/data/product-facts";
 import { useStickyBuyBar } from "@/lib/use-sticky-buy-bar";
 import "./home.css";
 
@@ -180,6 +181,7 @@ export default function Home() {
   const price = product?.price;
   const money = (n: number) => `Rs ${n.toLocaleString()}`;
   const outOfStock = product !== undefined && product.stock <= 0;
+  const facts = factsFor(PRODUCT_ID);
   const tel = telHref(BUSINESS.phone) ?? undefined;
   const wa = whatsappHref(BUSINESS.whatsapp) ?? undefined;
 
@@ -234,12 +236,20 @@ export default function Home() {
           <div className="wrap hero-inner">
             <div className="hero-copy">
               <div className="eyebrow gold">Independent spirit. Pakistani soul.</div>
-              <h1 id="hero-title">A presence.<br /><em>A purpose.</em></h1>
+              {/* DEV-01: the brief's headline and single primary CTA, with the
+                  price, so the first screen says what, why and how much. */}
+              <h1 id="hero-title" className="vision">Every vision has a date it became real. <em>Ours is Oct&nbsp;7.</em></h1>
               <p className="hero-description">
-                Introducing 7th October. Our debut fragrance, inspired by the courage to stand tall and the freedom to be.
+                7th October is our debut fragrance, inspired by the courage to stand tall and the freedom to be.
               </p>
+              {price !== undefined && (
+                <p className="hero-price">
+                  <strong>{money(price)}</strong>
+                  <span>{ONLINE_DISCOUNT_PERCENT}% off + free delivery when you pay online</span>
+                </p>
+              )}
               <div className="hero-ctas">
-                <a className="button" href="#fragrance">Discover the fragrance</a>
+                <a className="button" href="#fragrance">Experience Oct 7</a>
                 <a className="text-link" href="#story">The story behind it</a>
               </div>
               <div className="launch-note">The first fragrance by Raanae</div>
@@ -323,10 +333,14 @@ export default function Home() {
                 <p className="small-notice">
                   <Link href={PRODUCT_HREF} className="text-link" style={{ fontSize: 11, padding: 0 }}>Full product details</Link>
                 </p>
+                {/* From src/data/product-facts.ts, the same source as the
+                    product page. Unconfirmed facts (concentration, size) stay
+                    hidden until the client confirms them. */}
                 <dl className="product-facts">
                   <div><dt>The house</dt><dd>Raanae, Pakistan</dd></div>
-                  <div><dt>Longevity</dt><dd>12+ hours</dd></div>
-                  <div><dt>Oil concentration</dt><dd>40%</dd></div>
+                  <div><dt>Wear</dt><dd>{facts?.longevityShort ?? "Long-lasting"}</dd></div>
+                  {facts?.concentration && <div><dt>Concentration</dt><dd>{facts.concentration}</dd></div>}
+                  {facts?.sizeMl && <div><dt>Size</dt><dd>{facts.sizeMl} ml</dd></div>}
                   <div><dt>Made for</dt><dd>Him &amp; her</dd></div>
                 </dl>
               </div>
@@ -616,7 +630,7 @@ export default function Home() {
           ))}
           <a href="#faq" onClick={() => setMenuOpen(false)}>A few questions</a>
         </nav>
-        <a href="#fragrance" className="button" onClick={() => setMenuOpen(false)}>Discover 7th October</a>
+        <a href="#fragrance" className="button" onClick={() => setMenuOpen(false)}>Experience Oct 7</a>
       </div>
     </div>
   );
