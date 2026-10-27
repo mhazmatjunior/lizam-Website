@@ -2,11 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { newOrderId } from '@/lib/order-id';
 import { isAdminRequest } from '@/lib/auth';
+import { sanitizeAttribution } from '@/lib/attribution';
 import { 
   sendOrderConfirmationEmail, 
   sendPaymentVerifiedEmail, 
   sendOrderShippedEmail 
 } from '@/lib/email';
+
+const ATTRIBUTION_COLUMNS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'attribution'];
+
+/**
+ * Inserts an order row. If the attribution columns are missing (migration 010
+ * not run), retries once without them, so campaign data never blocks an order.
+ * Mutates `row` to drop those keys, which keeps later fallback retries clean.
+ */
+async function insertOrder(row: any) {
+  let result = await supabaseAdmin.from('orders').insert([row]).select('*').single();
+  if (result.error && ATTRIBUTION_COLUMNS.some((c) => result.error!.message.includes(c))) {
+    console.warn('⚠️ Order attribution columns missing; run migration 010. Saving without them.');
+    for (const c of ATTRIBUTION_COLUMNS) delete row[c];
+    result = await supabaseAdmin.from('orders').insert([row]).select('*').single();
+  }
+  return result;
+}
 
 // POST - Create a new order in Supabase
 export async function POST(req: NextRequest) {
@@ -52,11 +70,19 @@ export async function POST(req: NextRequest) {
       delivery_fee: delivery_fee || 0
     };
 
-    let { data: newOrder, error } = await supabaseAdmin
-      .from('orders')
-      .insert([insertObj])
-      .select('*')
-      .single();
+    // Campaign attribution. The flat columns take the last campaign touch,
+    // falling back to the first visit when there was only one.
+    const attribution = sanitizeAttribution(body.attribution);
+    if (attribution) {
+      const touch = attribution.last ?? attribution.first ?? {};
+      insertObj.utm_source = touch.utm_source ?? null;
+      insertObj.utm_medium = touch.utm_medium ?? null;
+      insertObj.utm_campaign = touch.utm_campaign ?? null;
+      insertObj.utm_content = touch.utm_content ?? null;
+      insertObj.attribution = attribution;
+    }
+
+    let { data: newOrder, error } = await insertOrder(insertObj);
 
     if (error) {
       console.warn('⚠️ Standard insert failed, retrying with compatible fallback keys...', error.message);
@@ -73,22 +99,14 @@ export async function POST(req: NextRequest) {
 
       insertObj.product = `${insertObj.product} ${metaTag}`;
 
-      const retryResult = await supabaseAdmin
-        .from('orders')
-        .insert([insertObj])
-        .select('*')
-        .single();
+      const retryResult = await insertOrder(insertObj);
       
       if (retryResult.error) {
         // Ultimate fallback: if product string is still too long, store ONLY screenshot URL tag
         let compactTag = `[ss:${encodeURIComponent(payment_screenshot || '')}]`;
         insertObj.product = `${insertObj.product.slice(0, 100)} ${compactTag}`;
         delete insertObj.payment_method;
-        const ultimateResult = await supabaseAdmin
-          .from('orders')
-          .insert([insertObj])
-          .select('*')
-          .single();
+        const ultimateResult = await insertOrder(insertObj);
 
         if (ultimateResult.error) throw ultimateResult.error;
         newOrder = ultimateResult.data;
@@ -278,6 +296,10 @@ export async function GET() {
         paymentSubMethod: paySubMethod,
         paymentScreenshot: payScreenshot,
         deliveryFee: o.delivery_fee || 0,
+        utmSource: o.utm_source || '',
+        utmMedium: o.utm_medium || '',
+        utmCampaign: o.utm_campaign || '',
+        utmContent: o.utm_content || '',
         createdAt: o.created_at,
         updatedAt: o.updated_at
       };

@@ -23,7 +23,8 @@ import {
   CheckCheck,
   ExternalLink,
   Printer,
-  Pencil
+  Pencil,
+  Globe
 } from "lucide-react";
 import { paymentLabel } from "@/data/payment-labels";
 
@@ -41,6 +42,10 @@ interface Order {
   paymentSubMethod?: string;
   paymentScreenshot?: string;
   deliveryFee?: number;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -354,6 +359,20 @@ const OrderDetailsModal = ({
             label="Payment & Delivery Mode"
             value={`${paymentLabel(order.paymentMethod)}${order.paymentSubMethod ? ` (${order.paymentSubMethod})` : ''}`}
             index={5}
+          />
+          <DetailRow
+            icon={Globe}
+            label="Traffic Source"
+            value={
+              order.utmSource || order.utmCampaign
+                ? [
+                    [order.utmSource, order.utmMedium].filter(Boolean).join(" / "),
+                    order.utmCampaign,
+                    order.utmContent,
+                  ].filter(Boolean).join(" · ")
+                : "Direct / unknown"
+            }
+            index={6}
           />
         </div>
 

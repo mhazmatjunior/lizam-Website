@@ -56,6 +56,7 @@ import { CartProvider } from "@/context/CartContext";
 import { ProductProvider } from "@/context/ProductContext";
 import CartDrawer from "./components/CartDrawer";
 import MetaPixel from "./components/MetaPixel";
+import AttributionCapture from "./components/AttributionCapture";
 
 export default function RootLayout({
   children,
@@ -73,6 +74,7 @@ export default function RootLayout({
         className="antialiased selection:bg-gold selection:text-black"
       >
         <MetaPixel />
+        <AttributionCapture />
         <ProductProvider>
           <CartProvider>
             {children}

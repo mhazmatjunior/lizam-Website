@@ -29,6 +29,7 @@ import { newOrderId } from "@/lib/order-id";
 import { type PreorderStage } from "@/lib/preorder";
 import { BANK_ACCOUNTS, type PayMethod } from "@/data/bank-details";
 import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
+import { getAttribution } from "@/lib/attribution";
 
 /**
  * What /api/preorders/coupon returns for an applied pre-order coupon code.
@@ -435,7 +436,8 @@ export default function CheckoutPage() {
         payment_sub_method: subMethod === 'manual' ? manualAccountType : subMethod,
         payment_screenshot: screenshotUrl || null,
         delivery_fee: codDeliveryFee,
-        status: calculatedStatus
+        status: calculatedStatus,
+        attribution: getAttribution(),
       };
 
       // If choosing Safepay online payment, store pending order details locally and redirect to Safepay portal.
