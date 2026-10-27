@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
 import { useProducts } from "@/context/ProductContext";
+import { trackAddToCart } from "@/lib/analytics";
 
 export interface CartItem {
   id: number;
@@ -14,7 +15,7 @@ export interface CartItem {
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: any) => void;
+  addToCart: (product: any, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
@@ -68,16 +69,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [cart, products]);
 
-  const addToCart = (product: any) => {
+  // One call per click, with the chosen quantity, so analytics records one
+  // add_to_cart of N rather than N separate events.
+  const addToCart = (product: any, quantity = 1) => {
+    const qty = Math.max(1, Math.floor(quantity));
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
       if (existingItem) {
         return prevCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id ? { ...item, quantity: item.quantity + qty } : item
         );
       }
-      return [...prevCart, { ...product, quantity: 1 }];
+      return [...prevCart, { ...product, quantity: qty }];
     });
+    trackAddToCart({ id: product.id, name: product.name, price: Number(product.price), quantity: qty });
     setIsCartOpen(true); // Open cart door when item is added
   };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -34,10 +34,12 @@ import ReviewSection from "@/app/components/ReviewSection";
 import SiteFooter from "@/app/components/SiteFooter";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
+import { trackViewItem } from "@/lib/analytics";
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const viewedId = useRef<number | null>(null);
   const { addToCart, setIsCartOpen } = useCart();
   const { products, isLoading } = useProducts();
   const [product, setProduct] = useState<Product | null>(null);
@@ -67,6 +69,11 @@ export default function ProductDetailPage() {
     const foundProduct = products.find((p) => p.id === id);
     if (foundProduct) {
       setProduct(foundProduct);
+      // Once per product: the catalogue can reload and re-run this effect.
+      if (viewedId.current !== foundProduct.id) {
+        viewedId.current = foundProduct.id;
+        trackViewItem({ id: foundProduct.id, name: foundProduct.name, price: foundProduct.price });
+      }
     } else {
       router.push("/products");
     }
@@ -99,9 +106,7 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addToCart(product);
-    }
+    addToCart(product, quantity);
     setIsCartOpen(true);
   };
 

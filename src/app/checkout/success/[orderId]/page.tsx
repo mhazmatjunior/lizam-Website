@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { CheckCircle, Upload, Loader2, Clock, AlertCircle } from 'lucide-react';
 import { VERIFICATION_WINDOW, PROOF_ACCEPTED_LABEL, PROOF_MAX_BYTES } from '@/data/bank-details';
+import { trackPurchase } from '@/lib/analytics';
 
 type OrderState = {
   orderId: string;
@@ -40,6 +41,15 @@ export default function SuccessPage({ params }: { params: Promise<{ orderId: str
         const data = await res.json();
         const found: OrderState | undefined = data.order;
         setOrder(found ?? null);
+
+        // Purchase, once, for an order placed in this browser. Not for a
+        // Safepay order Safepay has not confirmed, or a cancelled one.
+        // trackPurchase ignores reloads and shared links (lib/analytics.ts).
+        const unconfirmedSafepay =
+          found?.paymentMethod === 'safepay' && found.status === 'pending' && !found.hasProof;
+        if (found && found.status !== 'cancelled' && !unconfirmedSafepay) {
+          trackPurchase(found.orderId, Number(found.amount));
+        }
       } catch (err) {
         console.error('Failed to load order:', err);
       } finally {

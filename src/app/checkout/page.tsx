@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,6 +29,7 @@ import { type PreorderStage } from "@/lib/preorder";
 import { BANK_ACCOUNTS, type PayMethod } from "@/data/bank-details";
 import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
 import { getAttribution } from "@/lib/attribution";
+import { rememberCheckoutItems, trackBeginCheckout } from "@/lib/analytics";
 
 /**
  * What /api/preorders/coupon returns for an applied pre-order coupon code.
@@ -221,6 +222,16 @@ export default function CheckoutPage() {
       })
       .catch((err) => console.error("Failed to load delivery fee:", err));
   }, []);
+
+  // begin_checkout / InitiateCheckout, once per visit to this page. The cart
+  // loads from localStorage after mount, so wait for it. Not for completing a
+  // pre-order, which is a balance payment rather than a new checkout.
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (checkoutTracked.current || isPreorder || cart.length === 0) return;
+    checkoutTracked.current = true;
+    trackBeginCheckout(cart.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })));
+  }, [cart, isPreorder]);
 
   // The account whose details are on screen. Falls back to the first
   // configured one so the box is never blank.
@@ -419,6 +430,8 @@ export default function CheckoutPage() {
       const productSummary = cart.map(item => `${item.name} x${item.quantity}`).join(', ');
       // The server prices the order from these; amount below is display-only.
       const orderItems = cart.map(item => ({ id: item.id, quantity: item.quantity }));
+      // For the Purchase event on the confirmation page (lib/analytics.ts).
+      rememberCheckoutItems(cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity })));
 
       const backendPaymentMethod = paymentMethod === 'cod' ? 'cod_standard' : 'safepay';
 

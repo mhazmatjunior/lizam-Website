@@ -57,6 +57,7 @@ import { ProductProvider } from "@/context/ProductContext";
 import CartDrawer from "./components/CartDrawer";
 import MetaPixel from "./components/MetaPixel";
 import AttributionCapture from "./components/AttributionCapture";
+import GoogleAnalytics from "./components/GoogleAnalytics";
 
 export default function RootLayout({
   children,
@@ -74,6 +75,7 @@ export default function RootLayout({
         className="antialiased selection:bg-gold selection:text-black"
       >
         <MetaPixel />
+        <GoogleAnalytics />
         <AttributionCapture />
         <ProductProvider>
           <CartProvider>

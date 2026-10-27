@@ -7,6 +7,7 @@ import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { BUSINESS, LEGAL_PAGES, telHref, whatsappHref } from "@/data/legal";
 import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
+import { trackViewItem } from "@/lib/analytics";
 import "./home.css";
 
 // The launch fragrance. Price, name and stock come from the live catalogue;
@@ -46,6 +47,15 @@ export default function Home() {
   const { addToCart, setIsCartOpen, itemsCount } = useCart();
   const { products } = useProducts();
   const product = products.find((p) => p.id === PRODUCT_ID);
+
+  // The home page is the product's landing page (price, notes, Add to Bag),
+  // so it counts as a product view. Once per visit, when the price is known.
+  const viewTracked = useRef(false);
+  useEffect(() => {
+    if (!product || viewTracked.current) return;
+    viewTracked.current = true;
+    trackViewItem({ id: product.id, name: product.name, price: product.price });
+  }, [product]);
 
   const [qty, setQty] = useState(1);
   const [activeNote, setActiveNote] = useState(0);
@@ -148,7 +158,7 @@ export default function Home() {
 
   const addToBag = () => {
     if (!product) return;
-    for (let i = 0; i < qty; i++) addToCart(product);
+    addToCart(product, qty);
     setIsCartOpen(true);
   };
 
