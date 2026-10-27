@@ -29,6 +29,7 @@ import { type PreorderStage } from "@/lib/preorder";
 import { BANK_ACCOUNTS, type PayMethod } from "@/data/bank-details";
 import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
 import { getAttribution } from "@/lib/attribution";
+import { normalizePkMobile, PHONE_HINT, PK_PROVINCES } from "@/lib/phone";
 import { rememberCheckoutItems, trackBeginCheckout } from "@/lib/analytics";
 
 /**
@@ -103,6 +104,12 @@ const STAGE_COPY: Record<Exclude<PreorderStage, "pay">, {
   },
 };
 
+/** Form fields in the order they appear, for jumping to the first error. */
+const FIELD_ORDER = ["email", "fullName", "phone", "address", "city", "state", "zipCode"];
+
+const FIELD_CLASS =
+  "w-full bg-white/[0.03] border rounded-xl py-4 px-5 text-base md:text-[12px] font-bold md:tracking-wider focus:outline-none focus:border-gold/40 transition-all";
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, subtotal, clearCart } = useCart();
@@ -157,6 +164,8 @@ export default function CheckoutPage() {
   const [passStage, setPassStage] = useState<PreorderPass | null>(null);
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState<string | null>(null);
+  // Most shoppers have no pre-order code, so the box starts collapsed.
+  const [showCoupon, setShowCoupon] = useState(false);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [balanceDone, setBalanceDone] = useState<{ ref: string; orderId: string | null; isCod: boolean } | null>(null);
   const isPreorder = Boolean(preorder);
@@ -249,6 +258,45 @@ export default function CheckoutPage() {
   const codCashDue = codTotal - codAdvance;
   // What the customer sends by bank / wallet transfer right now.
   const amountToTransfer = paymentMethod === 'cod' ? codAdvance : totalAmount;
+
+  // One text field of the contact / shipping form. 16px text on phones:
+  // iOS Safari zooms the whole page into any field smaller than that.
+  const renderField = (
+    name: keyof typeof formData,
+    label: string,
+    opts: {
+      type?: string;
+      autoComplete: string;
+      inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+      placeholder: string;
+      hint?: string;
+      wide?: boolean;
+    }
+  ) => (
+    <div className={`space-y-2 ${opts.wide ? "md:col-span-2" : ""}`}>
+      <label htmlFor={`checkout-${name}`} className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">
+        {label}
+      </label>
+      <input
+        id={`checkout-${name}`}
+        type={opts.type ?? "text"}
+        name={name}
+        value={formData[name]}
+        onChange={handleInputChange}
+        autoComplete={opts.autoComplete}
+        inputMode={opts.inputMode}
+        placeholder={opts.placeholder}
+        aria-invalid={Boolean(errors[name])}
+        aria-describedby={errors[name] ? `checkout-${name}-error` : undefined}
+        className={`${FIELD_CLASS} placeholder:text-white/25 ${errors[name] ? "border-red-500/50" : "border-white/10"}`}
+      />
+      {errors[name] ? (
+        <span id={`checkout-${name}-error`} className="text-[11px] text-red-500 font-bold ml-1 block mt-1">{errors[name]}</span>
+      ) : opts.hint ? (
+        <span className="text-[10px] text-white/35 ml-1 block mt-1">{opts.hint}</span>
+      ) : null}
+    </div>
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -348,11 +396,10 @@ export default function CheckoutPage() {
     const newErrors: Record<string, string> = {};
     if (!formData.fullName.trim()) newErrors.fullName = "Name is required";
     if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Valid email is required";
-    if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
+    if (!normalizePkMobile(formData.phone)) newErrors.phone = PHONE_HINT;
     if (!formData.address.trim()) newErrors.address = "Street address is required";
     if (!formData.city.trim()) newErrors.city = "City is required";
-    if (!formData.state.trim()) newErrors.state = "State is required";
-    if (!formData.zipCode.trim()) newErrors.zipCode = "ZIP/Postal code is required";
+    if (!formData.state.trim()) newErrors.state = "Please choose your province";
 
     // Manual payment screenshot validation
     if (subMethod === 'manual' && !screenshotUrl) {
@@ -360,6 +407,18 @@ export default function CheckoutPage() {
     }
 
     setErrors(newErrors);
+    // Take the shopper to the first problem in page order rather than leaving
+    // them to hunt for a red border on a long mobile form. The payment proof
+    // sits below every field, so it is the target only when nothing else is
+    // wrong.
+    const firstField = FIELD_ORDER.find((k) => newErrors[k]);
+    if (firstField) {
+      const el = document.getElementById(`checkout-${firstField}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.focus({ preventScroll: true });
+    } else if (newErrors.screenshot) {
+      document.querySelector('[data-payment-proof]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     return Object.keys(newErrors).length === 0;
   };
 
@@ -417,16 +476,14 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     if (isPreorder) return handleCompletePreorder();
 
-    if (!validate()) {
-      if (subMethod === 'manual' && !screenshotUrl) {
-        document.querySelector('[data-payment-proof]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      return;
-    }
+    if (!validate()) return;
     setIsSubmitting(true);
 
     try {
-      const fullAddress = `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zipCode}, ${formData.country}`;
+      const fullAddress = [formData.address, formData.city, formData.state, formData.zipCode, formData.country]
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .join(", ");
       const productSummary = cart.map(item => `${item.name} x${item.quantity}`).join(', ');
       // The server prices the order from these; amount below is display-only.
       const orderItems = cart.map(item => ({ id: item.id, quantity: item.quantity }));
@@ -664,7 +721,16 @@ export default function CheckoutPage() {
             {/* Pre-order coupon code. Every pre-order is issued one; entering it
                 here switches the page from the cart to that pre-order's
                 balance. */}
-            {!isPreorder && (
+            {!isPreorder && !showCoupon && (
+              <button
+                type="button"
+                onClick={() => setShowCoupon(true)}
+                className="text-[11px] font-bold text-white/50 underline underline-offset-4 hover:text-gold transition-colors"
+              >
+                Have a pre-order code?
+              </button>
+            )}
+            {!isPreorder && showCoupon && (
               <section className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
                 <div>
                   <h2 className="text-sm font-black uppercase tracking-tight text-slate-900">
@@ -716,19 +782,7 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-black uppercase tracking-tight">Contact Information</h2>
               </div>
               <div className="space-y-4">
-                <div className="relative group">
-                  <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-2 block ml-1">Email Address</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="ENTER YOUR EMAIL..."
-                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all placeholder:text-white/20 ${errors.email ? 'border-red-500/50' : 'border-white/10'}`}
-                    required
-                  />
-                  {errors.email && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.email}</span>}
-                </div>
+                {renderField("email", "Email Address", { type: "email", autoComplete: "email", inputMode: "email", placeholder: "you@example.com", hint: "For your order confirmation" })}
               </div>
             </section>
 
@@ -739,78 +793,29 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-black uppercase tracking-tight">Shipping Details</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">Full Name</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    placeholder="RECEIVER NAME..."
-                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all ${errors.fullName ? 'border-red-500/50' : 'border-white/10'}`}
-                  />
-                  {errors.fullName && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.fullName}</span>}
-                </div>
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">Street Address</label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    placeholder="HOUSE NO, STREET..."
-                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all ${errors.address ? 'border-red-500/50' : 'border-white/10'}`}
-                  />
-                  {errors.address && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.address}</span>}
-                </div>
+                {renderField("fullName", "Full Name", { autoComplete: "name", placeholder: "Receiver’s name", wide: true })}
+                {renderField("phone", "Mobile Number", { type: "tel", autoComplete: "tel", inputMode: "tel", placeholder: "0300 1234567", hint: "The courier will call this number", wide: true })}
+                {renderField("address", "Street Address", { autoComplete: "street-address", placeholder: "House no, street, area", wide: true })}
+                {renderField("city", "City", { autoComplete: "address-level2", placeholder: "e.g. Lahore" })}
                 <div className="space-y-2">
-                  <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">City</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    placeholder="e.g. LAHORE..."
-                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all ${errors.city ? 'border-red-500/50' : 'border-white/10'}`}
-                  />
-                  {errors.city && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.city}</span>}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">State / Province</label>
-                  <input
-                    type="text"
+                  <label htmlFor="checkout-state" className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">Province</label>
+                  <select
+                    id="checkout-state"
                     name="state"
                     value={formData.state}
                     onChange={handleInputChange}
-                    placeholder="STATE..."
-                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all ${errors.state ? 'border-red-500/50' : 'border-white/10'}`}
-                  />
-                  {errors.state && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.state}</span>}
+                    autoComplete="address-level1"
+                    aria-invalid={Boolean(errors.state)}
+                    className={`${FIELD_CLASS} appearance-none ${formData.state ? "" : "text-white/30"} ${errors.state ? "border-red-500/50" : "border-white/10"}`}
+                  >
+                    <option value="" disabled>Choose…</option>
+                    {PK_PROVINCES.map((p) => (
+                      <option key={p} value={p} className="text-black">{p}</option>
+                    ))}
+                  </select>
+                  {errors.state && <span className="text-[11px] text-red-500 font-bold ml-1 block mt-1">{errors.state}</span>}
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">ZIP / Postal Code</label>
-                  <input
-                    type="text"
-                    name="zipCode"
-                    value={formData.zipCode}
-                    onChange={handleInputChange}
-                    placeholder="POSTCODE..."
-                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all ${errors.zipCode ? 'border-red-500/50' : 'border-white/10'}`}
-                  />
-                  {errors.zipCode && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.zipCode}</span>}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1 block ml-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="+92 300 1234567"
-                    className={`w-full bg-white/[0.03] border rounded-xl py-4 px-6 text-[11px] uppercase font-bold tracking-widest focus:outline-none focus:border-gold/30 transition-all ${errors.phone ? 'border-red-500/50' : 'border-white/10'}`}
-                  />
-                  {errors.phone && <span className="text-[9px] text-red-500 font-bold ml-1 block mt-1">{errors.phone}</span>}
-                </div>
+                {renderField("zipCode", "Postal Code (optional)", { autoComplete: "postal-code", inputMode: "numeric", placeholder: "e.g. 54000" })}
               </div>
             </section>
 

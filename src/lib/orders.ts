@@ -4,6 +4,7 @@ import { newOrderId } from '@/lib/order-id';
 import { priceOrder, type PricedOrder } from '@/lib/order-pricing';
 import { sanitizeAttribution } from '@/lib/attribution';
 import { sendOrderConfirmationEmail } from '@/lib/email';
+import { normalizePkMobile, PHONE_HINT } from '@/lib/phone';
 
 // ---------------------------------------------------------------------------
 // Creating orders, shared by /api/orders (COD and bank transfer) and
@@ -72,6 +73,10 @@ export async function createOrder(
   if (!name || !email || !phone || !address) {
     throw new OrderInputError('All customer fields are required');
   }
+  // The courier rings this number before a COD delivery; reject anything
+  // that cannot be a Pakistani mobile, and store one consistent format.
+  const mobile = normalizePkMobile(phone);
+  if (!mobile) throw new OrderInputError(PHONE_HINT);
 
   let priced: PricedOrder;
   try {
@@ -89,7 +94,7 @@ export async function createOrder(
     order_id: orderId,
     name,
     email,
-    phone,
+    phone: mobile,
     address,
     product: priced.summary,
     amount: priced.total,
