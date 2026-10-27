@@ -319,7 +319,7 @@
 .rh .footer-brand{grid-column:1/-1}
 .rh .footer-brand p{max-width:none}
 .rh .footer-bottom{flex-direction:column;gap:9px;font-size:10px}
-.rh .sticky-buy{position:fixed;bottom:0;left:0;right:0;background:#151510ed;backdrop-filter:blur(15px);border-top:1px solid var(--line);z-index:25;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:15px;transform:translateY(110%);transition:transform .3s}
+.rh .sticky-buy{position:fixed;bottom:0;left:0;right:0;background:#151510ed;backdrop-filter:blur(15px);border-top:1px solid var(--line);z-index:25;padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:center;gap:15px;transform:translateY(110%);transition:transform .3s}
 .rh .sticky-buy.shown{transform:translateY(0)}
 .rh .sticky-buy .name{font:21px var(--serif)}
 .rh .sticky-buy small{display:block;font:10px var(--sans);color:var(--muted);margin-top:4px;letter-spacing:.07em}
@@ -431,7 +431,7 @@
 .rh .final-cta h2{font-size:42px}
 .rh .footer-grid{grid-template-columns:1fr}
 .rh .footer-brand{grid-column:auto}
-.rh .sticky-buy{padding:9px 12px}
+.rh .sticky-buy{padding:9px 12px calc(9px + env(safe-area-inset-bottom))}
 .rh .sticky-buy .name{font-size:18px}
 .rh .sticky-buy .button{min-width:112px}
 .rh .drawer{padding:22px 20px}

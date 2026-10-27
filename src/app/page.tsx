@@ -8,6 +8,7 @@ import { useProducts } from "@/context/ProductContext";
 import { BUSINESS, LEGAL_PAGES, telHref, whatsappHref } from "@/data/legal";
 import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
 import { trackViewItem } from "@/lib/analytics";
+import { useStickyBuyBar } from "@/lib/use-sticky-buy-bar";
 import "./home.css";
 
 // The launch fragrance. Price, name and stock come from the live catalogue;
@@ -44,7 +45,8 @@ const NAV = [
 ];
 
 export default function Home() {
-  const { addToCart, setIsCartOpen, itemsCount } = useCart();
+  const { addToCart, setIsCartOpen, itemsCount, isCartOpen } = useCart();
+  const stickyBar = useStickyBuyBar(isCartOpen);
   const { products } = useProducts();
   const product = products.find((p) => p.id === PRODUCT_ID);
 
@@ -60,7 +62,6 @@ export default function Home() {
   const [qty, setQty] = useState(1);
   const [activeNote, setActiveNote] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [stickyShown, setStickyShown] = useState(false);
   // Admin-editable COD charge, fetched the way the product page fetches it.
   const [codFee, setCodFee] = useState<number>(COD_DELIVERY_FEE);
 
@@ -115,7 +116,8 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
-  // Sticky buy bar (mobile) and a gentle parallax on the story photo (desktop).
+  // A gentle parallax on the story photo (desktop). The sticky buy bar has
+  // its own visibility rules (useStickyBuyBar).
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let scheduled = false;
@@ -123,7 +125,6 @@ export default function Home() {
       if (scheduled) return;
       scheduled = true;
       requestAnimationFrame(() => {
-        setStickyShown(window.scrollY > 650);
         const img = storyImgRef.current;
         if (img && !reduced && window.innerWidth > 760) {
           const r = img.parentElement!.getBoundingClientRect();
@@ -301,7 +302,7 @@ export default function Home() {
                     <output aria-live="polite">{qty}</output>
                     <button type="button" aria-label="Increase quantity" disabled={qty === MAX_QTY} onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))}>+</button>
                   </div>
-                  <button className="button" onClick={addToBag} disabled={!product || outOfStock}>
+                  <button ref={stickyBar.ctaRef} className="button" onClick={addToBag} disabled={!product || outOfStock}>
                     {outOfStock ? "Out of stock" : "Add to bag"}
                   </button>
                 </div>
@@ -580,9 +581,17 @@ export default function Home() {
         </div>
       </footer>
 
-      <div className={`sticky-buy${stickyShown ? " shown" : ""}`}>
-        <div className="name">7th October<small>THE FIRST FRAGRANCE BY RAANAE</small></div>
-        <a href="#fragrance" className="button">Order now</a>
+      {/* Mobile buy bar: adds straight to the bag, with the quantity chosen above. */}
+      <div className={`sticky-buy${stickyBar.shown ? " shown" : ""}`} aria-hidden={!stickyBar.shown} inert={!stickyBar.shown}>
+        <div className="name">
+          7th October{qty > 1 ? ` × ${qty}` : ""}
+          <small>{price !== undefined ? `${money(price * qty)} · FREE DELIVERY ONLINE` : "THE FIRST FRAGRANCE BY RAANAE"}</small>
+        </div>
+        {outOfStock ? (
+          <a href="#fragrance" className="button">Out of stock</a>
+        ) : (
+          <button type="button" className="button" onClick={addToBag} disabled={!product}>Add to bag</button>
+        )}
       </div>
 
       <div className={`mobile-menu${menuOpen ? " open" : ""}`} id="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation" inert={!menuOpen}>

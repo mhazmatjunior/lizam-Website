@@ -35,12 +35,14 @@ import SiteFooter from "@/app/components/SiteFooter";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { trackViewItem } from "@/lib/analytics";
+import { useStickyBuyBar } from "@/lib/use-sticky-buy-bar";
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const viewedId = useRef<number | null>(null);
-  const { addToCart, setIsCartOpen } = useCart();
+  const { addToCart, setIsCartOpen, isCartOpen } = useCart();
+  const stickyBar = useStickyBuyBar(isCartOpen);
   const { products, isLoading } = useProducts();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -111,7 +113,8 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white font-sans selection:bg-gold/30">
+    // Bottom padding below lg keeps the footer clear of the sticky buy bar.
+    <main className="min-h-screen bg-black text-white font-sans selection:bg-gold/30 pb-24 lg:pb-0">
       {/* Navigation Header */}
       <header className="px-8 md:px-24 py-6 flex items-center justify-between sticky top-0 bg-black/50 backdrop-blur-xl z-50 border-b border-white/5">
         <Link
@@ -278,6 +281,7 @@ export default function ProductDetailPage() {
               </button>
             </div>
             <button
+              ref={stickyBar.ctaRef}
               onClick={handleAddToCart}
               className="flex-grow btn-premium-gold h-16 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] group shadow-[0_20px_40px_rgba(200, 164, 77,0.2)]"
             >
@@ -509,6 +513,35 @@ export default function ProductDetailPage() {
       </section>
 
       <SiteFooter />
+
+      {/* Sticky Add to Bag, phones and tablets only. Shows once the main button
+          above is off-screen (see useStickyBuyBar); uses the same quantity. */}
+      <div
+        data-sticky-buy
+        aria-hidden={!stickyBar.shown}
+        inert={!stickyBar.shown}
+        className={`lg:hidden fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-black/90 backdrop-blur-xl px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] transition-transform duration-300 ${
+          stickyBar.shown ? "translate-y-0" : "translate-y-full"
+        }`}
+      >
+        <div className="max-w-xl mx-auto flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white truncate">
+              {product.name}{quantity > 1 ? ` × ${quantity}` : ""}
+            </p>
+            <p className="text-sm font-black text-gold">
+              Rs {(product.price * quantity).toLocaleString()}
+              <span className="ml-2 text-[9px] font-bold uppercase tracking-wider text-emerald-500">Free delivery online</span>
+            </p>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            className="shrink-0 btn-premium-gold h-12 px-6 rounded-xl text-[10px] font-black uppercase tracking-[0.2em]"
+          >
+            Add to Bag
+          </button>
+        </div>
+      </div>
     </main>
   );
 }
