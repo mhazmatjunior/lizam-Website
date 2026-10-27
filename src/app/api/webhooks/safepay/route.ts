@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSafepayClient, hasWebhookSecret } from '@/lib/safepay';
-import { supabaseAdmin } from '@/lib/supabase';
-import { sendOrderConfirmationEmail } from '@/lib/email';
+import { markSafepayPaid } from '@/lib/orders';
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,56 +15,28 @@ export async function POST(req: NextRequest) {
     }
 
     const safepay = getSafepayClient();
-    // 1. Verify Webhook Signature
-    const isValid = await (safepay.verify as any).webhook({
-      headers,
-      body: rawBody,
-    });
+    const event = JSON.parse(rawBody);
+
+    // 1. Verify Webhook Signature. The SDK signs JSON.stringify(body.data), so
+    // it needs the parsed body -- passing the raw string threw on every call.
+    const isValid = await (safepay.verify as any).webhook({ headers, body: event });
 
     if (!isValid) {
       console.warn('❌ Safepay Webhook: Invalid Signature');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    // 2. Parse Event
-    const event = JSON.parse(rawBody);
-    console.log('✅ Safepay Webhook Received:', JSON.stringify(event, null, 2));
+    console.log('✅ Safepay Webhook Received:', event.type);
 
-    // 3. Handle specific events (e.g., payment succeeded)
+    // 2. A completed payment marks its order paid -- the same transition the
+    // signed customer return makes, so whichever arrives first wins and the
+    // confirmation email goes out once.
     if (event.type === 'payment.succeeded') {
-       const orderId = event.data.order_id;
-       console.log(`💰 Payment Succeeded for Order: ${orderId}`);
-
-       // Update Order status in Database
-       const { data: order, error: updateError } = await supabaseAdmin
-         .from('orders')
-         .update({ 
-           status: 'paid', 
-           updated_at: new Date().toISOString() 
-         })
-         .eq('order_id', orderId)
-         .select('*')
-         .single();
-
-       if (updateError) {
-         console.error(`❌ Webhook Order Update Error for ${orderId}:`, updateError.message);
-       } else if (order) {
-         console.log(`🔄 Database Status updated to PAID for order: ${orderId}`);
-         try {
-           await sendOrderConfirmationEmail({
-             orderId: order.order_id,
-             name: order.name,
-             email: order.email,
-             phone: order.phone,
-             address: order.address,
-             product: order.product,
-             amount: order.amount,
-             paymentMethod: order.payment_method || 'safepay'
-           });
-         } catch (err: any) {
-           console.error('❌ Failed to send online order confirmation email:', err.message);
-         }
-       }
+      const data = event.data || {};
+      const order = await markSafepayPaid(
+        data.order_id ? { orderId: String(data.order_id) } : { tracker: String(data.tracker || data.token || '') }
+      );
+      if (!order) console.log(`ℹ️ Webhook for ${data.order_id || data.tracker}: already paid or not found`);
     }
 
     return NextResponse.json({ received: true });

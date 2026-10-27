@@ -1,161 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { newOrderId } from '@/lib/order-id';
 import { isAdminRequest } from '@/lib/auth';
-import { sanitizeAttribution } from '@/lib/attribution';
-import { priceOrder } from '@/lib/order-pricing';
+import { createOrder, OrderInputError, sendConfirmation } from '@/lib/orders';
 import { 
-  sendOrderConfirmationEmail, 
   sendPaymentVerifiedEmail, 
   sendOrderShippedEmail 
 } from '@/lib/email';
 
-const ATTRIBUTION_COLUMNS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'attribution'];
-
-/**
- * Inserts an order row. If the attribution columns are missing (migration 010
- * not run), retries once without them, so campaign data never blocks an order.
- * Mutates `row` to drop those keys, which keeps later fallback retries clean.
- */
-async function insertOrder(row: any) {
-  let result = await supabaseAdmin.from('orders').insert([row]).select('*').single();
-  if (result.error && ATTRIBUTION_COLUMNS.some((c) => result.error!.message.includes(c))) {
-    console.warn('⚠️ Order attribution columns missing; run migration 010. Saving without them.');
-    for (const c of ATTRIBUTION_COLUMNS) delete row[c];
-    result = await supabaseAdmin.from('orders').insert([row]).select('*').single();
-  }
-  return result;
-}
-
-// POST - Create a new order in Supabase
+// POST - Create a COD or bank-transfer order. Safepay orders go through
+// /api/checkout, which also opens the payment.
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { 
-      name, 
-      email, 
-      phone, 
-      address, 
-      items,
-      payment_method,
-      payment_sub_method,
-      payment_screenshot,
-      status: requestedStatus
-    } = body;
-
-    if (!name || !email || !phone || !address) {
-      return NextResponse.json({ error: 'All customer fields are required' }, { status: 400 });
-    }
-
-    // Price the order from product ids and quantities against the database.
-    // amount, delivery_fee and product from the browser are ignored: trusting
-    // them let a crafted request place an order at any price.
-    let priced;
-    try {
-      priced = await priceOrder(items, payment_method);
-    } catch (err: any) {
-      return NextResponse.json(
-        { error: `${err.message}. Please refresh the page and try again.` },
-        { status: 400 }
-      );
-    }
-    if (Number(body.amount) !== priced.total) {
-      console.warn(`⚠️ Order total from browser (${body.amount}) differs from server price (${priced.total}); charging server price.`);
-    }
-
-    const orderId = newOrderId();
-    const initialStatus = requestedStatus || (payment_method === 'online_manual' ? 'unverified' : 'pending');
-    
-    let insertObj: any = {
-      order_id: orderId,
-      name,
-      email,
-      phone,
-      address,
-      product: priced.summary,
-      amount: priced.total,
-      currency: 'PKR',
-      status: initialStatus,
-      tracker: null,
-      payment_method,
-      payment_sub_method: payment_sub_method || null,
-      payment_proof_url: payment_screenshot || null,
-      payment_screenshot: payment_screenshot || null,
-      delivery_fee: priced.delivery
-    };
-
-    // Campaign attribution. The flat columns take the last campaign touch,
-    // falling back to the first visit when there was only one.
-    const attribution = sanitizeAttribution(body.attribution);
-    if (attribution) {
-      const touch = attribution.last ?? attribution.first ?? {};
-      insertObj.utm_source = touch.utm_source ?? null;
-      insertObj.utm_medium = touch.utm_medium ?? null;
-      insertObj.utm_campaign = touch.utm_campaign ?? null;
-      insertObj.utm_content = touch.utm_content ?? null;
-      insertObj.attribution = attribution;
-    }
-
-    let { data: newOrder, error } = await insertOrder(insertObj);
-
-    if (error) {
-      console.warn('⚠️ Standard insert failed, retrying with compatible fallback keys...', error.message);
-      // Fallback: strip extended columns if DB schema hasn't migrated yet
-      delete insertObj.payment_sub_method;
-      delete insertObj.payment_screenshot;
-      delete insertObj.delivery_fee;
-
-      // Compact metadata tag encoding to fit safely within PostgreSQL VARCHAR(255) limits
-      let metaTag = `[m:${payment_method}`;
-      if (payment_sub_method) metaTag += `|s:${payment_sub_method}`;
-      if (payment_screenshot) metaTag += `|ss:${encodeURIComponent(payment_screenshot)}`;
-      metaTag += `]`;
-
-      insertObj.product = `${insertObj.product} ${metaTag}`;
-
-      const retryResult = await insertOrder(insertObj);
-      
-      if (retryResult.error) {
-        // Ultimate fallback: if product string is still too long, store ONLY screenshot URL tag
-        let compactTag = `[ss:${encodeURIComponent(payment_screenshot || '')}]`;
-        insertObj.product = `${insertObj.product.slice(0, 100)} ${compactTag}`;
-        delete insertObj.payment_method;
-        const ultimateResult = await insertOrder(insertObj);
-
-        if (ultimateResult.error) throw ultimateResult.error;
-        newOrder = ultimateResult.data;
-      } else {
-        newOrder = retryResult.data;
-      }
-    }
-
-    // Send order confirmation email for new order
-    try {
-      await sendOrderConfirmationEmail({
-        orderId,
-        name,
-        email,
-        phone,
-        address,
-        product: priced.summary,
-        amount: priced.total,
-        paymentMethod: payment_method,
-      });
-    } catch (err: any) {
-      console.error('❌ Failed to send order confirmation email:', err.message);
-    }
-
+    const { orderId, order } = await createOrder(body);
+    await sendConfirmation(order);
     return NextResponse.json({ success: true, orderId });
   } catch (error: any) {
+    if (error instanceof OrderInputError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     console.error('❌ Order Save Error:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-// PATCH - Update order status (called after payment confirmation or by admin)
+// PATCH - Update order status. Admin only, except that a shopper returning
+// from Safepay's cancel page may cancel their own unpaid Safepay order.
 export async function PATCH(req: NextRequest) {
   try {
     const { orderId, status, tracker, deliveryFee } = await req.json();
+
+    // Order references are timestamps and easy to guess, so a shopper must not
+    // be able to mark an order paid, shipped or anything else. "Paid" for
+    // Safepay is set only by the verified return / webhook (lib/orders.ts).
+    if (!(await isAdminRequest())) {
+      if (status !== 'cancelled' || tracker !== undefined || deliveryFee !== undefined) {
+        return NextResponse.json({ error: 'Not authorised' }, { status: 401 });
+      }
+      const { data: cancelled } = await supabaseAdmin
+        .from('orders')
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('order_id', orderId)
+        .eq('status', 'pending')
+        .eq('payment_method', 'safepay')
+        .select('order_id')
+        .maybeSingle();
+      return NextResponse.json({ success: Boolean(cancelled) });
+    }
 
     const updateData: any = {
       updated_at: new Date().toISOString()

@@ -34,28 +34,8 @@ export default function SuccessPage({ params }: { params: Promise<{ orderId: str
 
     (async () => {
       try {
-        // If coming from a successful Safepay online payment redirect, save order to DB now
-        const pendingSafepayRaw = typeof window !== 'undefined' ? sessionStorage.getItem(`pending_safepay_order_${orderId}`) : null;
-        if (pendingSafepayRaw) {
-          try {
-            const pendingPayload = JSON.parse(pendingSafepayRaw);
-            pendingPayload.status = 'paid';
-            pendingPayload.order_id = orderId;
-
-            const saveRes = await fetch('/api/orders', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(pendingPayload),
-            });
-            const saveData = await saveRes.json();
-            if (saveData.success) {
-              sessionStorage.removeItem(`pending_safepay_order_${orderId}`);
-            }
-          } catch (pErr) {
-            console.error('Failed to parse/save pending Safepay order:', pErr);
-          }
-        }
-
+        // Safepay orders are saved and confirmed server-side
+        // (/api/checkout/return); this page only reads the result.
         const res = await fetch(`/api/orders/${orderId}`);
         const data = await res.json();
         const found: OrderState | undefined = data.order;
@@ -148,6 +128,24 @@ export default function SuccessPage({ params }: { params: Promise<{ orderId: str
           <div className="flex justify-center py-4">
             <Loader2 className="w-5 h-5 text-white/30 animate-spin" />
           </div>
+        )}
+
+        {/* Safepay: payment not confirmed (yet) by Safepay's signed return or webhook */}
+        {!loading && order?.paymentMethod === 'safepay' && order.status === 'pending' && !order.hasProof && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-gold/20 bg-gold/[0.03] p-6 space-y-2"
+          >
+            <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-gold flex items-center justify-center gap-2">
+              <Clock className="w-3.5 h-3.5" /> Confirming your payment
+            </h2>
+            <p className="text-white/50 text-xs leading-relaxed">
+              We have not received Safepay&apos;s confirmation yet. If you completed the payment,
+              you will get a confirmation email shortly. If not, your order stays unpaid and
+              you have not been charged.
+            </p>
+          </motion.div>
         )}
 
         {/* Bank transfer: ask for the receipt */}

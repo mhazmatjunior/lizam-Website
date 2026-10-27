@@ -1,56 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSafepayClient } from '@/lib/safepay';
-import { newOrderId } from '@/lib/order-id';
 import { siteUrl } from '@/data/site';
-import { priceOrder } from '@/lib/order-pricing';
+import { createOrder, OrderInputError } from '@/lib/orders';
 
+/**
+ * POST — start a Safepay payment.
+ *
+ * Saves the order first, as `pending`, priced server-side, with Safepay's
+ * tracker in payment_reference. It becomes `paid` only when Safepay's signed
+ * return (/api/checkout/return/[orderId]) or webhook proves the payment.
+ *
+ * The order used to be saved by the browser *after* the redirect, with
+ * status "paid" -- which anyone could send without paying -- and under a new
+ * id the webhook could never match.
+ */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { items, orderId } = body;
-
-    // The charge is priced server-side from the cart. Taking `amount` from the
-    // browser let anyone open a Safepay payment for Rs 1 against a full order.
-    let amount: number;
-    try {
-      amount = (await priceOrder(items, 'safepay')).total;
-    } catch (err: any) {
-      return NextResponse.json(
-        { error: `${err.message}. Please refresh the page and try again.` },
-        { status: 400 }
-      );
-    }
-
     const safepay = getSafepayClient();
 
     // Same source as the pre-order payment links. Falling back to localhost
     // here sent Safepay's post-payment redirect to a machine the customer is
     // not on, stranding them after they had already paid.
     const site = siteUrl();
+    let checkoutUrl = '';
 
-    // Step 1: Create a payment tracker token
-    const payment = await safepay.payments.create({
-      amount,
-      currency: 'PKR',
-    });
+    const { orderId } = await createOrder(
+      { ...body, payment_method: 'safepay', payment_sub_method: 'safepay', payment_screenshot: null },
+      {
+        beforeInsert: async (priced, orderId) => {
+          const payment = await safepay.payments.create({ amount: priced.total, currency: 'PKR' });
+          console.log('📦 Payment tracker created:', payment.token);
 
-    console.log('📦 Payment tracker created:', payment.token);
+          checkoutUrl = safepay.checkout.create({
+            token: payment.token,
+            orderId,
+            redirectUrl: `${site}/api/checkout/return/${orderId}`,
+            cancelUrl: `${site}/checkout/cancel/${orderId}`,
+            source: 'custom',
+            webhooks: true,
+          });
 
-    // Step 2: Generate the official Safepay checkout URL using the SDK
-    const finalOrderId = orderId || newOrderId();
-    const checkoutUrl = safepay.checkout.create({
-      token: payment.token,
-      orderId: finalOrderId,
-      redirectUrl: `${site}/checkout/success/${finalOrderId}`,
-      cancelUrl: `${site}/checkout/cancel/${finalOrderId}`,
-      source: 'custom',
-      webhooks: true,
-    });
+          return { payment_reference: payment.token };
+        },
+      }
+    );
 
-    console.log('🔗 Checkout URL generated:', checkoutUrl);
-
-    return NextResponse.json({ url: checkoutUrl });
+    console.log(`🔗 Safepay checkout opened for ${orderId}`);
+    return NextResponse.json({ url: checkoutUrl, orderId });
   } catch (error: any) {
+    if (error instanceof OrderInputError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     const upstreamStatus = error?.response?.status;
     const upstreamMessage = error?.response?.data?.message || error?.response?.data?.error;
     const message = upstreamMessage || error?.message || 'Unable to initialize Safepay checkout';

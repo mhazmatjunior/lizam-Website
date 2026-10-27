@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
-import { newOrderId } from "@/lib/order-id";
 import { type PreorderStage } from "@/lib/preorder";
 import { BANK_ACCOUNTS, type PayMethod } from "@/data/bank-details";
 import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
@@ -421,10 +420,7 @@ export default function CheckoutPage() {
       // The server prices the order from these; amount below is display-only.
       const orderItems = cart.map(item => ({ id: item.id, quantity: item.quantity }));
 
-      const calculatedStatus = subMethod === 'manual' ? 'unverified' : (paymentMethod === 'cod' ? 'cashondelivery' : 'pending');
       const backendPaymentMethod = paymentMethod === 'cod' ? 'cod_standard' : 'safepay';
-
-      const tempOrderId = newOrderId();
 
       const orderPayload = {
         name: formData.fullName,
@@ -439,24 +435,17 @@ export default function CheckoutPage() {
         payment_sub_method: subMethod === 'manual' ? manualAccountType : subMethod,
         payment_screenshot: screenshotUrl || null,
         delivery_fee: codDeliveryFee,
-        status: calculatedStatus,
         attribution: getAttribution(),
       };
 
-      // If choosing Safepay online payment, store pending order details locally and redirect to Safepay portal.
-      // Order will ONLY be inserted into DB upon successful payment return.
+      // Safepay: the server saves the order as pending, opens the payment for
+      // the server-priced total, and marks it paid only once Safepay's signed
+      // return or webhook confirms it.
       if (paymentMethod === 'online' && subMethod === 'safepay') {
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem(`pending_safepay_order_${tempOrderId}`, JSON.stringify(orderPayload));
-        }
-
         const checkoutRes = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items: orderItems,
-            orderId: tempOrderId,
-          }),
+          body: JSON.stringify(orderPayload),
         });
 
         const checkoutData = await checkoutRes.json();
