@@ -8,6 +8,7 @@ import { useProducts } from "@/context/ProductContext";
 import { BUSINESS, LEGAL_PAGES, telHref, whatsappHref } from "@/data/legal";
 import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
 import { trackViewItem } from "@/lib/analytics";
+import { TRUST_POINTS } from "@/data/trust";
 import { useStickyBuyBar } from "@/lib/use-sticky-buy-bar";
 import "./home.css";
 
@@ -189,9 +190,9 @@ export default function Home() {
 
       <header className="header">
         <div className="wrap nav">
-          <a className="logo" href="#" aria-label="Raanae home">
+          <Link className="logo" href="/" aria-label="Raanae home">
             <Image className="logo-image" src="/raanae-logo.webp" alt="Raanae" width={1538} height={2176} priority />
-          </a>
+          </Link>
           <nav className="desktop-links" aria-label="Main navigation">
             {NAV.map((l) => (
               <a key={l.href} href={l.href}>{l.label}</a>
@@ -306,9 +307,21 @@ export default function Home() {
                     {outOfStock ? "Out of stock" : "Add to bag"}
                   </button>
                 </div>
+                {/* Trust strip: delivery, payment and returns beside the purchase
+                    decision. Copy comes from src/data/trust.ts. */}
+                <ul className="trust-strip" aria-label="Delivery, payment and returns">
+                  {TRUST_POINTS.map((point) => (
+                    <li key={point.title}>
+                      {point.href ? (
+                        <Link href={point.href}><strong>{point.title}</strong><span>{point.detail}</span></Link>
+                      ) : (
+                        <><strong>{point.title}</strong><span>{point.detail}</span></>
+                      )}
+                    </li>
+                  ))}
+                </ul>
                 <p className="small-notice">
-                  Prefer cash? Pay Rs {COD_ADVANCE.toLocaleString()} in advance to book your order, then the rest at the door.{" "}
-                  <Link href={PRODUCT_HREF} className="text-link" style={{ fontSize: 11, padding: 0 }}>Full details</Link>
+                  <Link href={PRODUCT_HREF} className="text-link" style={{ fontSize: 11, padding: 0 }}>Full product details</Link>
                 </p>
                 <dl className="product-facts">
                   <div><dt>The house</dt><dd>Raanae, Pakistan</dd></div>
@@ -545,9 +558,9 @@ export default function Home() {
         <div className="wrap">
           <div className="footer-grid">
             <div className="footer-brand">
-              <a className="logo" href="#" aria-label="Raanae home">
+              <Link className="logo" href="/" aria-label="Raanae home">
                 <Image className="logo-image" src="/raanae-logo.webp" alt="Raanae" width={1538} height={2176} />
-              </a>
+              </Link>
               <p>A Pakistani fragrance house.<br />Inspired by freedom. Carried with purpose.</p>
               <div className="footer-contact">
                 <a href={wa} target="_blank" rel="noopener noreferrer">WhatsApp</a>

@@ -13,8 +13,10 @@ import {
   Sparkles, 
   Droplets, 
   Wind,
-  ShieldCheck,
   Truck,
+  CreditCard,
+  Banknote,
+  RotateCcw,
   ArrowRight,
   Info,
   Star,
@@ -28,6 +30,7 @@ import {
   PRODUCT_GALLERY,
 } from "@/data/brand";
 import { BUSINESS } from "@/data/legal";
+import { TRUST_POINTS, type TrustIcon } from "@/data/trust";
 import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
 import ProductGallery from "@/app/components/ProductGallery";
 import ReviewSection from "@/app/components/ReviewSection";
@@ -36,6 +39,13 @@ import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { trackViewItem } from "@/lib/analytics";
 import { useStickyBuyBar } from "@/lib/use-sticky-buy-bar";
+
+const TRUST_ICONS: Record<TrustIcon, typeof Truck> = {
+  truck: Truck,
+  card: CreditCard,
+  cash: Banknote,
+  return: RotateCcw,
+};
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -290,6 +300,34 @@ export default function ProductDetailPage() {
             </button>
           </div>
 
+          {/* Trust strip: delivery, payment and returns, right at the purchase
+              decision. Copy comes from src/data/trust.ts. */}
+          <ul className="grid grid-cols-2 gap-3" aria-label="Delivery, payment and returns">
+            {TRUST_POINTS.map((point) => {
+              const Icon = TRUST_ICONS[point.icon];
+              const body = (
+                <>
+                  <Icon className="w-4 h-4 text-gold shrink-0 mt-0.5" aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-black uppercase tracking-[0.15em] text-white/85">{point.title}</span>
+                    <span className="block text-[11px] text-white/50 leading-snug mt-0.5">{point.detail}</span>
+                  </span>
+                </>
+              );
+              return (
+                <li key={point.title}>
+                  {point.href ? (
+                    <Link href={point.href} className="flex items-start gap-3 h-full rounded-2xl border border-white/10 bg-white/[0.02] p-3.5 hover:border-gold/30 transition-colors">
+                      {body}
+                    </Link>
+                  ) : (
+                    <div className="flex items-start gap-3 h-full rounded-2xl border border-white/10 bg-white/[0.02] p-3.5">{body}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+
           {/* Tabs for the content below. Details is shown by default; picking a
               tab swaps the panel rather than scrolling past both. */}
           <div className="grid grid-cols-2 gap-4">
@@ -319,17 +357,6 @@ export default function ProductDetailPage() {
             </button>
           </div>
 
-          {/* Trust Indicators */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center justify-center gap-3 text-[9px] uppercase tracking-widest font-bold text-white/30">
-              <ShieldCheck className="w-4 h-4 text-gold/30" />
-              Authenticity Guaranteed
-            </div>
-            <div className="flex items-center justify-center gap-3 text-[9px] uppercase tracking-widest font-bold text-white/30">
-              <Truck className="w-4 h-4 text-gold/30" />
-              Premium Shipping
-            </div>
-          </div>
         </motion.div>
 
         {/* Panel controlled by the tabs above. Only one of Details / Reviews
