@@ -418,6 +418,8 @@ export default function CheckoutPage() {
     try {
       const fullAddress = `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zipCode}, ${formData.country}`;
       const productSummary = cart.map(item => `${item.name} x${item.quantity}`).join(', ');
+      // The server prices the order from these; amount below is display-only.
+      const orderItems = cart.map(item => ({ id: item.id, quantity: item.quantity }));
 
       const calculatedStatus = subMethod === 'manual' ? 'unverified' : (paymentMethod === 'cod' ? 'cashondelivery' : 'pending');
       const backendPaymentMethod = paymentMethod === 'cod' ? 'cod_standard' : 'safepay';
@@ -430,6 +432,7 @@ export default function CheckoutPage() {
         phone: formData.phone,
         address: fullAddress,
         product: productSummary,
+        items: orderItems,
         amount: totalAmount,
         currency: 'PKR',
         payment_method: backendPaymentMethod,
@@ -451,8 +454,7 @@ export default function CheckoutPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            amount: totalAmount,
-            currency: 'PKR',
+            items: orderItems,
             orderId: tempOrderId,
           }),
         });

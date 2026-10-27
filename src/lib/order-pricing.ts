@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase';
-import { deliveryFee, type PaymentMethod } from '@/data/pricing';
+import { type PaymentMethod } from '@/data/pricing';
+import { readDeliveryFee } from '@/lib/settings';
 
 export interface OrderLineInput {
   id: number;
@@ -71,7 +72,9 @@ export async function priceOrder(
     parts.push(`${product.name} x${qty}`);
   }
 
-  const delivery = deliveryFee(method as PaymentMethod);
+  // Paid in advance -> free delivery; COD pays the fee set in the admin, the
+  // same figure checkout displays (see deliveryFee() in data/pricing.ts).
+  const delivery = method === 'cod_standard' ? await readDeliveryFee() : 0;
 
   return {
     subtotal,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { isAdminRequest } from "@/lib/auth";
+import { DEFAULT_DELIVERY_FEE, readDeliveryFee } from "@/lib/settings";
 
 /**
  * Global shop settings, stored in public.app_settings.
@@ -10,23 +11,6 @@ import { isAdminRequest } from "@/lib/auth";
  * appeared to work, then reverted — and two visitors could see two different
  * fees. It has to live in the database.
  */
-
-const DEFAULT_DELIVERY_FEE = 400;
-
-async function readDeliveryFee(): Promise<number> {
-  const { data, error } = await supabaseAdmin
-    .from("app_settings")
-    .select("value")
-    .eq("key", "delivery_fee")
-    .maybeSingle();
-
-  // Missing table or row (migration 006 not run yet) falls back to the default
-  // rather than breaking checkout.
-  if (error || !data) return DEFAULT_DELIVERY_FEE;
-
-  const n = Number(data.value);
-  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_DELIVERY_FEE;
-}
 
 export async function GET() {
   try {

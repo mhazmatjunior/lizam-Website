@@ -2,14 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSafepayClient } from '@/lib/safepay';
 import { newOrderId } from '@/lib/order-id';
 import { siteUrl } from '@/data/site';
+import { priceOrder } from '@/lib/order-pricing';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { amount, currency, orderId } = body;
+    const { items, orderId } = body;
 
-    if (!amount) {
-      return NextResponse.json({ error: 'Amount is required' }, { status: 400 });
+    // The charge is priced server-side from the cart. Taking `amount` from the
+    // browser let anyone open a Safepay payment for Rs 1 against a full order.
+    let amount: number;
+    try {
+      amount = (await priceOrder(items, 'safepay')).total;
+    } catch (err: any) {
+      return NextResponse.json(
+        { error: `${err.message}. Please refresh the page and try again.` },
+        { status: 400 }
+      );
     }
 
     const safepay = getSafepayClient();
@@ -22,7 +31,7 @@ export async function POST(req: NextRequest) {
     // Step 1: Create a payment tracker token
     const payment = await safepay.payments.create({
       amount,
-      currency: currency || 'PKR',
+      currency: 'PKR',
     });
 
     console.log('📦 Payment tracker created:', payment.token);

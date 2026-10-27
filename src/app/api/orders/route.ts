@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { newOrderId } from '@/lib/order-id';
 import { isAdminRequest } from '@/lib/auth';
 import { sanitizeAttribution } from '@/lib/attribution';
+import { priceOrder } from '@/lib/order-pricing';
 import { 
   sendOrderConfirmationEmail, 
   sendPaymentVerifiedEmail, 
@@ -35,18 +36,31 @@ export async function POST(req: NextRequest) {
       email, 
       phone, 
       address, 
-      amount, 
-      currency, 
-      product, 
+      items,
       payment_method,
       payment_sub_method,
       payment_screenshot,
-      delivery_fee,
       status: requestedStatus
     } = body;
 
     if (!name || !email || !phone || !address) {
       return NextResponse.json({ error: 'All customer fields are required' }, { status: 400 });
+    }
+
+    // Price the order from product ids and quantities against the database.
+    // amount, delivery_fee and product from the browser are ignored: trusting
+    // them let a crafted request place an order at any price.
+    let priced;
+    try {
+      priced = await priceOrder(items, payment_method);
+    } catch (err: any) {
+      return NextResponse.json(
+        { error: `${err.message}. Please refresh the page and try again.` },
+        { status: 400 }
+      );
+    }
+    if (Number(body.amount) !== priced.total) {
+      console.warn(`⚠️ Order total from browser (${body.amount}) differs from server price (${priced.total}); charging server price.`);
     }
 
     const orderId = newOrderId();
@@ -58,16 +72,16 @@ export async function POST(req: NextRequest) {
       email,
       phone,
       address,
-      product: product || '7TH OCT (Pre-Order)',
-      amount: amount || 150,
-      currency: currency || 'PKR',
+      product: priced.summary,
+      amount: priced.total,
+      currency: 'PKR',
       status: initialStatus,
       tracker: null,
-      payment_method: payment_method || 'safepay',
+      payment_method,
       payment_sub_method: payment_sub_method || null,
       payment_proof_url: payment_screenshot || null,
       payment_screenshot: payment_screenshot || null,
-      delivery_fee: delivery_fee || 0
+      delivery_fee: priced.delivery
     };
 
     // Campaign attribution. The flat columns take the last campaign touch,
@@ -92,7 +106,7 @@ export async function POST(req: NextRequest) {
       delete insertObj.delivery_fee;
 
       // Compact metadata tag encoding to fit safely within PostgreSQL VARCHAR(255) limits
-      let metaTag = `[m:${payment_method || 'safepay'}`;
+      let metaTag = `[m:${payment_method}`;
       if (payment_sub_method) metaTag += `|s:${payment_sub_method}`;
       if (payment_screenshot) metaTag += `|ss:${encodeURIComponent(payment_screenshot)}`;
       metaTag += `]`;
@@ -123,9 +137,9 @@ export async function POST(req: NextRequest) {
         email,
         phone,
         address,
-        product: product || '7TH OCT (Pre-Order)',
-        amount: amount || 150,
-        paymentMethod: payment_method || 'safepay',
+        product: priced.summary,
+        amount: priced.total,
+        paymentMethod: payment_method,
       });
     } catch (err: any) {
       console.error('❌ Failed to send order confirmation email:', err.message);
