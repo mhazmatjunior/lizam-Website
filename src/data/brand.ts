@@ -15,9 +15,11 @@ export const USP_INTRO =
 
 export const BRAND_USPS: Array<{ title: string; description: string }> = [
   {
-    title: "15 to 20 Hours Ultra-Long Lasting",
+    // Qualified, per the brief: no hour figure until wear testing confirms one
+    // (see src/data/product-facts.ts).
+    title: "Made to Last",
     description:
-      "Formulated at a high concentration to keep you smelling effortless all day and night.",
+      "Built to stay with you through the day. How long it lasts depends on your skin, the climate and how much you apply.",
   },
   {
     title: "Clean & Safe Formulation",
