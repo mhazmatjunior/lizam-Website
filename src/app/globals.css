@@ -755,3 +755,50 @@ body::after {
 .checkout-light .rounded-full.bg-black {
   background-color: #0f172a !important;
 }
+/* ---------------------------------------------------------------------------
+   Product page light theme (client request, Nov 2026: white background).
+   The page is written with dark-theme utilities (bg-black, text-white/NN,
+   border-white/NN); this remaps them on a white surface while keeping the
+   hierarchy the opacity steps expressed. The footer is excluded and stays
+   dark. Exact styling is pending the designer's notes -- adjust here.
+   --------------------------------------------------------------------------- */
+.product-light {
+  --pl-ink: #14130f;
+  --pl-strong: #2a2823;
+  --pl-body: #55524a;
+  --pl-muted: #7a766b;
+  --pl-card: #faf8f4;
+  --pl-line: #e7e1d5;
+  --pl-gold: #8a6d35;
+  background-color: #ffffff !important;
+  color: var(--pl-ink) !important;
+}
+
+/* Surfaces */
+.product-light [class*="bg-black"]:not(footer *) { background-color: #ffffff !important; }
+.product-light [class*="bg-black/"]:not(footer *) { background-color: rgba(255, 255, 255, 0.92) !important; }
+.product-light [class*="bg-white/"]:not(footer *) { background-color: var(--pl-card) !important; }
+.product-light [class*="border-white"]:not(footer *),
+.product-light [class*="border-t-white"]:not(footer *) { border-color: var(--pl-line) !important; }
+
+/* Text: full white = ink; the /NN steps become progressively lighter greys */
+.product-light [class*="text-white"]:not(footer *) { color: var(--pl-ink) !important; }
+.product-light [class*="text-white/8"]:not(footer *),
+.product-light [class*="text-white/9"]:not(footer *) { color: var(--pl-strong) !important; }
+.product-light [class*="text-white/5"]:not(footer *),
+.product-light [class*="text-white/6"]:not(footer *),
+.product-light [class*="text-white/7"]:not(footer *) { color: var(--pl-body) !important; }
+.product-light [class*="text-white/1"]:not(footer *),
+.product-light [class*="text-white/2"]:not(footer *),
+.product-light [class*="text-white/3"]:not(footer *),
+.product-light [class*="text-white/4"]:not(footer *) { color: var(--pl-muted) !important; }
+
+/* Accents darkened for contrast on white */
+.product-light [class*="text-gold"]:not(footer *) { color: var(--pl-gold) !important; }
+.product-light [class*="text-emerald"]:not(footer *) { color: #047857 !important; }
+.product-light [class*="bg-gold/1"]:not(footer *) { background-color: #f3ead6 !important; }
+.product-light .bg-white { background-color: #ffffff !important; }
+/* The gallery's heavy black drop shadow reads as grey bands on white. */
+.product-light [class*="drop-shadow-"]:not(footer *) { filter: drop-shadow(0 18px 30px rgba(20, 19, 15, 0.12)) !important; }
+/* Gallery frame matches the product photos' pure white backgrounds. */
+.product-light [class*="rounded-[40px]"]:not(footer *) { background-color: #ffffff !important; }

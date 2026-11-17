@@ -127,7 +127,7 @@ export default function ProductDetailPage() {
 
   return (
     // Bottom padding below lg keeps the footer clear of the sticky buy bar.
-    <main className="min-h-screen bg-black text-white font-sans selection:bg-gold/30 pb-24 lg:pb-0">
+    <main className="product-light min-h-screen bg-black text-white font-sans selection:bg-gold/30 pb-24 lg:pb-0">
       {/* Navigation Header */}
       <header className="px-8 md:px-24 py-6 flex items-center justify-between sticky top-0 bg-black/50 backdrop-blur-xl z-50 border-b border-white/5">
         <Link
