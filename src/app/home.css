@@ -482,3 +482,12 @@
 .rh .hero-price span{font-size:12px;color:var(--gold);letter-spacing:.04em}
 @media(max-width:760px){.rh .hero h1.vision{font-size:42px}}
 @media(max-width:430px){.rh .hero h1.vision{font-size:clamp(32px,8.6vw,37px);line-height:1.06}.rh .hero-price{margin-top:14px}.rh .hero-price strong{font-size:22px}}
+
+/* Home product highlights (unisex / long-lasting / projection), above the
+   "Order now" button. */
+.rh .highlights{list-style:none;margin:26px 0 4px;padding:0;display:grid;gap:12px}
+.rh .highlights li{display:grid;grid-template-columns:150px 1fr;gap:4px 18px;align-items:baseline;border-top:1px solid rgba(244,240,230,.14);padding-top:12px}
+.rh .highlights strong{font:400 19px var(--serif);color:#e9e4d9}
+.rh .highlights span{font-size:13px;line-height:1.5;color:#bfc0b4}
+.rh .purchase-controls a.button{flex:1;grid-column:1/-1;width:100%}
+@media(max-width:430px){.rh .highlights li{grid-template-columns:1fr}}

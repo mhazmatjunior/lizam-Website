@@ -6,10 +6,9 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductContext";
 import { BUSINESS, LEGAL_PAGES, telHref, whatsappHref } from "@/data/legal";
-import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
 import { trackViewItem } from "@/lib/analytics";
-import { TRUST_POINTS } from "@/data/trust";
-import { factsFor } from "@/data/product-facts";
+import { HOME_TRUST_POINTS } from "@/data/trust";
+import { COMPOSITION, HOME_HIGHLIGHTS } from "@/data/product-facts";
 import { useStickyBuyBar } from "@/lib/use-sticky-buy-bar";
 import "./home.css";
 
@@ -17,28 +16,9 @@ import "./home.css";
 // the id is the fixed products-table id for 7TH OCT.
 const PRODUCT_ID = 71099;
 const PRODUCT_HREF = `/products/${PRODUCT_ID}`;
-const MAX_QTY = 10;
 
-const NOTES = [
-  {
-    id: "first",
-    label: "01 / Top notes",
-    title: "Crisp apple. Rich davana.",
-    body: "A bright, expressive introduction. Crisp apple meets the distinctive richness of davana, opening the story with contrast.",
-  },
-  {
-    id: "heart",
-    label: "02 / Heart notes",
-    title: "Rose. Cedarwood. Osmanthus.",
-    body: "Damask rose and osmanthus unfold against cedarwood, bringing floral nuance and a composed woody character to the heart.",
-  },
-  {
-    id: "trail",
-    label: "03 / Base notes",
-    title: "Vanilla. Tonka. Patchouli.",
-    body: "Vanilla absolute and tonka bean meet the earthy depth of patchouli. A warm, textured close to a personal story.",
-  },
-];
+// The three note layers, shared with the product page.
+const NOTES = COMPOSITION;
 
 const NAV = [
   { href: "#fragrance", label: "The fragrance" },
@@ -47,8 +27,8 @@ const NAV = [
 ];
 
 export default function Home() {
-  const { addToCart, setIsCartOpen, itemsCount, isCartOpen } = useCart();
-  const stickyBar = useStickyBuyBar(isCartOpen);
+  const { setIsCartOpen, itemsCount, isCartOpen } = useCart();
+  const { shown: stickyShown, ctaRef: stickyCtaRef } = useStickyBuyBar(isCartOpen);
   const { products } = useProducts();
   const product = products.find((p) => p.id === PRODUCT_ID);
 
@@ -61,11 +41,8 @@ export default function Home() {
     trackViewItem({ id: product.id, name: product.name, price: product.price });
   }, [product]);
 
-  const [qty, setQty] = useState(1);
   const [activeNote, setActiveNote] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
-  // Admin-editable COD charge, fetched the way the product page fetches it.
-  const [codFee, setCodFee] = useState<number>(COD_DELIVERY_FEE);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const storyImgRef = useRef<HTMLImageElement>(null);
@@ -73,16 +50,6 @@ export default function Home() {
   const menuOpenRef = useRef<HTMLButtonElement>(null);
   const menuCloseRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    fetch("/api/settings")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.settings?.deliveryFee !== undefined) setCodFee(data.settings.deliveryFee);
-      })
-      .catch(() => {
-        /* Keep the default. */
-      });
-  }, []);
 
   // React does not reliably render the `muted` attribute, and iOS refuses to
   // autoplay a film it thinks has sound, so mute and start them by hand.
@@ -159,11 +126,6 @@ export default function Home() {
     };
   }, [menuOpen]);
 
-  const addToBag = () => {
-    if (!product) return;
-    addToCart(product, qty);
-    setIsCartOpen(true);
-  };
 
   const onTabKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
     const n = NOTES.length;
@@ -178,10 +140,6 @@ export default function Home() {
     tabRefs.current[target]?.focus();
   };
 
-  const price = product?.price;
-  const money = (n: number) => `Rs ${n.toLocaleString()}`;
-  const outOfStock = product !== undefined && product.stock <= 0;
-  const facts = factsFor(PRODUCT_ID);
   const tel = telHref(BUSINESS.phone) ?? undefined;
   const wa = whatsappHref(BUSINESS.whatsapp) ?? undefined;
 
@@ -236,18 +194,13 @@ export default function Home() {
           <div className="wrap hero-inner">
             <div className="hero-copy">
               <div className="eyebrow gold">Independent spirit. Pakistani soul.</div>
-              {/* DEV-01: the brief's headline and single primary CTA, with the
-                  price, so the first screen says what, why and how much. */}
+              {/* DEV-01: the brief's headline and single primary CTA. No price
+                  here: the client asked for none on the home page (Nov 2026);
+                  it is shown on the product page and at checkout. */}
               <h1 id="hero-title" className="vision">Every vision has a date it became real. <em>Ours is Oct&nbsp;7.</em></h1>
               <p className="hero-description">
                 7th October is our debut fragrance, inspired by the courage to stand tall and the freedom to be.
               </p>
-              {price !== undefined && (
-                <p className="hero-price">
-                  <strong>{money(price)}</strong>
-                  <span>{ONLINE_DISCOUNT_PERCENT}% off + free delivery when you pay online</span>
-                </p>
-              )}
               <div className="hero-ctas">
                 <a className="button" href="#fragrance">Experience Oct 7</a>
                 <a className="text-link" href="#story">The story behind it</a>
@@ -288,39 +241,22 @@ export default function Home() {
                   A name to remember. A presence that is entirely your own. Our first fragrance brings the spirit of Raanae to life: considered, expressive and grounded in something deeper.
                 </p>
 
-                {/* Online and COD prices differ, so both are spelled out, the
-                    same way the product page shows them. */}
-                <dl className="price-pair">
-                  <div className="online">
-                    <dt>Pay online</dt>
-                    <dd>
-                      <span className="price">{price !== undefined ? money(price) : "—"}</span>
-                      <small>{ONLINE_DISCOUNT_PERCENT}% off + free delivery</small>
-                    </dd>
-                  </div>
-                  <div className="cod">
-                    <dt>Cash on delivery</dt>
-                    <dd>
-                      <span className="price">{price !== undefined ? money(price + codFee) : "—"}</span>
-                      <small>Rs {COD_ADVANCE.toLocaleString()} advance to book</small>
-                    </dd>
-                  </div>
-                </dl>
 
+                {/* Key details, then one button to the product page, where the
+                    shopper sees the price and adds to bag (client request,
+                    Nov 2026: no price or add-to-bag on the home page). */}
+                <ul className="highlights" aria-label="About 7th October">
+                  {HOME_HIGHLIGHTS.map((h) => (
+                    <li key={h.title}><strong>{h.title}</strong><span>{h.body}</span></li>
+                  ))}
+                </ul>
                 <div className="purchase-controls">
-                  <div className="quantity" aria-label="Select quantity">
-                    <button type="button" aria-label="Decrease quantity" disabled={qty === 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
-                    <output aria-live="polite">{qty}</output>
-                    <button type="button" aria-label="Increase quantity" disabled={qty === MAX_QTY} onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))}>+</button>
-                  </div>
-                  <button ref={stickyBar.ctaRef} className="button" onClick={addToBag} disabled={!product || outOfStock}>
-                    {outOfStock ? "Out of stock" : "Add to bag"}
-                  </button>
+                  <Link ref={stickyCtaRef} href={PRODUCT_HREF} className="button">Order now</Link>
                 </div>
                 {/* Trust strip: delivery, payment and returns beside the purchase
                     decision. Copy comes from src/data/trust.ts. */}
                 <ul className="trust-strip" aria-label="Delivery, payment and returns">
-                  {TRUST_POINTS.map((point) => (
+                  {HOME_TRUST_POINTS.map((point) => (
                     <li key={point.title}>
                       {point.href ? (
                         <Link href={point.href}><strong>{point.title}</strong><span>{point.detail}</span></Link>
@@ -330,19 +266,6 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <p className="small-notice">
-                  <Link href={PRODUCT_HREF} className="text-link" style={{ fontSize: 11, padding: 0 }}>Full product details</Link>
-                </p>
-                {/* From src/data/product-facts.ts, the same source as the
-                    product page. Unconfirmed facts (concentration, size) stay
-                    hidden until the client confirms them. */}
-                <dl className="product-facts">
-                  <div><dt>The house</dt><dd>Raanae, Pakistan</dd></div>
-                  <div><dt>Wear</dt><dd>{facts?.longevityShort ?? "Long-lasting"}</dd></div>
-                  {facts?.concentration && <div><dt>Concentration</dt><dd>{facts.concentration}</dd></div>}
-                  {facts?.sizeMl && <div><dt>Size</dt><dd>{facts.sizeMl} ml</dd></div>}
-                  <div><dt>Made for</dt><dd>Him &amp; her</dd></div>
-                </dl>
               </div>
             </div>
           </div>
@@ -517,7 +440,7 @@ export default function Home() {
               </details>
               <details>
                 <summary>How do I order?</summary>
-                <p>Choose your quantity and tap “Add to bag”, then check out. Pay online for {ONLINE_DISCOUNT_PERCENT}% off and free delivery, or choose cash on delivery and pay Rs {COD_ADVANCE.toLocaleString()} in advance to book your order, with the rest paid at the door.</p>
+                <p>Choose your quantity and tap “Add to bag”, then check out. Pay online for free delivery, or choose cash on delivery. You will see the exact price and any delivery charge on the product page and at checkout before you confirm.</p>
               </details>
               <details>
                 <summary>What inspired the fragrance?</summary>
@@ -608,17 +531,13 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Mobile buy bar: adds straight to the bag, with the quantity chosen above. */}
-      <div className={`sticky-buy${stickyBar.shown ? " shown" : ""}`} aria-hidden={!stickyBar.shown} inert={!stickyBar.shown}>
+      {/* Mobile bar: the same "Order now" as the product section, to the product page. */}
+      <div className={`sticky-buy${stickyShown ? " shown" : ""}`} aria-hidden={!stickyShown} inert={!stickyShown}>
         <div className="name">
-          7th October{qty > 1 ? ` × ${qty}` : ""}
-          <small>{price !== undefined ? `${money(price * qty)} · FREE DELIVERY ONLINE` : "THE FIRST FRAGRANCE BY RAANAE"}</small>
+          7th October
+          <small>THE FIRST FRAGRANCE BY RAANAE</small>
         </div>
-        {outOfStock ? (
-          <a href="#fragrance" className="button">Out of stock</a>
-        ) : (
-          <button type="button" className="button" onClick={addToBag} disabled={!product}>Add to bag</button>
-        )}
+        <Link href={PRODUCT_HREF} className="button">Order now</Link>
       </div>
 
       <div className={`mobile-menu${menuOpen ? " open" : ""}`} id="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation" inert={!menuOpen}>

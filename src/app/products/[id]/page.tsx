@@ -28,7 +28,7 @@ import {
 } from "@/data/brand";
 import { BUSINESS } from "@/data/legal";
 import { TRUST_POINTS, type TrustIcon } from "@/data/trust";
-import { factsFor } from "@/data/product-facts";
+import { BOTTLE, CARE, COMPOSITION, PRODUCT_DETAILS, factsFor } from "@/data/product-facts";
 import { COD_ADVANCE, COD_DELIVERY_FEE, ONLINE_DISCOUNT_PERCENT } from "@/data/pricing";
 import ProductGallery from "@/app/components/ProductGallery";
 import ReviewSection from "@/app/components/ReviewSection";
@@ -50,7 +50,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const viewedId = useRef<number | null>(null);
   const { addToCart, setIsCartOpen, isCartOpen } = useCart();
-  const stickyBar = useStickyBuyBar(isCartOpen);
+  const { shown: stickyShown, ctaRef: stickyCtaRef } = useStickyBuyBar(isCartOpen);
   const { products, isLoading } = useProducts();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -266,7 +266,7 @@ export default function ProductDetailPage() {
                   </button>
                 </div>
                 <button
-                  ref={stickyBar.ctaRef}
+                  ref={stickyCtaRef}
                   onClick={handleAddToCart}
                   className="flex-grow btn-premium-gold h-16 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] group shadow-[0_20px_40px_rgba(200, 164, 77,0.2)]"
                 >
@@ -357,6 +357,69 @@ export default function ProductDetailPage() {
                 <p className="text-white/55 text-[14px] leading-relaxed">{product.longDescription}</p>
               </div>
             )}
+
+            {/* About this fragrance: the product details from the brand's
+                design handoff -- facts, the composition, the bottle, and how
+                to wear and care for it. Copy lives in src/data/product-facts.ts. */}
+            <section className="space-y-12" aria-labelledby="about-fragrance">
+              <div className="text-center space-y-3">
+                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.28em] md:tracking-[0.45em] text-gold/70">Product Details</span>
+                <h3 id="about-fragrance" className="text-sm md:text-base font-black uppercase tracking-[0.2em] md:tracking-[0.35em] text-white/80">About This Fragrance</h3>
+                <div className="mx-auto h-px w-12 bg-gold/60" />
+              </div>
+
+              <dl className="grid grid-cols-2 md:grid-cols-4 gap-px rounded-2xl overflow-hidden border border-white/10 bg-white/10">
+                {[
+                  ...PRODUCT_DETAILS,
+                  ...(facts?.sizeMl ? [["Size", `${facts.sizeMl} ml`] as [string, string]] : []),
+                  ...(facts?.concentration ? [["Concentration", facts.concentration] as [string, string]] : []),
+                ].map(([label, value]) => (
+                  <div key={label} className="bg-black px-5 py-5">
+                    <dt className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">{label}</dt>
+                    <dd className="text-[13px] text-white/85 mt-1.5">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <div className="space-y-5">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">The Composition</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {COMPOSITION.map((n) => (
+                    <div key={n.id} className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 space-y-3">
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">{n.label}</p>
+                      <p className="text-[15px] font-black text-white/90">{n.title}</p>
+                      <p className="text-[12px] text-white/55 leading-relaxed">{n.body}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 space-y-4">
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">The Bottle</h4>
+                  <p className="text-[12px] text-white/55 leading-relaxed">{BOTTLE.intro}</p>
+                  <ul className="space-y-3">
+                    {BOTTLE.points.map((pt) => (
+                      <li key={pt.title}>
+                        <p className="text-[13px] font-black text-white/85">{pt.title}</p>
+                        <p className="text-[12px] text-white/50">{pt.body}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 space-y-4">
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">How to Apply &amp; Care</h4>
+                  <ul className="space-y-3">
+                    {CARE.map((line) => (
+                      <li key={line} className="flex gap-3 text-[12px] text-white/60 leading-relaxed">
+                        <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-gold" aria-hidden="true" />
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
 
             {/* Characteristics Section */}
             <motion.div
@@ -537,10 +600,10 @@ export default function ProductDetailPage() {
           above is off-screen (see useStickyBuyBar); uses the same quantity. */}
       <div
         data-sticky-buy
-        aria-hidden={!stickyBar.shown}
-        inert={!stickyBar.shown}
+        aria-hidden={!stickyShown}
+        inert={!stickyShown}
         className={`lg:hidden fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-black/90 backdrop-blur-xl px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] transition-transform duration-300 ${
-          stickyBar.shown ? "translate-y-0" : "translate-y-full"
+          stickyShown ? "translate-y-0" : "translate-y-full"
         }`}
       >
         <div className="max-w-xl mx-auto flex items-center justify-between gap-4">

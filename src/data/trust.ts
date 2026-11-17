@@ -44,3 +44,14 @@ export const TRUST_POINTS: TrustPoint[] = [
     href: "/shipping-returns",
   },
 ];
+
+/**
+ * The home page version: the same four points with no money in them. The
+ * client asked for no price details on the home page (Nov 2026); prices and
+ * the COD advance are shown on the product page and at checkout.
+ */
+export const HOME_TRUST_POINTS: TrustPoint[] = TRUST_POINTS.map((point) => {
+  if (point.icon === "card") return { ...point, title: "Pay online", detail: "Free delivery" };
+  if (point.icon === "cash") return { ...point, detail: "Available nationwide" };
+  return point;
+});
