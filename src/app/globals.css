@@ -727,42 +727,17 @@ body::after {
   font-size: clamp(10px, 1.88vw, calc(36px * var(--ds-cap)));
 }
 
-/* Checkout uses a light surface while retaining the Raanae gold accents. */
-.checkout-light [class*="bg-black"] {
-  background-color: #ffffff !important;
-}
-
-.checkout-light [class*="bg-[#0c0c0c]"] {
-  background-color: #ffffff !important;
-}
-
-.checkout-light [class*="bg-white/"] {
-  background-color: #f8fafc !important;
-}
-
-.checkout-light [class*="border-white"] {
-  border-color: #e2e8f0 !important;
-}
-
-.checkout-light [class*="text-white"] {
-  color: #334155 !important;
-}
-
-.checkout-light [class*="placeholder:text-white"]::placeholder {
-  color: #94a3b8 !important;
-}
-
-.checkout-light .rounded-full.bg-black {
-  background-color: #0f172a !important;
-}
 /* ---------------------------------------------------------------------------
-   Product page light theme (client request, Nov 2026: white background).
+   Shared light theme for the product page and checkout (client request,
+   Nov 2026: white background, one colour scheme for both pages). Warm
+   off-white and dark gold rather than cool slate, to suit the black-and-gold
+   brand.
    The page is written with dark-theme utilities (bg-black, text-white/NN,
    border-white/NN); this remaps them on a white surface while keeping the
    hierarchy the opacity steps expressed. The footer is excluded and stays
    dark. Exact styling is pending the designer's notes -- adjust here.
    --------------------------------------------------------------------------- */
-.product-light {
+.theme-light {
   --pl-ink: #14130f;
   --pl-strong: #2a2823;
   --pl-body: #55524a;
@@ -775,30 +750,54 @@ body::after {
 }
 
 /* Surfaces */
-.product-light [class*="bg-black"]:not(footer *) { background-color: #ffffff !important; }
-.product-light [class*="bg-black/"]:not(footer *) { background-color: rgba(255, 255, 255, 0.92) !important; }
-.product-light [class*="bg-white/"]:not(footer *) { background-color: var(--pl-card) !important; }
-.product-light [class*="border-white"]:not(footer *),
-.product-light [class*="border-t-white"]:not(footer *) { border-color: var(--pl-line) !important; }
+.theme-light [class*="bg-black"]:not(footer *) { background-color: #ffffff !important; }
+.theme-light [class*="bg-black/"]:not(footer *) { background-color: rgba(255, 255, 255, 0.92) !important; }
+.theme-light [class*="bg-white/"]:not(footer *) { background-color: var(--pl-card) !important; }
+.theme-light [class*="border-white"]:not(footer *),
+.theme-light [class*="border-t-white"]:not(footer *) { border-color: var(--pl-line) !important; }
 
 /* Text: full white = ink; the /NN steps become progressively lighter greys */
-.product-light [class*="text-white"]:not(footer *) { color: var(--pl-ink) !important; }
-.product-light [class*="text-white/8"]:not(footer *),
-.product-light [class*="text-white/9"]:not(footer *) { color: var(--pl-strong) !important; }
-.product-light [class*="text-white/5"]:not(footer *),
-.product-light [class*="text-white/6"]:not(footer *),
-.product-light [class*="text-white/7"]:not(footer *) { color: var(--pl-body) !important; }
-.product-light [class*="text-white/1"]:not(footer *),
-.product-light [class*="text-white/2"]:not(footer *),
-.product-light [class*="text-white/3"]:not(footer *),
-.product-light [class*="text-white/4"]:not(footer *) { color: var(--pl-muted) !important; }
+.theme-light [class*="text-white"]:not(footer *) { color: var(--pl-ink) !important; }
+.theme-light [class*="text-white/8"]:not(footer *),
+.theme-light [class*="text-white/9"]:not(footer *) { color: var(--pl-strong) !important; }
+.theme-light [class*="text-white/5"]:not(footer *),
+.theme-light [class*="text-white/6"]:not(footer *),
+.theme-light [class*="text-white/7"]:not(footer *) { color: var(--pl-body) !important; }
+.theme-light [class*="text-white/1"]:not(footer *),
+.theme-light [class*="text-white/2"]:not(footer *),
+.theme-light [class*="text-white/3"]:not(footer *),
+.theme-light [class*="text-white/4"]:not(footer *) { color: var(--pl-muted) !important; }
 
 /* Accents darkened for contrast on white */
-.product-light [class*="text-gold"]:not(footer *) { color: var(--pl-gold) !important; }
-.product-light [class*="text-emerald"]:not(footer *) { color: #047857 !important; }
-.product-light [class*="bg-gold/1"]:not(footer *) { background-color: #f3ead6 !important; }
-.product-light .bg-white { background-color: #ffffff !important; }
+.theme-light [class*="text-gold"]:not(footer *) { color: var(--pl-gold) !important; }
+.theme-light [class*="text-emerald"]:not(footer *) { color: #047857 !important; }
+.theme-light [class*="bg-gold/1"]:not(footer *) { background-color: #f3ead6 !important; }
+.theme-light .bg-white { background-color: #ffffff !important; }
 /* The gallery's heavy black drop shadow reads as grey bands on white. */
-.product-light [class*="drop-shadow-"]:not(footer *) { filter: drop-shadow(0 18px 30px rgba(20, 19, 15, 0.12)) !important; }
+.theme-light [class*="drop-shadow-"]:not(footer *) { filter: drop-shadow(0 18px 30px rgba(20, 19, 15, 0.12)) !important; }
 /* Gallery frame matches the product photos' pure white backgrounds. */
-.product-light [class*="rounded-[40px]"]:not(footer *) { background-color: #ffffff !important; }
+.theme-light [class*="rounded-[40px]"]:not(footer *) { background-color: #ffffff !important; }
+
+/* Checkout is partly written with slate utilities; bring them onto the same
+   warm palette. */
+.theme-light [class*="text-slate-9"]:not(footer *),
+.theme-light [class*="text-slate-8"]:not(footer *) { color: var(--pl-ink) !important; }
+.theme-light [class*="text-slate-7"]:not(footer *) { color: var(--pl-strong) !important; }
+.theme-light [class*="text-slate-6"]:not(footer *) { color: var(--pl-body) !important; }
+.theme-light [class*="text-slate-5"]:not(footer *),
+.theme-light [class*="text-slate-4"]:not(footer *) { color: var(--pl-muted) !important; }
+.theme-light [class*="bg-slate-"]:not(footer *) { background-color: var(--pl-card) !important; }
+.theme-light [class*="border-slate-"]:not(footer *) { border-color: var(--pl-line) !important; }
+.theme-light [class*="bg-[#0c0c0c]"]:not(footer *) { background-color: #ffffff !important; }
+.theme-light .rounded-full.bg-black:not(footer *) { background-color: var(--pl-ink) !important; }
+
+/* Form fields: the attribute rules above also catch "placeholder:text-..."
+   classes, so set typed text and placeholders explicitly. */
+.theme-light input:not(footer *),
+.theme-light select:not(footer *),
+.theme-light textarea:not(footer *) { color: var(--pl-ink) !important; }
+.theme-light ::placeholder { color: #a8a397 !important; }
+
+/* Gallery slide dots: the inactive ones were white-on-dark. */
+.theme-light button[aria-current="false"] > span { background-color: #cfc8b9 !important; }
+.theme-light button[aria-current="false"]:hover > span { background-color: var(--pl-muted) !important; }

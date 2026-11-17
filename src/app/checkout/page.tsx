@@ -586,7 +586,7 @@ export default function CheckoutPage() {
     const showSummary = Boolean(passStage) && passStage!.stage !== "cancelled";
 
     return (
-      <main className="checkout-light min-h-screen bg-white text-slate-900 font-sans flex items-center justify-center px-8 py-20">
+      <main className="theme-light min-h-screen bg-white text-slate-900 font-sans flex items-center justify-center px-8 py-20">
         <div className="max-w-md w-full text-center space-y-6">
           <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto border ${ring}`}>
             {icon}
@@ -661,7 +661,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="checkout-light min-h-screen bg-white text-slate-900 font-sans selection:bg-gold/30 pb-20">
+    <main className="theme-light min-h-screen bg-white text-slate-900 font-sans selection:bg-gold/30 pb-20">
       {/* Header */}
       <header className="px-8 md:px-24 py-10 border-b border-white/5 bg-black/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -1119,7 +1119,7 @@ export default function CheckoutPage() {
                 {!isPreorder && cart.map((item) => (
                   <div key={item.id} className="flex gap-4 items-center">
                     <div className="w-16 h-16 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-center p-2 relative shrink-0">
-                      <Image src={item.image} alt={item.name} fill className="object-contain p-2" />
+                      <Image src={item.image} alt={item.name} fill sizes="80px" className="object-contain p-2" />
                     </div>
                     <div className="flex-grow">
                       <h3 className="text-[10px] font-black uppercase tracking-tight text-white">{item.name}</h3>
